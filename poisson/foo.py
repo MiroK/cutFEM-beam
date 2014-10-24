@@ -95,6 +95,14 @@ def errornorm(u, (U, basis), norm_type, a=0, b=1):
         return sqrt(norm)
 
 
+def sine_basis(N, a, b):
+    x = symbols('x')
+    try:
+        return [S.sin(k*S.pi*(x-a)/(b - a))*S.sqrt(2)/(pi*k) for k in N]
+    except TypeError:
+        return sine_basis(range(1, N), a, b)
+
+
 def solve(f, N, a=0, b=1, eps=__EPS__, n_refs=10):
     '''
     Solve Poisson problem
@@ -111,7 +119,7 @@ def solve(f, N, a=0, b=1, eps=__EPS__, n_refs=10):
     # Assemble matrix
     time_AA = time.time()
 
-    AA = np.diag([pi**2*l*l/(b-a) for l in range(1, N+1)])
+    AA = np.diag([1./(b-a) for l in range(1, N+1)])
 
     time_AA = time.time() - time_AA
 
@@ -121,7 +129,7 @@ def solve(f, N, a=0, b=1, eps=__EPS__, n_refs=10):
     f_lambda = S.lambdify(x, f)
 
     # Make symbolic basis
-    basis = [S.sin(k*S.pi*(x-a)/(b - a))*S.sqrt(2) for k in range(1, N+1)]
+    basis = sine_basis(N+1, a, b)
 
     # Make basis functions on fast evaluation
     basis_lambda = map(lambda f: S.lambdify(x, f), basis)
@@ -178,7 +186,8 @@ if __name__ == '__main__':
 
     a = 0
     b = 1
-    u = exp(x)*x*(1-x)
+    u = exp(x)*x*(1-x)                     # smooth power spectrum
+    # u = exp(-x**2)*x*(1-x)*exp(sin(pi*x))  # rough power spectrum
     problem = manufacture_poisson(u=u, a=a, b=b)
     f = problem['f']
     u_lambda = lambdify(x, u)
@@ -190,7 +199,8 @@ if __name__ == '__main__':
     slope_1 = 1./ks
     slope_2 = 1./ks**2
     slope_3 = 1./ks**3
-    basis = [lambdify(x, sin(k*pi*x)) for k in ks]
+    basis = sine_basis(ks, a, b)
+    basis = map(lambda f: lambdify(x, f), basis)
 
     # u power spectrum
     uk = np.array([sqrt(quad.eval(lambda x: u_lambda(x)*base(x), a, b)**2)
@@ -264,8 +274,8 @@ if __name__ == '__main__':
     plt.loglog(Ns, eH10s, label='$H^1_0$')
     plt.ylabel('$e$')
     plt.xlabel('$N$')
-    plt.loglog(ks, slope_1, '--', label='1')
-    plt.loglog(ks, slope_2, '--', label='2')
+    plt.loglog(ks, 1./ks**1.5, '--', label='1.5')
+    plt.loglog(ks, 1./ks**2.5, '--', label='2.5')
     plt.legend(loc='best')
 
     # Plot condition numbers
