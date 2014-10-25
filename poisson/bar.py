@@ -177,7 +177,7 @@ if __name__ == '__main__':
     x = symbols('x')
     a = 0
     b = 1
-    f = exp(x)*sin(x)
+    f = exp(x)*sin(x*pi)
     problem = manufacture_biharmonic(f=f, a=a, b=b)
     u = problem['u']
 
