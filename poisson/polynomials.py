@@ -30,7 +30,16 @@ def equidistant_points(domain, N):
                                                 for sub, n in zip(domain, N)])])
 
 def chebyshev_points(domain, N):
-    pass
+    '''
+    [-1, -1], [[-1, 1], [-1, 1]]
+    '''
+    try:
+        k = np.arange(1, N+1, 1)
+        return np.cos((2*k-1)*np.pi/2/N)  # check that these are correct
+    except TypeError:
+        return np.array([point
+                         for point in product(*[equidistant_points(sub, n)
+                                                for sub, n in zip(domain, N)])])
 
 def gauss_lobatto_points(domain, N):
     pass
@@ -39,9 +48,34 @@ def gauss_lobatto_points(domain, N):
 
 if __name__ == '__main__':
     from sympy import integrate
+    from scipy.interpolate import BarycentricInterpolator as BI
+    import matplotlib.pyplot as plt
 
-    for p in equidistant_points([[-1, 1], [3, 4]], [4, 3]):
-        print p
+    def f(x):
+        return 1./(1 + 16*x**2)
+
+    x = np.linspace(-1, 1, 200)
+    y = np.array([f(xi) for xi in x])
+
+    N = 13
+    x_e = equidistant_points([-1, 1], N)
+    y_e = np.array([f(xi) for xi in x_e])
+    e_interpolate = BI(x_e, y_e)
+    yy = np.array([e_interpolate(xi) for xi in x])
+
+    x_c = chebyshev_points([-1, 1], N)
+    y_c = np.array([f(xi) for xi in x_c])
+    e_interpolate = BI(x_c, y_c)
+    yyy = np.array([e_interpolate(xi) for xi in x])
+
+    plt.figure()
+    plt.plot(x, y, 'b',label='f')
+    plt.plot(x, yy, 'g',label='eq')
+    plt.plot(x_e, y_e, 'go')
+    plt.plot(x, yyy, 'r', label='cheb')
+    plt.plot(x_c, y_c, 'rs')
+    plt.legend()
+    plt.show()
 
 
     exit()
