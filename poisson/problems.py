@@ -1,15 +1,17 @@
-from sympy import integrate, simplify, diff, symbols, Matrix
+from sympy import integrate, simplify, diff, symbols, Matrix, lambdify
+import numpy as np
 
 
-def manufacture_poisson(**kwargs):
+def manufacture_poisson_1d(**kwargs):
     '''
     Create solution for Poisson problem:
 
-            -u`` = f in (a, b)
+            -E*u`` = f in (a, b)
                u = 0 on {a, b}
     '''
     a = kwargs.get('a', 0)
     b = kwargs.get('b', 1)
+    E = kwargs.get('E', 1.)
     assert a < b
     u = kwargs.get('u', None)
     f = kwargs.get('f', None)
@@ -25,18 +27,24 @@ def manufacture_poisson(**kwargs):
         assert abs(u.evalf(subs={x: b})) < 1E-15
 
         # Match ode
-        assert simplify(f + diff(u, x, 2)) == 0
+        try:
+            assert simplify(f + E*diff(u, x, 2)) == 0
+        # If sympy has problems with 1E-16*sin(x), do eval in points
+        except AssertionError:
+            e = lambdify(x, simplify(f + E*diff(u, x, 2)), 'math')
+            assert all(e(xi) < 1E-15 for xi in np.linspace(a, b, 100))
+
         return kwargs
 
     # Compute f from u
     if u is not None:
-        f = simplify(-diff(u, x, 2))
+        f = simplify(-E*diff(u, x, 2))
         kwargs['f'] = f
-        return manufacture_poisson(**kwargs)
+        return manufacture_poisson_1d(**kwargs)
 
     # Compute u from f
     if f is not None:
-        du = integrate(-f, x)
+        du = integrate(-f/E, x)
         u = integrate(du, x)
         mat = Matrix([[a, 1],
                       [b, 1]])
@@ -44,20 +52,21 @@ def manufacture_poisson(**kwargs):
         vec = Matrix([-u.subs(x, a), -u.subs(x, b)])
         c0, c1 = mat.solve(vec)
         u += c0*x + c1
-        kwargs['u'] = u
-        return manufacture_poisson(**kwargs)
+        kwargs['u'] = simplify(u)
+        return manufacture_poisson_1d(**kwargs)
 
 
-def manufacture_biharmonic(**kwargs):
+def manufacture_biharmonic_1d(**kwargs):
     '''
     Create solution for biharmonic problem:
 
-            -u```` = f in (a, b)
+            -E*u```` = f in (a, b)
            u = u`` = 0 on {a, b}
     '''
     # Inteval [0, 1] by default
     a = kwargs.get('a', 0)
     b = kwargs.get('b', 1)
+    E = kwargs.get('E', 1)
     assert a < b
     u = kwargs.get('u', None)
     f = kwargs.get('f', None)
@@ -79,18 +88,18 @@ def manufacture_biharmonic(**kwargs):
         assert abs(ddu.evalf(subs={x: b})) < 1E-15
 
         # Match original ode
-        assert simplify(f - diff(u, x, 4)) == 0
+        assert simplify(f - E*diff(u, x, 4)) == 0
         return kwargs
 
     # Compute f from u
     if u is not None:
-        f = simplify(diff(u, x, 4))
+        f = simplify(E*diff(u, x, 4))
         kwargs['f'] = f
-        return manufacture_biharmonic(**kwargs)
+        return manufacture_biharmonic_1d(**kwargs)
 
     # Compute u from f
     if f is not None:
-        d3u = integrate(f, x)
+        d3u = integrate(f/E, x)
         d2u = integrate(d3u, x)
         du = integrate(d2u, x)
         u = integrate(du, x)
@@ -109,7 +118,7 @@ def manufacture_biharmonic(**kwargs):
         u += c0*x**3 + c1*x**2 + c2*x + c3
 
         kwargs['u'] = u
-        return manufacture_biharmonic(**kwargs)
+        return manufacture_biharmonic_1d(**kwargs)
 
 # ------------------------------------------------------------------
 
@@ -117,17 +126,16 @@ if __name__ == '__main__':
     from sympy import pi, sin, exp
     x = symbols('x')
 
-    f = x
-    u_dict = manufacture_poisson(f=f, a=-1, b=1)
+    # Create and check 1d poisson solution
+    f = 1
+    u_dict = manufacture_poisson_1d(f=f, a=-1, b=1, E=4.)
     u_dict['f'] = None
-    f_dict = manufacture_poisson(**u_dict)
+    f_dict = manufacture_poisson_1d(**u_dict)
     assert not (f_dict['f'] - f)
-    print f_dict
 
-    f = exp(x)*sin(x)
-    u_dict = manufacture_biharmonic(f=f, a=-1, b=1)
+    # Create and check 1d biharmonic solution
+    f = exp(x)*sin(x*pi)
+    u_dict = manufacture_biharmonic_1d(f=f, a=-1, b=1, E=3.)
     u_dict['f'] = None
-    f_dict = manufacture_biharmonic(**u_dict)
+    f_dict = manufacture_biharmonic_1d(**u_dict)
     assert not (f_dict['f'] - f)
-    print f_dict
-
