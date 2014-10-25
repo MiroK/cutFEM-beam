@@ -95,33 +95,54 @@ def errornorm(u, (U, basis), norm_type, a=0, b=1):
         return sqrt(norm)
 
 
-def solve(f, N, a=0, b=1, eps=__EPS__, n_refs=10):
+def sine_basis(N):
+    '''
+    Return functions sqrt(2)*sin(k*pi*x) for k in Ns (or range(1, N)).
+    These are normalized eigenfunctions of Laplace and biharmonic operators
+    over [0, 1] so that their L^2 inner product is 1.
+    '''
+    x = symbols('x')
+    try:
+        return [S.sin(k*S.pi*x)*S.sqrt(2) for k in N]
+    except TypeError:
+        return sine_basis(range(1, N))
+
+
+def solve(f, N, E=1, a=0, b=1, eps=__EPS__, n_refs=10):
     '''
     Solve Poisson problem
-                         -u^(2) = f in [a, b]
+                         -E*u^(2) = f in [a, b]
                              u = 0 on a, b
 
-    In the variational formulation use N basis function of type sin(i*pi*x)
-    for i = 1, ..., N.
+    In the variational formulation use sine_basis with last function
+    sin(N*pi*x)
     '''
     assert b > a
 
     AA = np.zeros((N, N))
-
-    # Assemble matrix
+    # Assemble matrix the matrix on reference domain [0, 1]
     time_AA = time.time()
 
-    AA = np.diag([pi**2*l*l/(b-a) for l in range(1, N+1)])
+    AA = E*np.diag([pi**2*l**2/(b-a) for l in range(1, N+1)])
 
     time_AA = time.time() - time_AA
 
     x = S.Symbol('x')
 
-    # Make f for fast evaluation
+    # Fast evaluate f with x in [a, b]. In integral we need f pulled back to
+    # reference domain [0, 1]
     f_lambda = S.lambdify(x, f)
 
-    # Make symbolic basis
-    basis = [S.sin(k*S.pi*(x-a)/(b - a))*S.sqrt(2) for k in range(1, N+1)]
+    def F(x_hat):
+        'map [0, 1] to [a, b]'
+        return (b-a)*x_hat + a
+
+    def f_F(x_hat):
+        'f pulled back to reference domain'
+        return f_lambda(F(x_hat))
+
+    # Make symbolic basis on reference domain [0, 1]
+    basis = sine_basis(N+1)
 
     # Make basis functions on fast evaluation
     basis_lambda = map(lambda f: S.lambdify(x, f), basis)
@@ -136,8 +157,8 @@ def solve(f, N, a=0, b=1, eps=__EPS__, n_refs=10):
     time_bb = time.time()
 
     for j, base_lambda in enumerate(basis_lambda):
-        bb[j] = quad.eval(lambda x: base_lambda(x)*f_lambda(x), a=a, b=b)
-
+        bb[j] = quad.eval(lambda x: base_lambda(x)*f_lambda(x), a=0, b=1)
+    bb *= (b-a)
     bb_norm_ = la.norm(bb)
     diff = 1
     ref = 0
@@ -167,10 +188,14 @@ def solve(f, N, a=0, b=1, eps=__EPS__, n_refs=10):
     print 'Solve linear system:', time_solve
 
     cond_AA = la.cond(AA)
+    x = symbols('x')
+    [base.subs(x, (x-a)/(b-a)) for base in basis]
     return U, basis, cond_AA
 
 if __name__ == '__main__':
-    from sympy import symbols, sin, exp, lambdify, pi, diff
+    from sympy import symbols, sin, exp, lambdify, pi, diff, Piecewise, latex
+    from matplotlib import rc
+    rc('text', usetex=True)
     import matplotlib.pyplot as plt
     from qux import manufacture_poisson
 
@@ -178,8 +203,15 @@ if __name__ == '__main__':
 
     a = 0
     b = 1
-    u = exp(x)*x*(1-x)
+
+    u, test_spec = (exp(x)*(x-a)*(x-b), 'test')
+    # u, test_spec = (exp(-x**2)*sin(pi*x)*exp(sin(pi*x**2)), 'rough')
+    # u, test_spec = (exp(-x**2)*x*(1-x)*exp(sin(pi*x)), 'rougher')
+    # u, test_spec = (x*(1-x), 'polyn')
+    # f, test_spec = (Piecewise((1, x < 0.5), (2*x, True)), 'f_kink')
+
     problem = manufacture_poisson(u=u, a=a, b=b)
+    u = problem['u']
     f = problem['f']
     u_lambda = lambdify(x, u)
     f_lambda = lambdify(x, f)
@@ -190,7 +222,8 @@ if __name__ == '__main__':
     slope_1 = 1./ks
     slope_2 = 1./ks**2
     slope_3 = 1./ks**3
-    basis = [lambdify(x, sin(k*pi*x)) for k in ks]
+    basis = sine_basis(ks)
+    basis = map(lambda f: S.lambdify(x, f), basis)
 
     # u power spectrum
     uk = np.array([sqrt(quad.eval(lambda x: u_lambda(x)*base(x), a, b)**2)
@@ -208,6 +241,7 @@ if __name__ == '__main__':
     plt.legend(loc='best')
     plt.xlabel('$k$')
     plt.ylabel('$F_k(u)$')
+    plt.savefig('poisson_power_u_%s.pdf' % test_spec)
 
     # f power spectrum
     fk = np.array([sqrt(quad.eval(lambda x: f_lambda(x)*base(x), a, b)**2)
@@ -225,6 +259,7 @@ if __name__ == '__main__':
     plt.loglog(ks, slope_2, '--', label='2')
     plt.loglog(ks, slope_3, '--', label='3')
     plt.legend(loc='best')
+    plt.savefig('poisson_power_f_%s.pdf' % test_spec)
 
     # F = integrate(f, (x, 0, 1)).evalf()
 
@@ -264,15 +299,17 @@ if __name__ == '__main__':
     plt.loglog(Ns, eH10s, label='$H^1_0$')
     plt.ylabel('$e$')
     plt.xlabel('$N$')
-    plt.loglog(ks, slope_1, '--', label='1')
-    plt.loglog(ks, slope_2, '--', label='2')
+    plt.loglog(ks, 1./ks**1.5, '--', label='1.5')
+    plt.loglog(ks, 1./ks**2.5, '--', label='2.5')
     plt.legend(loc='best')
+    plt.savefig('poisson_convergence_%s.pdf' % test_spec)
 
     # Plot condition numbers
     plt.figure()
     plt.loglog(Ns, conds_A)
     plt.xlabel('$N$')
     plt.ylabel('$\kappa(A)$')
+    plt.savefig('poisson_cond.pdf')
 
     # Plot final solution
     t = np.linspace(a, b, 100)
@@ -283,8 +320,9 @@ if __name__ == '__main__':
     plt.plot(t, uh_values, label='$u_h$')
     plt.xlabel('$x$')
     plt.legend(loc='best')
+    plt.savefig('poisson_solution_%s.pdf' % test_spec)
 
-    plt.show()
+    # plt.show()
 
     # Lets print the rates
     for i in range(10, len(Ns), 2):
@@ -297,3 +335,5 @@ if __name__ == '__main__':
 
         print 'N=%s, L2->%.2f H10->%.2f' % (N, rate_L2, rate_H10)
 
+    print 'u', latex(u)
+    print 'f', latex(f)
