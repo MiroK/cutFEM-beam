@@ -1,4 +1,5 @@
 from sympy import integrate, simplify, diff, symbols, Matrix, lambdify
+from itertools import product
 import numpy as np
 
 
@@ -120,6 +121,126 @@ def manufacture_biharmonic_1d(**kwargs):
         kwargs['u'] = u
         return manufacture_biharmonic_1d(**kwargs)
 
+
+def manufacture_poisson_2d(**kwargs):
+    '''
+    Create solution for Poisson problem:
+
+            -E*u`` = f in [ax, bx] x [ay, by]
+                 u = 0 on boundary
+    '''
+    [[ax, bx], [ay, by]] = kwargs.get('domain', [[0, 1], [0, 1]])
+    E = kwargs.get('E', 1.)
+    assert ax < bx and ay < by
+    u = kwargs.get('u', None)
+    f = kwargs.get('f', None)
+
+    if u is None and f is None:
+        raise ValueError('Invalid argument. u and f missing')
+
+    x, y = symbols('x, y')
+    # With both u, f check solution properties
+    if u is not None and f is not None:
+        # Match bcs on u
+        assert simplify(u.subs(x, ax)) == 0
+        assert simplify(u.subs(x, by)) == 0
+        assert simplify(u.subs(y, ay)) == 0
+        assert simplify(u.subs(y, by)) == 0
+
+        # Match ode
+        try:
+            assert simplify(f + E*diff(u, x, 2) + E*diff(u, y, 2)) == 0
+        # If sympy has problems with 1E-16*sin(x), do eval in points
+        except AssertionError:
+            e = lambdify([x, y],
+                         simplify(f + E*diff(u, x, 2) + E*diff(u, y, 2)),
+                                  'math')
+            assert all(e(xi, yi) < 1E-15
+                       for xi, yi in product(np.linspace(ax, bx, 100),
+                                             np.linspace(ay, by, 100)))
+
+        return kwargs
+
+    # Compute f from u
+    if u is not None:
+        f = simplify(-E*diff(u, x, 2) - E*diff(u, y, 2))
+        kwargs['f'] = f
+        return manufacture_poisson_2d(**kwargs)
+
+    raise NotImplementedError('Getting u for general f is hard!')
+
+
+def manufacture_biharmonic_2d(**kwargs):
+    '''
+    Create solution for Poisson problem:
+
+            -E*laplace^2(u) = f in [ax, bx] x [ay, by]
+                          u = 0 on boundary
+                 laplace(u) = 0 on boundary
+    '''
+    [[ax, bx], [ay, by]] = kwargs.get('domain', [[0, 1], [0, 1]])
+    E = kwargs.get('E', 1.)
+    assert ax < bx and ay < by
+    u = kwargs.get('u', None)
+    f = kwargs.get('f', None)
+
+    if u is None and f is None:
+        raise ValueError('Invalid argument. u and f missing')
+
+    x, y = symbols('x, y')
+    # With both u, f check solution properties
+    if u is not None and f is not None:
+        # Match bcs on u
+        assert simplify(u.subs(x, ax)) == 0
+        assert simplify(u.subs(x, by)) == 0
+        assert simplify(u.subs(y, ay)) == 0
+        assert simplify(u.subs(y, by)) == 0
+
+        # Match bcs on laplace(u)
+        u_xx = diff(u, x, 2)
+        u_yy = diff(u, y, 2)
+        lap_u = u_xx + u_yy
+
+        assert simplify(lap_u.subs(x, ax)) == 0
+        assert simplify(lap_u.subs(x, by)) == 0
+        assert simplify(lap_u.subs(y, ay)) == 0
+        assert simplify(lap_u.subs(y, by)) == 0
+
+        # Match ode
+        try:
+            u_xxxx = diff(u_xx, x, 2)
+            u_xxyy = diff(u_xx, y, 2)
+            u_yyxx = diff(u_yy, x, 2)
+            u_yyyy = diff(u_yy, y, 2)
+
+            lhs = simplify(E*(u_xxxx + u_xxyy + u_yyxx + u_yyyy))
+            res = f - lhs
+            assert simplify(res) == 0
+        # If sympy has problems with 1E-16*sin(x), do eval in points
+        except AssertionError:
+            e = lambdify([x, y], res, 'math')
+            assert all(e(xi, yi) < 1E-15
+                       for xi, yi in product(np.linspace(ax, bx, 100),
+                                             np.linspace(ay, by, 100)))
+
+        return kwargs
+
+    # Compute f from u
+    if u is not None:
+        u_xx = diff(u, x, 2)
+        u_yy = diff(u, y, 2)
+
+        u_xxxx = diff(u_xx, x, 2)
+        u_xxyy = diff(u_xx, y, 2)
+        u_yyxx = diff(u_yy, x, 2)
+        u_yyyy = diff(u_yy, y, 2)
+
+        f = simplify(E*(u_xxxx + u_xxyy + u_yyxx + u_yyyy))
+        kwargs['f'] = f
+        return manufacture_biharmonic_2d(**kwargs)
+
+    raise NotImplementedError('Getting u for general f is hard!')
+
 # ------------------------------------------------------------------
 
 if __name__ == '__main__':
@@ -139,3 +260,16 @@ if __name__ == '__main__':
     u_dict['f'] = None
     f_dict = manufacture_biharmonic_1d(**u_dict)
     assert not (f_dict['f'] - f)
+
+    # Check 1d poisson solution
+    y = symbols('y')
+    f = 2.*(x*(1-x) + y*(1-y))
+    u = x*(1-x)*y*(1-y)
+    f_dict = manufacture_poisson_2d(u=u, domain=[[0, 1], [0, 1]])
+    assert not simplify(f_dict['f'] - f)
+
+    y = symbols('y')
+    f = 4*pi**4*sin(pi*x)*sin(pi*y)
+    u = sin(pi*x)*sin(pi*y)
+    ans = manufacture_biharmonic_2d(u=u, domain=[[0, 1], [0, 1]])
+    assert not simplify(ans['f'] - f)

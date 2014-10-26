@@ -1,4 +1,4 @@
-from quadrature import GLQuadrature_1d, __EPS__
+from quadrature import GLQuadrature
 from sympy import symbols, lambdify
 import numpy.linalg as la
 import numpy as np
@@ -48,7 +48,7 @@ class VariationalSolver1d(object):
         basis_lambda = map(lambda f: lambdify(x, f), basis)
 
         # Get the quadrature for computing integrals
-        quad = GLQuadrature_1d(2*N)
+        quad = GLQuadrature(2*N)
 
         bb = np.zeros(N)
 
@@ -57,7 +57,7 @@ class VariationalSolver1d(object):
         time_bb = time.time()
 
         for j, base_lambda in enumerate(basis_lambda):
-            bb[j] = quad.eval(lambda x: base_lambda(x)*f_F(x), a=0, b=1)
+            bb[j] = quad.eval(lambda x: base_lambda(x)*f_F(x), [[0, 1]])
         bb *= (b-a)
         bb_norm_ = la.norm(bb)
 
@@ -70,7 +70,7 @@ class VariationalSolver1d(object):
             quad.__init__(new_N)
 
             for j, base_lambda in enumerate(basis_lambda):
-                bb[j] = quad.eval(lambda x: base_lambda(x)*f_F(x), a=0, b=1)
+                bb[j] = quad.eval(lambda x: base_lambda(x)*f_F(x), [[0, 1]])
 
             bb *= (b-a)
             bb_norm = la.norm(bb)
@@ -90,7 +90,7 @@ class VariationalSolver1d(object):
         print 'Solve linear system:', time_solve
 
         # Map the basis back to [a, b]
-        basis = map(lambda base: base.subs(x, (x-a)/(b-a)), basis)
+        basis = np.array(map(lambda base: base.subs(x, (x-a)/(b-a)), basis))
 
         # Return expension coefficients and basis functions
         return U, basis
