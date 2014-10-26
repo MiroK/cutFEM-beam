@@ -15,6 +15,13 @@ def sine_basis(N):
     except TypeError:
         return sine_basis(range(1, N))
 
+def legendre_polynomial(N):
+    pass
+
+
+def lagrange_basis(N, point_distribution):
+    pass
+
 
 def equidistant_points(domain, N):
     '''
@@ -40,6 +47,9 @@ def chebyshev_points(domain, N):
         return np.array([point
                          for point in product(*[equidistant_points(sub, n)
                                                 for sub, n in zip(domain, N)])])
+
+def gauss_legendre_points(domain, N):
+    pass
 
 def gauss_lobatto_points(domain, N):
     pass
