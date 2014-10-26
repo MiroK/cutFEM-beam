@@ -1,5 +1,5 @@
 from problems import manufacture_poisson_1d
-from quadrature import errornorm_1d, GLQuadrature_1d, __EPS__
+from quadrature import errornorm, GLQuadrature, __EPS__
 from polynomials import sine_basis
 from poisson_solvers import solve_sine_1d
 import numpy as np
@@ -28,14 +28,14 @@ u_lambda = lambdify(x, u)
 f_lambda = lambdify(x, f)
 
 # Get quadrature for computing power spectrum
-quad = GLQuadrature_1d(62)
+quad = GLQuadrature(62)
 # Frequancies
 ks = np.arange(1, 50, 1)
 basis = sine_basis(ks)
 basis = map(lambda f: lambdify(x, f), basis)
 
 # u power spectrum
-uk = np.array([sqrt(quad.eval(lambda x: u_lambda(x)*base(x), 0, 1)**2)
+uk = np.array([sqrt(quad.eval(lambda x: u_lambda(x)*base(x), [[0, 1]])**2)
                for base in basis])
 # Mask for zeros
 mask = np.where(uk < __EPS__, True, False)
@@ -55,7 +55,7 @@ plt.ylabel('$F_k(u)$')
 plt.savefig('%s/poisson_power_u_%s.pdf' % (result_dir, test_spec))
 
 # f power spectrum
-fk = np.array([sqrt(quad.eval(lambda x: f_lambda(x)*base(x), 0, 1)**2)
+fk = np.array([sqrt(quad.eval(lambda x: f_lambda(x)*base(x), [[0, 1]])**2)
                for base in basis])
 # Mask zeros
 mask = np.where(fk < __EPS__, True, False)
@@ -82,8 +82,8 @@ for N in Ns:
     uh = sum(Ui*base for (Ui, base) in zip(U, basis))
     uh_lambda = lambdify(x, uh)
 
-    eL2 = errornorm_1d(u, (U, basis), 'L2', a=0, b=1)
-    eH10 = errornorm_1d(u, (U, basis), 'H10', a=0, b=1)
+    eL2 = errornorm(u, (U, basis), norm_type='L2', domain=[[0, 1]])
+    eH10 = errornorm(u, (U, basis), norm_type='H10', domain=[[0, 1]])
     eL2s.append(eL2)
     eH10s.append(eH10)
 

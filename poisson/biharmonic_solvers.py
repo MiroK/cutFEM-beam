@@ -28,7 +28,7 @@ def solve_biharmonic_1d(f, N, E=1, a=0, b=1, eps=__EPS__, n_refs=10):
 
 if __name__ == '__main__':
     from problems import manufacture_biharmonic_1d
-    from quadrature import errornorm_1d
+    from quadrature import errornorm
     from sympy import symbols, sin, pi
 
     x = symbols('x')
@@ -41,6 +41,6 @@ if __name__ == '__main__':
 
     U, basis = solve_biharmonic_1d(f, N=20, E=E, a=a, b=b,
                                    eps=__EPS__, n_refs=10)
-    e = errornorm_1d(u, (U, basis), a=a, b=b, norm_type='L2')
+    e = errornorm(u, (U, basis), domain=[[a, b]], norm_type='L2')
 
     assert abs(e) < 1E-15

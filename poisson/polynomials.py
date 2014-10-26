@@ -11,7 +11,7 @@ def sine_basis(N):
     '''
     x = symbols('x')
     try:
-        return [sin(k*pi*x)*sqrt(2) for k in N]
+        return np.array([sin(k*pi*x)*sqrt(2) for k in N])
     except TypeError:
         return sine_basis(range(1, N))
 
