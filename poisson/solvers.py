@@ -42,7 +42,7 @@ class VariationalSolver1d(object):
             return f_lambda(F(x_hat))
 
         # Make symbolic basis on reference domain [0, 1]
-        basis = self.basis_functions(N+1)
+        basis = self.basis_functions(N) # 1, 2, 3, 4, ... N
 
         # Make basis functions on fast evaluation
         basis_lambda = map(lambda f: lambdify(x, f), basis)

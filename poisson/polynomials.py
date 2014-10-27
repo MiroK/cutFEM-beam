@@ -19,11 +19,13 @@ def sine_basis(N, xi=None):
             return np.array([sin(k*pi*xyz[xi])*sqrt(2) for k in N[0]])
         # Generate for 1, ... N-1!!!
         except TypeError:
-            return sine_basis([range(1, N[0])], xi=xi)
+            return sine_basis([range(1, N[0]+1)], xi=xi)
     else:
+        shape = map(lambda item: item if isinstance(item, int) else len(item),
+                    N)
         return np.array([reduce(operator.mul, basis_comps)
                          for basis_comps in product(*[sine_basis([N[i]], xi=i)
-                                                      for i in range(dim)])])
+                                                      for i in range(dim)])]).reshape(tuple(shape))
 
 def legendre_polynomial(N):
     pass
@@ -99,8 +101,8 @@ if __name__ == '__main__':
 
     # Make sure that the 1d basis is orthonormal
     x = symbols('x')
-    for i, si in enumerate(sine_basis([3])):
-        for j, sj in enumerate(sine_basis([3])):
+    for i, si in enumerate(sine_basis([2])):
+        for j, sj in enumerate(sine_basis([2])):
             print si, sj
             if i == j:
                 assert abs(integrate(si*sj, (x, 0, 1)) - 1) < 1E-15
@@ -109,10 +111,9 @@ if __name__ == '__main__':
 
     # Make sure that the 2d basis is orthonormal
     x, y = symbols('x, y')
-    basis = sine_basis([4, 2])
-    print basis.shape
-    for i, bi in enumerate(basis):
-        for j, bj in enumerate(basis):
+    basis = sine_basis([2, 2])
+    for i, bi in enumerate(basis.flatten()):
+        for j, bj in enumerate(basis.flatten()):
             print bi, bj
             l2_ip = integrate(integrate(bi*bj, (x, 0, 1)), (y, 0, 1))
             if i == j:
