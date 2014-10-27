@@ -89,7 +89,12 @@ def manufacture_biharmonic_1d(**kwargs):
         assert abs(ddu.evalf(subs={x: b})) < 1E-15
 
         # Match original ode
-        assert simplify(f - E*diff(u, x, 4)) == 0
+        try:
+            simplify(f - E*diff(u, x, 4)) == 0
+        # If sympy has problems with 1E-16*sin(x), do eval in points
+        except AssertionError:
+            e = lambdify(x, simplify(f - E*diff(u, x, 4)), 'math')
+            assert all(e(xi) < 1E-15 for xi in np.linspace(a, b, 100))
         return kwargs
 
     # Compute f from u
