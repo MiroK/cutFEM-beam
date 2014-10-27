@@ -7,13 +7,14 @@ from matplotlib import rc
 rc('text', usetex=True)
 rc('font', family='serif')
 import matplotlib.pyplot as plt
-from sympy import symbols, lambdify, latex, sin, pi
+from sympy import symbols, lambdify, latex, sin, pi, exp, cos
 from math import sqrt, log as ln
 
 result_dir = './results'
 # Specs for problem
 x = symbols('x')
 
+#f, test_spec = ((x-0.1)*(x-0.2)*exp(-x**2), 'test')
 f, test_spec = (1, 'test')
 
 # Generate problem from specs
@@ -27,7 +28,7 @@ f_lambda = lambdify(x, f)
 quad = GLQuadrature(62)
 # Frequancies
 ks = np.arange(1, 50, 1)
-basis = sine_basis(ks)
+basis = sine_basis([ks])
 basis = map(lambda f: lambdify(x, f), basis)
 
 # u power spectrum

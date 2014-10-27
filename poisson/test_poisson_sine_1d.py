@@ -31,7 +31,7 @@ f_lambda = lambdify(x, f)
 quad = GLQuadrature(62)
 # Frequancies
 ks = np.arange(1, 50, 1)
-basis = sine_basis(ks)
+basis = sine_basis([ks])
 basis = map(lambda f: lambdify(x, f), basis)
 
 # u power spectrum

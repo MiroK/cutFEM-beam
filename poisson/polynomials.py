@@ -3,17 +3,28 @@ from itertools import product
 import numpy as np
 
 
-def sine_basis(N):
+def sine_basis(N, xi=None):
     '''
     Return functions sqrt(2)*sin(k*pi*x) for k in Ns (or range(1, N)).
     These are normalized eigenfunctions of Laplace and biharmonic operators
     over [0, 1] so that their L^2(0, 1) inner product is 1.
     '''
-    x = symbols('x')
-    try:
-        return np.array([sin(k*pi*x)*sqrt(2) for k in N])
-    except TypeError:
-        return sine_basis(range(1, N))
+    xyz = symbols('x, y, z')
+    if xi is None:
+        xi = 0
+
+    dim = len(N)
+    if dim == 1:
+        # Generate for given k
+        try:
+            return np.array([sin(k*pi*xyz[xi])*sqrt(2) for k in N[0]])
+        # Generate for 1, ... N-1!!!
+        except TypeError:
+            return sine_basis([range(1, N[0])])
+    else:
+        return np.array(np.product(basis_comps)
+                        for basis_comps in product(*[sine_basis([N[i]], xi=i)
+                                                   for i in range(len(N))]))
 
 def legendre_polynomial(N):
     pass
@@ -88,11 +99,12 @@ if __name__ == '__main__':
     plt.show()
 
 
-    exit()
+    #exit()
     # Make sure that the basis is orthonormal
     x = symbols('x')
-    for i, si in enumerate(sine_basis(3)):
-        for j, sj in enumerate(sine_basis(3)):
+    for i, si in enumerate(sine_basis([3])):
+        for j, sj in enumerate(sine_basis([3])):
+            print si, sj
             if i == j:
                 assert abs(integrate(si*sj, (x, 0, 1)) - 1) < 1E-15
             else:

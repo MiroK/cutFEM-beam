@@ -18,7 +18,7 @@ def solve_sine_1d(f, N, E=1, a=0, b=1, eps=__EPS__, n_refs=10):
             return E*np.diag([np.pi**2*l**2/(b-a) for l in range(1, N+1)])
 
         def basis_functions(self, N):
-            return sine_basis(N)
+            return sine_basis([N])
 
     solver = PoissonSolver()
     return solver.solve(f, N, E=E, a=a, b=b, eps=eps, n_refs=n_refs)
