@@ -45,8 +45,7 @@ class GLQuadrature(object):
                            for weight in product(*ws_dir)])
 
         time_q = time.time() - time_q
-        print 'Computing %s-point quadrature :' % 'x'.join(map(str, N)),\
-                                                                  time_q
+        print 'Computing %s-point quadrature :' % 'x'.join(map(str, N)), time_q
 
         self.N = np.array(N)
         self.z = points
@@ -94,6 +93,17 @@ class GLQuadrature(object):
         print 'eval_adapt final diff', diff
         return result_N
 
+    def plot_points(self, figure):
+        'Plot points of the quadrature.'
+        if self.dim > 2:
+            ax = figure.gca(projection='3d')
+        else:
+            ax = figure().gca()
+
+        ax = figure.gca()
+        ax.plot(*[self.z[:, i] for i in range(self.dim)], color='blue',
+                marker='o', linestyle=' ')
+
 
 def errornorm(u, (U, basis), norm_type, domain):
     '''
@@ -131,9 +141,15 @@ def errornorm(u, (U, basis), norm_type, domain):
 
 if __name__ == '__main__':
     from sympy import integrate, sin, exp, cos
+    import matplotlib.pyplot as plt
 
     # 2d tests
     quad = GLQuadrature([2, 2])
+    # Plot the quadrature points
+    figure = plt.figure()
+    quad.plot_points(figure)
+    plt.show()
+
     # Just area
     assert abs(quad.eval(lambda x, y: 1, domain=[[0, 3], [0, 4]])-12) < 1E-15
     # Linear polynomial
