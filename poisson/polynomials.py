@@ -1,13 +1,12 @@
 from sympy import sin, pi, sqrt, symbols
 from itertools import product
 import numpy as np
+import operator
 
 
 def sine_basis(N, xi=None):
     '''
-    Return functions sqrt(2)*sin(k*pi*x) for k in Ns (or range(1, N)).
-    These are normalized eigenfunctions of Laplace and biharmonic operators
-    over [0, 1] so that their L^2(0, 1) inner product is 1.
+    TODO
     '''
     xyz = symbols('x, y, z')
     if xi is None:
@@ -20,11 +19,11 @@ def sine_basis(N, xi=None):
             return np.array([sin(k*pi*xyz[xi])*sqrt(2) for k in N[0]])
         # Generate for 1, ... N-1!!!
         except TypeError:
-            return sine_basis([range(1, N[0])])
+            return sine_basis([range(1, N[0])], xi=xi)
     else:
-        return np.array(np.product(basis_comps)
-                        for basis_comps in product(*[sine_basis([N[i]], xi=i)
-                                                   for i in range(len(N))]))
+        return np.array([reduce(operator.mul, basis_comps)
+                         for basis_comps in product(*[sine_basis([N[i]], xi=i)
+                                                      for i in range(dim)])])
 
 def legendre_polynomial(N):
     pass
@@ -90,17 +89,15 @@ if __name__ == '__main__':
     yyy = np.array([e_interpolate(xi) for xi in x])
 
     plt.figure()
-    plt.plot(x, y, 'b',label='f')
-    plt.plot(x, yy, 'g',label='eq')
+    plt.plot(x, y, 'b', label='f')
+    plt.plot(x, yy, 'g', label='eq')
     plt.plot(x_e, y_e, 'go')
     plt.plot(x, yyy, 'r', label='cheb')
     plt.plot(x_c, y_c, 'rs')
     plt.legend()
-    plt.show()
+    # plt.show()
 
-
-    #exit()
-    # Make sure that the basis is orthonormal
+    # Make sure that the 1d basis is orthonormal
     x = symbols('x')
     for i, si in enumerate(sine_basis([3])):
         for j, sj in enumerate(sine_basis([3])):
@@ -110,3 +107,15 @@ if __name__ == '__main__':
             else:
                 assert abs(integrate(si*sj, (x, 0, 1))) < 1E-15
 
+    # Make sure that the 2d basis is orthonormal
+    x, y = symbols('x, y')
+    basis = sine_basis([4, 2])
+    print basis.shape
+    for i, bi in enumerate(basis):
+        for j, bj in enumerate(basis):
+            print bi, bj
+            l2_ip = integrate(integrate(bi*bj, (x, 0, 1)), (y, 0, 1))
+            if i == j:
+                assert abs(l2_ip - 1) < 1E-15
+            else:
+                assert abs(l2_ip) < 1E-15
