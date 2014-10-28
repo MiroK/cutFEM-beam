@@ -111,7 +111,7 @@ plt.legend(loc='best')
 plt.savefig('%s/poisson_solution_%s.pdf' % (result_dir, test_spec))
 
 # Lets print the rates
-for i in range(10, len(Ns), 2):
+for i in range(1, len(Ns)):
     N, N_ = Ns[i], Ns[i-1]
     eL2, eL2_ = eL2s[i], eL2s[i-1]
     eH10, eH10_ = eH10s[i], eH10s[i-1]

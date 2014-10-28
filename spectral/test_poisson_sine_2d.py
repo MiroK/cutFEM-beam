@@ -25,12 +25,73 @@ f = problem['f']
 u_lambda = lambdify([x, y], u)
 f_lambda = lambdify([x, y], f)
 
-if False:
+# -------
+solver_N_max = 3               # max frequency in solver
+power_N_max = 10               # max frequency for power spectrum
+plot_power = True              # plot the power spectrum
+# ------
+
+# Frequencies for solver in convergence test
+domain = [[0, 1], [0, 1]]
+ns = np.arange(1, solver_N_max+1, 1)  # Freqencies for one direction
+Ns = []                               # really freq. consider dim(V_h)
+eL2s = []
+eH10s = []
+for N in ns:
+    print '-'*79
+    print '\t\t\t Solving with %dx%d | %g%% completed' % (N,
+                                                          N,
+                                                          float(N-1)/solver_N_max)
+    print '-'*79
+    U, basis = solve_sine_2d(f, MN=[N, N], domain=domain)
+    eL2 = errornorm(u, (U, basis), norm_type='L2', domain=domain)
+    eH10 = errornorm(u, (U, basis), norm_type='H10', domain=domain)
+    eL2s.append(eL2)
+    eH10s.append(eH10)
+    Ns.append(N)
+
+# Plot convergence
+Ns = np.array(Ns)
+plt.figure()
+plt.loglog(Ns, eL2s, label='$L^2$')
+plt.loglog(Ns, eH10s, label='$H^1_0$')
+plt.ylabel('$e$')
+plt.xlabel(r'dim $V_h$')
+plt.loglog(Ns, 1./Ns**1.5, '--', label='1.5')
+plt.loglog(Ns, 1./Ns**2.5, '--', label='2.5')
+plt.legend(loc='best')
+plt.savefig('%s/poisson_convergence_%s.pdf' % (result_dir, test_spec))
+
+# Plot final solution
+p0 = plots.plot(u, domain=[[0, 1], [0, 1]],
+                title='$u$', xlabel='$x$', ylabel='$y$', show=False)
+p0.save('%s/poisson_u_%s.pdf' % (result_dir, test_spec))
+
+p1 = plots.plot((U, basis), domain=[[0, 1], [0, 1]],
+                title='$u_h$', xlabel='$x$', ylabel='$y$', show=False)
+p1.save('%s/poisson_uh_%s.pdf' % (result_dir, test_spec))
+
+# Lets print the rates
+for i in range(1, len(Ns)):
+    N, N_ = Ns[i], Ns[i-1]
+    eL2, eL2_ = eL2s[i], eL2s[i-1]
+    eH10, eH10_ = eH10s[i], eH10s[i-1]
+
+    rate_L2 = ln(eL2/eL2_)/ln(float(N_)/N)
+    rate_H10 = ln(eH10/eH10_)/ln(float(N_)/N)
+
+    print 'N=%s, L2->%.2f H10->%.2f' % (N, rate_L2, rate_H10)
+
+print 'u', latex(u)
+print 'f', latex(f)
+
+if plot_power:
     # Get quadrature for computing power spectrum
-    quad = GLQuadrature([20, 20])
+    # 2*N plus some margin, heuristics
+    quad = GLQuadrature([2*power_N_max+5, 2*power_N_max+5])
     # Frequancies
-    ks = np.arange(1, 10, 1)
-    ls = np.arange(1, 10, 1)
+    ks = np.arange(1, power_N_max, 1)
+    ls = np.arange(1, power_N_max, 1)
     basis = sine_basis([ks, ls]).flatten()
     basis = map(lambda f: lambdify([x, y], f), basis)
 
@@ -81,53 +142,3 @@ if False:
     plt.xlabel(r'$k$')
     plt.ylabel(r'$l$')
     plt.savefig('%s/poisson_power_f_%s.pdf' % (result_dir, test_spec))
-
-# Frequencies for solver in convergence test
-domain = [[0, 1], [0, 1]]
-ns = np.arange(1, 3, 1)  # Freqencies for one direction
-Ns = []                  # dim(V_h)
-eL2s = []
-eH10s = []
-for N in ns:
-    U, basis = solve_sine_2d(f, MN=[N, N], domain=domain)
-    eL2 = errornorm(u, (U, basis), norm_type='L2', domain=domain)
-    eH10 = errornorm(u, (U, basis), norm_type='H10', domain=domain)
-    eL2s.append(eL2)
-    eH10s.append(eH10)
-    Ns.append(N**2)
-
-# Plot convergence
-Ns = np.array(Ns)
-plt.figure()
-plt.loglog(Ns, eL2s, label='$L^2$')
-plt.loglog(Ns, eH10s, label='$H^1_0$')
-plt.ylabel('$e$')
-plt.xlabel(r'dim $V_h$')
-plt.loglog(Ns, 1./Ns**1.5, '--', label='1.5')
-plt.loglog(Ns, 1./Ns**2.5, '--', label='2.5')
-plt.legend(loc='best')
-plt.savefig('%s/poisson_convergence_%s.pdf' % (result_dir, test_spec))
-
-# Plot final solution
-p0 = plots.plot(u, domain=[[0, 1], [0, 1]],
-                title='$u$', xlabel='$x$', ylabel='$y$', show=False)
-p0.save('%s/poisson_u_%s.pdf' % (result_dir, test_spec))
-
-p1 = plots.plot((U, basis), domain=[[0, 1], [0, 1]],
-                title='$u_h$', xlabel='$x$', ylabel='$y$', show=False)
-p1.save('%s/poisson_uh_%s.pdf' % (result_dir, test_spec))
-
-
-# Lets print the rates
-for i in range(10, len(Ns), 2):
-    N, N_ = Ns[i], Ns[i-1]
-    eL2, eL2_ = eL2s[i], eL2s[i-1]
-    eH10, eH10_ = eH10s[i], eH10s[i-1]
-
-    rate_L2 = ln(eL2/eL2_)/ln(float(N_)/N)
-    rate_H10 = ln(eH10/eH10_)/ln(float(N_)/N)
-
-    print 'N=%s, L2->%.2f H10->%.2f' % (N, rate_L2, rate_H10)
-
-print 'u', latex(u)
-print 'f', latex(f)

@@ -103,7 +103,6 @@ plt.xlabel('$x$')
 plt.legend(loc='best')
 plt.savefig('%s/biharmonic_solution_%s.pdf' % (result_dir, test_spec))
 
-
 # Lets print the rates
 for i in range(1, len(Ns)):
     N, N_ = Ns[i], Ns[i-1]
