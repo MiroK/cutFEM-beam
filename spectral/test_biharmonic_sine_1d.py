@@ -15,8 +15,7 @@ result_dir = './results'
 # Specs for problem
 x = symbols('x')
 
-#f, test_spec = ((x-0.1)*(x-0.2)*exp(-x**2), 'test')
-f, test_spec = (1, 'test')
+f, test_spec = ((x-0.1)*(x-0.2)*exp(-x**2), 'test')
 
 # Generate problem from specs
 problem = manufacture_biharmonic_1d(f=f, a=0, b=1)

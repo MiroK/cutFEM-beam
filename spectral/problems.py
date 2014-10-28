@@ -266,13 +266,14 @@ if __name__ == '__main__':
     f_dict = manufacture_biharmonic_1d(**u_dict)
     assert not (f_dict['f'] - f)
 
-    # Check 1d poisson solution
+    # Check 2d poisson solution
     y = symbols('y')
     f = 2.*(x*(1-x) + y*(1-y))
     u = x*(1-x)*y*(1-y)
     f_dict = manufacture_poisson_2d(u=u, domain=[[0, 1], [0, 1]])
     assert not simplify(f_dict['f'] - f)
 
+    # Check 2d biharmonic solution
     y = symbols('y')
     f = 4*pi**4*sin(pi*x)*sin(pi*y)
     u = sin(pi*x)*sin(pi*y)
