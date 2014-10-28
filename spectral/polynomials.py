@@ -27,13 +27,6 @@ def sine_basis(N, xi=None):
                          for basis_comps in product(*[sine_basis([N[i]], xi=i)
                                                       for i in range(dim)])]).reshape(tuple(shape))
 
-def legendre_polynomial(N):
-    pass
-
-
-def lagrange_basis(N, point_distribution):
-    pass
-
 
 def equidistant_points(domain, N):
     '''
@@ -48,6 +41,7 @@ def equidistant_points(domain, N):
                          for point in product(*[equidistant_points(sub, n)
                                                 for sub, n in zip(domain, N)])])
 
+
 def chebyshev_points(domain, N):
     '''
     [-1, -1], [[-1, 1], [-1, 1]]
@@ -60,11 +54,10 @@ def chebyshev_points(domain, N):
                          for point in product(*[equidistant_points(sub, n)
                                                 for sub, n in zip(domain, N)])])
 
-def gauss_legendre_points(domain, N):
+def lagrange_basis(points):
     pass
 
-def gauss_lobatto_points(domain, N):
-    pass
+
 
 # -----------------------------------------------------------------------------
 
@@ -100,23 +93,25 @@ if __name__ == '__main__':
     plt.show()
 
     # Make sure that the 1d basis is orthonormal
-    x = symbols('x')
-    for i, si in enumerate(sine_basis([2])):
-        for j, sj in enumerate(sine_basis([2])):
-            print si, sj
-            if i == j:
-                assert abs(integrate(si*sj, (x, 0, 1)) - 1) < 1E-15
-            else:
-                assert abs(integrate(si*sj, (x, 0, 1))) < 1E-15
+    if False:
+        x = symbols('x')
+        for i, si in enumerate(sine_basis([2])):
+            for j, sj in enumerate(sine_basis([2])):
+                print si, sj
+                if i == j:
+                    assert abs(integrate(si*sj, (x, 0, 1)) - 1) < 1E-15
+                else:
+                    assert abs(integrate(si*sj, (x, 0, 1))) < 1E-15
 
     # Make sure that the 2d basis is orthonormal
-    x, y = symbols('x, y')
-    basis = sine_basis([2, 2])
-    for i, bi in enumerate(basis.flatten()):
-        for j, bj in enumerate(basis.flatten()):
-            print bi, bj
-            l2_ip = integrate(integrate(bi*bj, (x, 0, 1)), (y, 0, 1))
-            if i == j:
-                assert abs(l2_ip - 1) < 1E-15
-            else:
-                assert abs(l2_ip) < 1E-15
+    if False:
+        x, y = symbols('x, y')
+        basis = sine_basis([2, 2])
+        for i, bi in enumerate(basis.flatten()):
+            for j, bj in enumerate(basis.flatten()):
+                print bi, bj
+                l2_ip = integrate(integrate(bi*bj, (x, 0, 1)), (y, 0, 1))
+                if i == j:
+                    assert abs(l2_ip - 1) < 1E-15
+                else:
+                    assert abs(l2_ip) < 1E-15
