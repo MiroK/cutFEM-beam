@@ -1,5 +1,6 @@
 from quadrature import GLQuadrature
 from sympy import symbols, lambdify
+from scipy.sparse.linalg import cg
 import numpy.linalg as la
 import numpy as np
 import time
@@ -75,6 +76,7 @@ class VariationalSolver1d(object):
             bb *= (b-a)
             bb_norm = la.norm(bb)
             diff = abs(bb_norm - bb_norm_)
+            print '\t assembling b, iter={0}, difference={1}'.format(ref, diff)
             bb_norm_ = bb_norm
 
         print 'Assemble vector, final diff', diff
@@ -82,7 +84,8 @@ class VariationalSolver1d(object):
 
         # Vector of exp. coeffs
         time_solve = time.time()
-        U = la.solve(AA, bb)
+        U, info = cg(AA, bb, tol=1E-15)
+        assert info == 0
         time_solve = time.time() - time_solve
 
         print 'Assembling matrix:', time_AA
@@ -113,6 +116,7 @@ class VariationalSolver2d(object):
         M, N = MN
         [[ax, bx], [ay, by]] = domain
         assert bx > ax and by > ay
+        Lx, Ly = float(bx - ax), float(by - ay)
 
         # Assemble matrix the matrix on reference domain [0, 1]
         time_AA = time.time()
@@ -129,14 +133,15 @@ class VariationalSolver2d(object):
 
         def F(x_hat, y_hat):
             'Pullback map [0, 1]x[0, 1] to [ax, bx]x[ay, by]'
-            return [(bx-ax)*x_hat + ax, (by-ay)*y_hat + ay]
+            return [Lx*x_hat + ax, Ly*y_hat + ay]
 
         def f_F(x_hat, y_hat):
             'Function f pulled back to reference domain'
-            return f_lambda(F(x_hat, y_hat))
+            return f_lambda(*F(x_hat, y_hat))
 
         # Make symbolic basis on reference domain [0, 1]
-        basis = self.basis_functions([M, N]) # [1, 2, ..., M] X [1, 2, ..., N]
+        basis = self.basis_functions([M, N]).flatten()
+        # [1, 2, ..., M] X [1, 2, ..., N]
 
         # Make basis functions on fast evaluation
         basis_lambda = map(lambda f: lambdify([x, y], f), basis)
@@ -153,7 +158,7 @@ class VariationalSolver2d(object):
         for j, base_lambda in enumerate(basis_lambda):
             bb[j] = quad.eval(lambda x, y: base_lambda(x, y)*f_F(x, y),
                               [[0, 1], [0, 1]])  # Note that this is in refer!
-        bb *= (bx-ax)*(by-ay)
+        bb *= Lx*Ly
         bb_norm_ = la.norm(bb)
 
         diff = 1
@@ -165,12 +170,13 @@ class VariationalSolver2d(object):
             quad.__init__(new_N)
 
             for j, base_lambda in enumerate(basis_lambda):
-                bb[j] = quad.eval(lambda x: base_lambda(x, y)*f_F(x, y),
+                bb[j] = quad.eval(lambda x, y: base_lambda(x, y)*f_F(x, y),
                                   [[0, 1], [0, 1]])
 
-            bb *= (bx-ax)*(by-ay)
+            bb *= Lx*Ly
             bb_norm = la.norm(bb)
             diff = abs(bb_norm - bb_norm_)
+            print '\t assembling b, iter={0}, difference={1}'.format(ref, diff)
             bb_norm_ = bb_norm
 
         print 'Assemble vector, final diff', diff
@@ -178,7 +184,8 @@ class VariationalSolver2d(object):
 
         # Vector of exp. coeffs
         time_solve = time.time()
-        U = la.solve(AA, bb)
+        U, info = cg(AA, bb, tol=1E-15)
+        assert info == 0
         time_solve = time.time() - time_solve
 
         print 'Assembling matrix:', time_AA
@@ -186,8 +193,8 @@ class VariationalSolver2d(object):
         print 'Solve linear system:', time_solve
 
         # Map the basis back to [ax, bx] X [ay, by]
-        basis = np.array(map(lambda base: base.subs({x: (x-ax)/(bx-ax),
-                                                     y: (y-ay)/(by-ay)}),
+        basis = np.array(map(lambda base: base.subs({x: (x-ax)/Lx,
+                                                     y: (y-ay)/Ly}),
                              basis))
 
         # Return expension coefficients and basis functions
