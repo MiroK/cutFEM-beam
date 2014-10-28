@@ -24,7 +24,7 @@ def plot(f, domain, figure=None, **kwargs):
 
     if dim == 1:
         bounds = tuple(xy[:dim] + domain[0])
-        s_plot.plot(f_plot, bounds, **kwargs)
+        return s_plot.plot(f_plot, bounds, **kwargs)
     else:
         bounds_x = tuple(xy[:1] + domain[0])
         bounds_y = tuple(xy[1:2] + domain[1])
@@ -49,9 +49,11 @@ def plot(f, domain, figure=None, **kwargs):
             if 'title' in kwargs:
                 ax.set_title(kwargs['title'])
 
+            return None
+
         # Plot with sympy
         else:
-            s_plot.plot3d(f_plot, bounds_x, bounds_y, **kwargs)
+            return s_plot.plot3d(f_plot, bounds_x, bounds_y, **kwargs)
 
 # -----------------------------------------------------------------------------
 

@@ -9,6 +9,7 @@ rc('font', family='serif')
 import matplotlib.pyplot as plt
 from sympy import exp, symbols, lambdify, latex
 from math import sqrt, log as ln
+import plots
 
 result_dir = './results'
 # Specs for problem
@@ -79,9 +80,6 @@ eL2s = []
 eH10s = []
 for N in Ns:
     U, basis = solve_sine_1d(f, N=N, a=0, b=1)
-    uh = sum(Ui*base for (Ui, base) in zip(U, basis))
-    uh_lambda = lambdify(x, uh)
-
     eL2 = errornorm(u, (U, basis), norm_type='L2', domain=[[0, 1]])
     eH10 = errornorm(u, (U, basis), norm_type='H10', domain=[[0, 1]])
     eL2s.append(eL2)
@@ -99,6 +97,9 @@ plt.legend(loc='best')
 plt.savefig('%s/poisson_convergence_%s.pdf' % (result_dir, test_spec))
 
 # Plot final solution
+uh = sum(Ui*base for (Ui, base) in zip(U.flatten(), basis.flatten()))
+uh_lambda = lambdify(x, uh)
+
 t = np.linspace(0, 1, 100)
 u_values = np.array([u_lambda(ti) for ti in t])
 uh_values = np.array([uh_lambda(ti) for ti in t])
