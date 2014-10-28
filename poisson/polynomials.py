@@ -97,7 +97,7 @@ if __name__ == '__main__':
     plt.plot(x, yyy, 'r', label='cheb')
     plt.plot(x_c, y_c, 'rs')
     plt.legend()
-    # plt.show()
+    plt.show()
 
     # Make sure that the 1d basis is orthonormal
     x = symbols('x')

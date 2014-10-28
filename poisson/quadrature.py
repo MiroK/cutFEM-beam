@@ -98,7 +98,7 @@ class GLQuadrature(object):
         if self.dim > 2:
             ax = figure.gca(projection='3d')
         else:
-            ax = figure().gca()
+            ax = figure.gca()
 
         ax = figure.gca()
         ax.plot(*[self.z[:, i] for i in range(self.dim)], color='blue',
