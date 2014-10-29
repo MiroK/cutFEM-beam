@@ -1,5 +1,6 @@
 from sympy import symbols, diff, lambdify
 from sympy.integrals import quadrature
+import sympy.mpmath as mpmath
 from itertools import product
 from math import sqrt
 import numpy as np
@@ -12,9 +13,18 @@ __EPS__ = np.finfo(float).eps
 
 class GLQuadrature(object):
     'Generate Gauss-Legendre points for computing integral over [-1, 1]^d.'
-    def __init__(self, N):
+    def __init__(self, N, method='python'):
         'Create quadrature with number of points given in N.'
         time_q = time.time()
+        # Choose how quadrature is made
+        if method == 'python':
+            self._eval_method = self._eval_python
+        elif method == 'sympy':
+            # Sympy is much slower because it seems to really overestimate
+            # the error ?
+            self._eval_method = self._eval_sympy
+        else:
+            raise ValueError('method is sympy or python not %s' % method)
 
         # See if we are making 1d or higher-d quadrature
         try:
@@ -54,9 +64,16 @@ class GLQuadrature(object):
     def __str__(self):
         return '%d-point 1d Gauss-Legendre quadrature' % self.N
 
-    def eval(self, f, domain):
+    def eval(self, f, domain, **kwargs):
         '''
-        Integrate[domain(with tensor product structure)\in R^d] f(x) dx.
+        Integrate[domain(with tensor product structure)\in R^d f(x) dx.
+        '''
+        return self._eval_method(f, domain, **kwargs)
+
+    def _eval_python(self, f, domain, **kwargs):
+        '''
+        Integrate[domain(with tensor product structure)\in R^d f(x) dx.
+        The quadrature loop is implemented manually.
         '''
         assert len(domain) == self.dim
 
@@ -67,8 +84,16 @@ class GLQuadrature(object):
 
         # Jacobian of pull back
         J = np.product([0.5*(b - a) for (a, b) in domain])
-
         return J*sum(wi*f(*F(zi)) for zi, wi in zip(self.z, self.w))
+
+    def _eval_sympy(self, f, domain, **kwargs):
+        '''
+        Integrate[domain(with tensor product structure)\in R^d f(x) dx.
+        The quadrature loop is left to SymPy.
+        '''
+        assert len(domain) == self.dim
+        mpmath.mp.dps=15
+        return mpmath.quadgl(f, *domain, maxdegree=np.max(self.N), **kwargs)
 
     def eval_adapt(self, f, domain, eps=__EPS__, n_refs=5):
         '''
@@ -143,8 +168,9 @@ if __name__ == '__main__':
     from sympy import integrate, sin, exp, cos
     import matplotlib.pyplot as plt
 
+    __method__ = 'sympy'
     # 2d tests
-    quad = GLQuadrature([2, 2])
+    quad = GLQuadrature([2, 2], method=__method__)
     # Plot the quadrature points
     figure = plt.figure()
     quad.plot_points(figure)
@@ -188,21 +214,25 @@ if __name__ == '__main__':
     F = F**0.5
     assert abs(F-F_) < 1E-12
 
+    start = time.time()
     for N in range(1, 60):
-        quad = GLQuadrature([N, N])
+        quad = GLQuadrature([N, N], __method__)
         quad_is_exact = True
         p = -1
         while quad_is_exact:
             p += 1
             f = x**p + y**p
             F = integrate(integrate(f, (x, 0, 1)), (y, 0, 1)).evalf()
-            e = abs(quad.eval(lambdify([x, y], f), [[0, 1], [0, 1]]) - F)
+            e = abs(quad.eval(lambdify([x, y], f),
+                              [[0, 1], [0, 1]],
+                              verbose=False) - F,)
 
             quad_is_exact = e < 1E-15
             # print '\t (p=%d) -> %.2E' % (p, e)
         p_exact = p-1
         assert p_exact == p-1
-
+    stop = time.time() - start
+    print 'Timing %s' % __method__, stop
     exit()
     # 1d tests
     x = symbols('x')
