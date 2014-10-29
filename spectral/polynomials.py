@@ -1,7 +1,11 @@
-from sympy import sin, pi, sqrt, symbols
+from sympy.polys.orthopolys import legendre_poly
+from sympy.polys.rootoftools import RootOf
+from sympy import sin, pi, sqrt, symbols, diff, Dummy, S
 from itertools import product
 import numpy as np
 import operator
+import pickle
+import os
 
 
 def sine_basis(N, xi=None):
@@ -51,6 +55,72 @@ def equidistant_points(N):
         return np.linspace(-1, 1, N[0])
     else:
         return np.array([[point for point in equidistant_points([N[i]])]
+                         for i in range(dim)])
+
+
+def gauss_legendre_points(N, n_digits=15):
+    '''
+    TODO
+    This code is taken from original SymPy implementation of
+    sympy.integral.quadrature.gauss_legendre()
+    '''
+    dim = len(N)
+    if dim == 1:
+        # The points are n(all) zeros of n-th Legendre polynomial
+        n = N[0]
+
+        gl_pts_name = '.gl_points_%d.pickle' % n
+
+        if os.path.exists(gl_pts_name):
+            xi = pickle.load(open(gl_pts_name, 'rb'))
+        else:
+            x = Dummy('x')
+            p = legendre_poly(n, x, polys=True)
+            xi = []
+            for r in p.real_roots():
+                if isinstance(r, RootOf):
+                    r = r.eval_rational(S(1)/10**(n_digits+2))
+                xi.append(r.n(n_digits))
+
+            pickle.dump(xi, open(gl_pts_name, 'wb'))
+
+        return np.array(map(float, xi))
+    else:
+        return np.array([[point for point in gauss_legendre_points([N[i]])]
+                         for i in range(dim)])
+
+
+def gauss_legendre_lobatto_points(N, n_digits=15):
+    '''
+    TODO
+    '''
+    dim = len(N)
+    if dim == 1:
+        # The points are n(all) zeros of n-th Legendre polynomial
+        n = N[0]-1
+
+        gll_pts_name = '.gll_points_%d.pickle' % n
+
+        if os.path.exists(gll_pts_name):
+            xi = pickle.load(open(gll_pts_name, 'rb'))
+        else:
+            x = Dummy('x')
+            p = legendre_poly(n, x, polys=True).diff()
+            xi = []
+            for r in p.real_roots():
+                if isinstance(r, RootOf):
+                    r = r.eval_rational(S(1)/10**(n_digits+2))
+                xi.append(r.n(n_digits))
+            # Pad with -1, 1
+            xi.insert(0, S(-1))
+            xi.append(S(1))
+
+            pickle.dump(xi, open(gll_pts_name, 'wb'))
+
+        return np.array(map(float, xi))
+    else:
+        return np.array([[point
+                          for point in gauss_legendre_lobatto_points([N[i]])]
                          for i in range(dim)])
 
 
@@ -105,14 +175,34 @@ if __name__ == '__main__':
     e_interpolate = BI(x_c, y_c)
     yyy = np.array([e_interpolate(xi) for xi in x])
 
+    x_gl = gauss_legendre_points([N])
+    y_gl = np.array([f(xi) for xi in x_gl])
+    e_interpolate = BI(x_gl, y_gl)
+    yyyy = np.array([e_interpolate(xi) for xi in x])
+
+    x_gll = gauss_legendre_lobatto_points([N])
+    y_gll = np.array([f(xi) for xi in x_gll])
+    e_interpolate = BI(x_gll, y_gll)
+    y5 = np.array([e_interpolate(xi) for xi in x])
+
     plt.figure()
     plt.plot(x, y, 'b', label='f')
-    plt.plot(x, yy, 'g', label='eq')
+
+    plt.plot(x, yy, 'g', label='equidistant')
     plt.plot(x_e, y_e, 'go')
-    plt.plot(x, yyy, 'r', label='cheb')
+
+    plt.plot(x, yyy, 'r', label='chebyshev')
     plt.plot(x_c, y_c, 'rs')
-    plt.legend()
+
+    plt.plot(x, yyyy, 'm', label='gauss-legendre')
+    plt.plot(x_gl, y_gl, 'md')
+
+    plt.plot(x, y5, 'k', label='gauss-legendre-lobatto')
+    plt.plot(x_gll, y_gll, 'kx')
+
+    plt.legend(loc='best')
     plt.show()
+    exit()
 
     # Make sure that the 1d basis is orthonormal
     if False:
@@ -139,10 +229,9 @@ if __name__ == '__main__':
                     assert abs(l2_ip) < 1E-15
 
     import sympy.plotting as s_plot
-    from sympy import diff
     x, y = symbols('x, y')
     points_x, points_y = chebyshev_points([2, 2])  # how is it with dim 1
-    for lp in lagrange_basis([points_x, points_y]).flatten():#, points_y]):
+    for lp in lagrange_basis([points_x, points_y]).flatten():
         print lp
         s_plot.plot3d(diff(lp, x, 1), (x, -1, 1), (y, -1, 1))
         s_plot.plot3d(diff(lp, y, 1), (x, -1, 1), (y, -1, 1))
