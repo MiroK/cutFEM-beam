@@ -40,17 +40,26 @@ ns = np.arange(1, solver_N_max+1, 1)  # Freqencies for one direction
 Ns = []                               # really freq. consider dim(V_h)
 eL2s = []
 eH20s = []
-for N in ns:
-    print '-'*79
-    print '\t Solving with %dx%d | %g%% completed' % (N, N,
-                                                      100.*(N-1)/solver_N_max)
-    print '-'*79
+for i, N in enumerate(ns):
     U, basis = solve_biharmonic_2d(f, MN=[N, N], domain=domain, eps=eps)
     eL2 = errornorm(u, (U, basis), norm_type='L2', domain=domain)
     eH20 = errornorm(u, (U, basis), norm_type='H20', domain=domain)
     eL2s.append(eL2)
     eH20s.append(eH20)
     Ns.append(N)
+
+    _N, _errorL2, _errorH20 = None, None, None
+    if i > 0:
+        rate_L2 = ln(eL2/_errorL2)/ln(float(_N)/N)
+        rate_H20 = ln(eH20/_errorH20)/ln(float(_N)/N)
+        print '-'*79
+        print '\t Solved with %dx%d | %g%% completed' % (N, N,
+                                                         100.*(i+1)/len(ns))
+        print '\t Rate L2=%.2f, Rate H20=%.2f' % (rate_L2, rate_H20)
+        print '-'*79
+
+    # Always remeber
+    _N, _errorL2, _errorH20 = N, eL2, eH20
 
 # Plot convergence
 Ns = np.array(Ns)

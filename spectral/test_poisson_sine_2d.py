@@ -38,17 +38,26 @@ ns = np.arange(1, solver_N_max+1, 1)  # Freqencies for one direction
 Ns = []                               # really freq. consider dim(V_h)
 eL2s = []
 eH10s = []
-for N in ns:
-    print '-'*79
-    print '\t Solving with %dx%d | %g%% completed' % (N, N,
-                                                      100.*(N-1)/solver_N_max)
-    print '-'*79
+for i, N in enumerate(ns):
     U, basis = solve_sine_2d(f, MN=[N, N], domain=domain, eps=eps)
     eL2 = errornorm(u, (U, basis), norm_type='L2', domain=domain)
     eH10 = errornorm(u, (U, basis), norm_type='H10', domain=domain)
     eL2s.append(eL2)
     eH10s.append(eH10)
     Ns.append(N)
+
+    _N, _errorL2, _errorH10 = None, None, None
+    if i > 0:
+        rate_L2 = ln(eL2/_errorL2)/ln(float(_N)/N)
+        rate_H10 = ln(eH10/_errorH10)/ln(float(_N)/N)
+        print '-'*79
+        print '\t Solved with %dx%d | %g%% completed' % (N, N,
+                                                         100.*(i+1)/len(ns))
+        print '\t Rate L2=%.2f, Rate H10=%.2f' % (rate_L2, rate_H10)
+        print '-'*79
+
+    # Always remeber
+    _N, _errorL2, _errorH10 = N, eL2, eH10
 
 # Plot convergence
 Ns = np.array(Ns)
