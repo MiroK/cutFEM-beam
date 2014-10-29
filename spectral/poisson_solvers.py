@@ -90,6 +90,6 @@ if __name__ == '__main__':
     problem2d = manufacture_poisson_2d(u=u, domain=domain, E=E)
     f = problem2d['f']
     U, basis = solve_sine_2d(f, MN=[3, 3], E=E, domain=domain, eps=__EPS__,
-                             n_refs=10)
+                             n_refs=-1)
     e = errornorm(u, (U, basis), domain=domain, norm_type='L2')
     assert abs(e) < 1E-14

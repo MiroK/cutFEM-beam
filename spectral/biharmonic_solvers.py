@@ -47,7 +47,7 @@ def solve_biharmonic_2d(f, MN, E=1, domain=[[0, 1], [0, 1]],
             Ly = float(by - ay)
             pi = np.pi
             diag = E*np.array([Ly/Lx**3*(pi*i)**4 +
-                               2/Lx/Ly*(pi*i)**2*(pi*j)**2 +
+                               2./Lx/Ly*(pi*i)**2*(pi*j)**2 +
                                Lx/Ly**3*(pi*j)**4
                                for i in range(1, M+1)
                                for j in range(1, N+1)])
@@ -93,9 +93,15 @@ if __name__ == '__main__':
     ay, by = 0, 1.
     domain = [[ax, bx], [ay, by]]
     u = sin(2*pi*(x-ax)/(bx-ax))*sin(pi*(y-ay)/(by-ay))
+    u += sin(pi*(x-ax)/(bx-ax))*sin(pi*(y-ay)/(by-ay))
+    u += sin(pi*(x-ax)/(bx-ax))*sin(2*pi*(y-ay)/(by-ay))
+    u += sin(2*pi*(x-ax)/(bx-ax))*sin(2*pi*(y-ay)/(by-ay))
+    u += sin(3*pi*(x-ax)/(bx-ax))*sin(pi*(y-ay)/(by-ay))
+
     problem2d = manufacture_biharmonic_2d(u=u, domain=domain, E=E)
     f = problem2d['f']
     U, basis = solve_biharmonic_2d(f, MN=[3, 3], E=E, domain=domain,
-                                   eps=__EPS__, n_refs=10)
+                                   eps=100*__EPS__, n_refs=-1)
     e = errornorm(u, (U, basis), domain=domain, norm_type='L2')
-    assert abs(e) < 1E-15
+
+    assert abs(e) < 1E-14

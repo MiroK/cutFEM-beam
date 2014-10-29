@@ -10,6 +10,7 @@ import matplotlib.pyplot as plt
 from matplotlib.colors import LogNorm
 from sympy import exp, cos, pi, symbols, lambdify, latex
 from math import sqrt, log as ln
+import pickle
 import plots
 
 result_dir = './results'
@@ -39,14 +40,13 @@ Ns = []                               # really freq. consider dim(V_h)
 eL2s = []
 eH10s = []
 for i, N in enumerate(ns):
-    U, basis = solve_sine_2d(f, MN=[N, N], domain=domain, eps=eps)
+    U, basis = solve_sine_2d(f, MN=[N, N], domain=domain, eps=eps, n_refs=-1)
     eL2 = errornorm(u, (U, basis), norm_type='L2', domain=domain)
     eH10 = errornorm(u, (U, basis), norm_type='H10', domain=domain)
     eL2s.append(eL2)
     eH10s.append(eH10)
     Ns.append(N)
 
-    _N, _errorL2, _errorH10 = None, None, None
     if i > 0:
         rate_L2 = ln(eL2/_errorL2)/ln(float(_N)/N)
         rate_H10 = ln(eH10/_errorH10)/ln(float(_N)/N)
@@ -58,6 +58,11 @@ for i, N in enumerate(ns):
 
     # Always remeber
     _N, _errorL2, _errorH10 = N, eL2, eH10
+
+# Save the data from convergence
+pickle.dump(Ns, open('%s/poisson_%s_Ns.pickle' % (result_dir, test_spec), 'wb'))
+pickle.dump(eL2s, open('%s/poisson_%s_eL2s.pickle' % (result_dir, test_spec), 'wb'))
+pickle.dump(eH10s, open('%s/poisson_%s_eH10s.pickle' % (result_dir, test_spec), 'wb'))
 
 # Plot convergence
 Ns = np.array(Ns)

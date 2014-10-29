@@ -163,7 +163,7 @@ class VariationalSolver2d(object):
 
         diff = 1
         ref = 0
-        while diff > eps and ref < n_refs:
+        while diff > eps and (ref < n_refs if n_refs > 0 else True):
             ref += 1
 
             new_N = quad.N + 1

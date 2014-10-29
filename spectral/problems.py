@@ -159,7 +159,7 @@ def manufacture_poisson_2d(**kwargs):
         except AssertionError:
             e = lambdify([x, y],
                          simplify(f + E*diff(u, x, 2) + E*diff(u, y, 2)),
-                                  'math')
+                         'math')
             assert all(e(xi, yi) < 1E-15
                        for xi, yi in product(np.linspace(ax, bx, 100),
                                              np.linspace(ay, by, 100)))

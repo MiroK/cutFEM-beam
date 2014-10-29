@@ -8,16 +8,16 @@ rc('text', usetex=True)
 rc('font', family='serif')
 import matplotlib.pyplot as plt
 from matplotlib.colors import LogNorm
-from sympy import exp, pi, symbols, lambdify, latex, sin
+from sympy import pi, symbols, lambdify, latex, sin
 from math import sqrt, log as ln
 import plots
+import pickle
 
 result_dir = './results'
 # Specs for problem
 x, y = symbols('x, y')
 
-u = ((2*x - 1)**2 - 1)**2*(x - 1)*(exp(x) - 1)
-u *= ((2*y - 1)**2 - 1)**2*sin(2*pi*y)**2
+u = x**2*(x-1)**2*sin(pi*x)*y**2*(y-1)**2*sin(-pi*y)
 test_spec = 'test_2d'
 
 # Generate problem from specs
@@ -28,9 +28,9 @@ u_lambda = lambdify([x, y], u)
 f_lambda = lambdify([x, y], f)
 
 # -------
-solver_N_max = 3               # max frequency in solver
+solver_N_max = 5               # max frequency in solver
 power_N_max = 10               # max frequency for power spectrum
-plot_power = True              # plot the power spectrum
+plot_power = False             # plot the power spectrum
 eps = 10*__EPS__               # tolerance for computing accuracy of rhs
 # ------
 
@@ -41,14 +41,14 @@ Ns = []                               # really freq. consider dim(V_h)
 eL2s = []
 eH20s = []
 for i, N in enumerate(ns):
-    U, basis = solve_biharmonic_2d(f, MN=[N, N], domain=domain, eps=eps)
+    U, basis = solve_biharmonic_2d(f, MN=[N, N], domain=domain, eps=eps,
+                                   n_refs=-1)
     eL2 = errornorm(u, (U, basis), norm_type='L2', domain=domain)
     eH20 = errornorm(u, (U, basis), norm_type='H20', domain=domain)
     eL2s.append(eL2)
     eH20s.append(eH20)
     Ns.append(N)
 
-    _N, _errorL2, _errorH20 = None, None, None
     if i > 0:
         rate_L2 = ln(eL2/_errorL2)/ln(float(_N)/N)
         rate_H20 = ln(eH20/_errorH20)/ln(float(_N)/N)
@@ -60,6 +60,11 @@ for i, N in enumerate(ns):
 
     # Always remeber
     _N, _errorL2, _errorH20 = N, eL2, eH20
+
+# Save the data from convergence
+pickle.dump(Ns, open('%s/biharmonic_%s_Ns.pickle' % (result_dir, test_spec), 'wb'))
+pickle.dump(eL2s, open('%s/biharmonic_%s_eL2s.pickle' % (result_dir, test_spec), 'wb'))
+pickle.dump(eH20s, open('%s/biharmonic_%s_eH20s.pickle' % (result_dir, test_spec), 'wb'))
 
 # Plot convergence
 Ns = np.array(Ns)
