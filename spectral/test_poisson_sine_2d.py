@@ -40,9 +40,8 @@ eL2s = []
 eH10s = []
 for N in ns:
     print '-'*79
-    print '\t\t\t Solving with %dx%d | %g%% completed' % (N,
-                                                          N,
-                                                          float(N-1)/solver_N_max)
+    print '\t Solving with %dx%d | %g%% completed' % (N, N,
+                                                      100.*(N-1)/solver_N_max)
     print '-'*79
     U, basis = solve_sine_2d(f, MN=[N, N], domain=domain, eps=eps)
     eL2 = errornorm(u, (U, basis), norm_type='L2', domain=domain)

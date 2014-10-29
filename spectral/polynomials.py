@@ -17,47 +17,69 @@ def sine_basis(N, xi=None):
         # Generate for given k
         try:
             return np.array([sin(k*pi*xyz[xi])*sqrt(2) for k in N[0]])
-        # Generate for 1, ... N-1!!!
+        # Generate for 1, ... N!!!
         except TypeError:
             return sine_basis([range(1, N[0]+1)], xi=xi)
     else:
-        shape = map(lambda item: item if isinstance(item, int) else len(item),
-                    N)
-        return np.array([reduce(operator.mul, basis_comps)
-                         for basis_comps in product(*[sine_basis([N[i]], xi=i)
-                                                      for i in range(dim)])]).reshape(tuple(shape))
+        shape = tuple(map(lambda item: item if isinstance(item, int)
+                          else len(item), N))
+        return np.array([reduce(operator.mul, sin_xyz)
+                         for sin_xyz in product(*[sine_basis([N[i]], xi=i)
+                                                  for i in range(dim)])]
+                        ).reshape(shape)
 
 
-def equidistant_points(domain, N):
+def chebyshev_points(N):
     '''
-    [-1, -1], [[-1, 1], [-1, 1]]
+    TODO
     '''
-    try:
-        a = domain[0]
-        b = domain[1]
-        return np.linspace(a, b, N)
-    except TypeError:
-        return np.array([point
-                         for point in product(*[equidistant_points(sub, n)
-                                                for sub, n in zip(domain, N)])])
+    dim = len(N)
+    if dim == 1:
+        k = np.arange(1, N[0]+1, 1)
+        return np.cos((2*k-1)*np.pi/2./N[0])
+    else:
+        return np.array([[point for point in chebyshev_points([N[i]])]
+                         for i in range(dim)])
 
 
-def chebyshev_points(domain, N):
+def equidistant_points(N):
     '''
-    [-1, -1], [[-1, 1], [-1, 1]]
+    TODO
     '''
-    try:
-        k = np.arange(1, N+1, 1)
-        return np.cos((2*k-1)*np.pi/2/N)  # check that these are correct
-    except TypeError:
-        return np.array([point
-                         for point in product(*[equidistant_points(sub, n)
-                                                for sub, n in zip(domain, N)])])
-
-def lagrange_basis(points):
-    pass
+    dim = len(N)
+    if dim == 1:
+        return np.linspace(-1, 1, N[0])
+    else:
+        return np.array([[point for point in equidistant_points([N[i]])]
+                         for i in range(dim)])
 
 
+def lagrange_basis(points, xi=None):
+    '''
+    TODO
+    '''
+    xyz = symbols('x, y, z')
+    if xi is None:
+        xi = 0
+
+    dim = len(points)
+    if dim == 1:
+        points = points[0]
+        x = xyz[xi]
+        basis_xi = []
+        for i, xi in enumerate(points):
+            nom = reduce(operator.mul, [x-points[j]
+                                        for j in range(len(points)) if j != i])
+            den = nom.subs(x, xi)
+            basis_xi.append(nom/den)
+        return np.array(basis_xi)
+    else:
+        shape = tuple(map(len, points))
+        return np.array([reduce(operator.mul, l_xyz)
+                         for l_xyz in product(*[lagrange_basis([points[i]],
+                                                               xi=i)
+                                                for i in range(dim)])]
+                        ).reshape(shape)
 
 # -----------------------------------------------------------------------------
 
@@ -73,12 +95,12 @@ if __name__ == '__main__':
     y = np.array([f(xi) for xi in x])
 
     N = 13
-    x_e = equidistant_points([-1, 1], N)
+    x_e = equidistant_points([N])
     y_e = np.array([f(xi) for xi in x_e])
     e_interpolate = BI(x_e, y_e)
     yy = np.array([e_interpolate(xi) for xi in x])
 
-    x_c = chebyshev_points([-1, 1], N)
+    x_c = chebyshev_points([N])
     y_c = np.array([f(xi) for xi in x_c])
     e_interpolate = BI(x_c, y_c)
     yyy = np.array([e_interpolate(xi) for xi in x])
@@ -115,3 +137,12 @@ if __name__ == '__main__':
                     assert abs(l2_ip - 1) < 1E-15
                 else:
                     assert abs(l2_ip) < 1E-15
+
+    import sympy.plotting as s_plot
+    from sympy import diff
+    x, y = symbols('x, y')
+    points_x, points_y = chebyshev_points([2, 2])  # how is it with dim 1
+    for lp in lagrange_basis([points_x, points_y]).flatten():#, points_y]):
+        print lp
+        s_plot.plot3d(diff(lp, x, 1), (x, -1, 1), (y, -1, 1))
+        s_plot.plot3d(diff(lp, y, 1), (x, -1, 1), (y, -1, 1))
