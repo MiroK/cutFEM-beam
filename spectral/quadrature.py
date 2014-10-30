@@ -1,6 +1,7 @@
-from sympy import symbols, diff, lambdify
+from sympy import symbols, diff, lambdify, Rational, Dummy, S
+from sympy.polys.orthopolys import legendre_poly
+from sympy.polys.rootoftools import RootOf
 from sympy.integrals import quadrature
-import sympy.mpmath as mpmath
 from itertools import product
 from math import sqrt
 import numpy as np
@@ -11,20 +12,19 @@ import os
 __EPS__ = np.finfo(float).eps
 
 
-class GLQuadrature(object):
-    'Generate Gauss-Legendre points for computing integral over [-1, 1]^d.'
-    def __init__(self, N, method='python'):
+class Quadrature(object):
+    '''
+    Parent class for computing integrals over [-1, 1]^d. Handles everything
+    but creation of points and weights for summation. This must be provided
+    by children.
+    '''
+    def get_points_weights(self, n, n_digits):
+        'Compute points and weight of 1d quadrature'
+        raise NotImplementedError('Implement in child!')
+
+    def __init__(self, N, n_digits=15):
         'Create quadrature with number of points given in N.'
         time_q = time.time()
-        # Choose how quadrature is made
-        if method == 'python':
-            self._eval_method = self._eval_python
-        elif method == 'sympy':
-            # Sympy is much slower because it seems to really overestimate
-            # the error ?
-            self._eval_method = self._eval_sympy
-        else:
-            raise ValueError('method is sympy or python not %s' % method)
 
         # See if we are making 1d or higher-d quadrature
         try:
@@ -36,14 +36,14 @@ class GLQuadrature(object):
         zs_dir = []
         ws_dir = []
         for i in range(self.dim):
-            quad_name = '.quadrature_%d.pickle' % N[i]
+            quad_name = '.quadrature_%s_%d.pickle' % (self.name, N[i])
 
             # Try loading points that were already computed
             if os.path.exists(quad_name):
                 z, w = pickle.load(open(quad_name, 'rb'))
             # Compute points, weights and dump for next time
             else:
-                z, w = quadrature.gauss_legendre(N[i], n_digits=15)
+                z, w = self.get_points_weights(N[i], n_digits)
                 pickle.dump((z, w), open(quad_name, 'wb'))
 
             assert len(z) == N[i] and len(w) == N[i]
@@ -55,22 +55,18 @@ class GLQuadrature(object):
                            for weight in product(*ws_dir)])
 
         time_q = time.time() - time_q
-        print 'Computing %s-point quadrature :' % 'x'.join(map(str, N)), time_q
+        print 'Computing %s-point %s quadrature :' % \
+            ('x'.join(map(str, N)), self.name), time_q
 
         self.N = np.array(N)
         self.z = points
         self.w = weights
 
     def __str__(self):
-        return '%d-point 1d Gauss-Legendre quadrature' % self.N
+        return '%s-point %s quadrature' % \
+            ('x'.join(map(str, self.N)), self.name)
 
-    def eval(self, f, domain, **kwargs):
-        '''
-        Integrate[domain(with tensor product structure)\in R^d f(x) dx.
-        '''
-        return self._eval_method(f, domain, **kwargs)
-
-    def _eval_python(self, f, domain, **kwargs):
+    def eval(self, f, domain):
         '''
         Integrate[domain(with tensor product structure)\in R^d f(x) dx.
         The quadrature loop is implemented manually.
@@ -85,15 +81,6 @@ class GLQuadrature(object):
         # Jacobian of pull back
         J = np.product([0.5*(b - a) for (a, b) in domain])
         return J*sum(wi*f(*F(zi)) for zi, wi in zip(self.z, self.w))
-
-    def _eval_sympy(self, f, domain, **kwargs):
-        '''
-        Integrate[domain(with tensor product structure)\in R^d f(x) dx.
-        The quadrature loop is left to SymPy.
-        '''
-        assert len(domain) == self.dim
-        mpmath.mp.dps=15
-        return mpmath.quadgl(f, *domain, maxdegree=np.max(self.N), **kwargs)
 
     def eval_adapt(self, f, domain, eps=__EPS__, n_refs=5):
         '''
@@ -130,9 +117,51 @@ class GLQuadrature(object):
                 marker='o', linestyle=' ')
 
 
+class GLQuadrature(Quadrature):
+    'Gauss-Legendre quadrature.'
+    def __init__(self, N, n_digits=15):
+        self.name = 'Gauss-Legendre'
+        Quadrature.__init__(self, N, n_digits)
+
+    def get_points_weights(self, n, n_digits):
+        'Points and weights for 1d Gauss-Legendre quadrature.'
+        assert isinstance(n, int) and n > 0
+        return quadrature.gauss_legendre(n, n_digits=15)
+
+
+class GLLQuadrature(Quadrature):
+    'Guass-Legendre-Lobatto quadrature.'
+    def __init__(self, N, n_digits=15):
+        self.name = 'Gauss-Legendre-Lobatto'
+        Quadrature.__init__(self, N, n_digits)
+
+    def get_points_weights(self, n, n_digits):
+        'Points and weights for 1d Gauss-Legendre-Lobatto quadrature.'
+        assert isinstance(n, int) and n > 1
+        x = Dummy('x')
+        p = legendre_poly(n-1, x, polys=True)
+        dp = p.diff()
+        xi = []
+        wi = []
+        _w_ = Rational(2, n*(n-1))
+        for r in dp.real_roots():
+            if isinstance(r, RootOf):
+                r = r.eval_rational(S(1)/10**(n_digits+2))
+            xi.append(r.n(n_digits))
+            wi.append((_w_/p.subs(x, r)**2).n(n_digits))
+        # Pad with -1, 1
+        xi.insert(0, S(-1))
+        xi.append(S(1))
+
+        wi.insert(0, _w_.n(n_digits))
+        wi.append(_w_.n(n_digits))
+
+        return (xi, wi)
+
+
 def errornorm(u, (U, basis), norm_type, domain):
     '''
-    TODO
+    TODO, Uses GL quadrature
     '''
     dim = len(domain)
     assert dim == len(U.shape)
@@ -166,11 +195,57 @@ def errornorm(u, (U, basis), norm_type, domain):
 
 if __name__ == '__main__':
     from sympy import integrate, sin, exp, cos
+    from sympy.polys import Poly
     import matplotlib.pyplot as plt
 
-    __method__ = 'sympy'
+    # GLL 1d
+    x = symbols('x')
+    f = x
+    # Exact integral
+    F = integrate(f, (x, 0, 1)).evalf()
+    f_lambda = lambdify(x, f)
+    quad = GLLQuadrature(2)
+
+    # Integrate with given quadrature
+    assert abs(quad.eval(f_lambda, [[0, 1]]) - F) < 1E-15
+    # Integrate adaptively
+    assert abs(quad.eval_adapt(f_lambda, [[0, 1]]) - F) < 1E-15
+    # Let's see how much points we need for some harder function
+    f = (1+x**2)**-1
+    f_lambda = lambdify(x, f)
+    F_ = quad.eval_adapt(f_lambda, [[0, 1]], n_refs=20)
+    F = integrate(f, (x, 0, 1)).evalf()
+    assert abs(F - F_) < 1E-15
+
+    # GL 1d tests
+    x = symbols('x')
+    f = x
+    # Exact integral
+    F = integrate(f, (x, 0, 1)).evalf()
+    f_lambda = lambdify(x, f)
+    quad = GLQuadrature([2])
+
+    # Integrate with given quadrature
+    assert abs(quad.eval(f_lambda, [[0, 1]]) - F) < 1E-15
+    # Integrate adaptively
+    assert abs(quad.eval_adapt(f_lambda, [[0, 1]]) - F) < 1E-15
+    # Let's see how much points we need for some harder function
+    f = sin(x)*exp(x)
+    f_lambda = lambdify(x, f)
+    F_ = quad.eval_adapt(f_lambda, [[0, 1]], n_refs=20)
+    F = integrate(f, (x, 0, 1)).evalf()
+    assert abs(F - F_) < 1E-15
+
+    u = sin(x)
+    U = np.array([1])
+    basis = np.array([sin(x)])
+    error = errornorm(u, (U, basis), domain=[[-2, 3]], norm_type='L2')
+    error = errornorm(u, (U, basis), domain=[[-2, 3]], norm_type='H10')
+    error = errornorm(u, (U, basis), domain=[[-2, 3]], norm_type='H20')
+    assert abs(error) < 1E-15
+
     # 2d tests
-    quad = GLQuadrature([2, 2], method=__method__)
+    quad = GLQuadrature([2, 2])
     # Plot the quadrature points
     figure = plt.figure()
     quad.plot_points(figure)
@@ -214,65 +289,34 @@ if __name__ == '__main__':
     F = F**0.5
     assert abs(F-F_) < 1E-12
 
-    start = time.time()
-    for N in range(1, 60):
-        quad = GLQuadrature([N, N], __method__)
-        quad_is_exact = True
-        p = -1
-        while quad_is_exact:
-            p += 1
-            f = x**p + y**p
-            F = integrate(integrate(f, (x, 0, 1)), (y, 0, 1)).evalf()
-            e = abs(quad.eval(lambdify([x, y], f),
-                              [[0, 1], [0, 1]],
-                              verbose=False) - F,)
-
-            quad_is_exact = e < 1E-15
-            # print '\t (p=%d) -> %.2E' % (p, e)
-        p_exact = p-1
-        assert p_exact == p-1
-    stop = time.time() - start
-    print 'Timing %s' % __method__, stop
-    exit()
-    # 1d tests
+    # GL accuracy, N point integrates exactly polynomials of order 2N-1 and less
+    # There is no point in runnning this test for large N because then the
+    # numeric errors dominate results
     x = symbols('x')
-    f = x
-    # Exact integral
-    F = integrate(f, (x, 0, 1)).evalf()
-    f_lambda = lambdify(x, f)
-    quad = GLQuadrature([2])
-
-    # Integrate with given quadrature
-    assert abs(quad.eval(f_lambda, [[0, 1]]) - F) < 1E-15
-    # Integrate adaptively
-    assert abs(quad.eval_adapt(f_lambda, [[0, 1]]) - F) < 1E-15
-    # Let's see how much points we need for some harder function
-    f = sin(x)*exp(x)
-    f_lambda = lambdify(x, f)
-    F_ = quad.eval_adapt(f_lambda, [[0, 1]], n_refs=20)
-    F = integrate(f, (x, 0, 1)).evalf()
-    assert abs(F - F_) < 1E-15
-
-    u = sin(x)
-    U = np.array([1])
-    basis = np.array([sin(x)])
-    error = errornorm(u, (U, basis), domain=[[-2, 3]], norm_type='L2')
-    error = errornorm(u, (U, basis), domain=[[-2, 3]], norm_type='H10')
-    error = errornorm(u, (U, basis), domain=[[-2, 3]], norm_type='H20')
-    assert abs(error) < 1E-15
-
-    # Verify the 2*n-1 accuracy
-    for N in range(1, 60):
+    for N in range(1, 6):
         quad = GLQuadrature(N)
-        quad_is_exact = True
-        p = -1
-        while quad_is_exact:
-            p += 1
-            f = x**p
-            F = integrate(f, (x, 0, 1)).evalf()
-            e = abs(quad.eval(lambdify(x, f), [[0, 1]]) - F)
-            quad_is_exact = e < 1E-15
-            # print '\t %d -> %.2E' % (p, e)
+        for p_degree in range(2*N+3):
+            f = legendre_poly(p_degree, x)
+            exact = integrate(f, (x, -1, 1))
+            numeric = quad.eval(lambdify(x, f), [[-1, 1]])
+            e = abs(exact - numeric)
+            # Exit with first wrong degree
+            if e > 1E-14:
+                break
+        p_exact = p_degree - 1
+        assert p_exact == 2*N - 1
 
-        p_exact = p-1
-        assert p_exact == p-1
+    # GLL accuracy
+    x = symbols('x')
+    for N in range(2, 6):
+        quad = GLLQuadrature(N)
+        for p_degree in range(2*N+3):
+            f = legendre_poly(p_degree, x)
+            exact = integrate(f, (x, -1, 1))
+            numeric = quad.eval(lambdify(x, f), [[-1, 1]])
+            e = abs(exact - numeric)
+            # Exit with first wrong degree
+            if e > 1E-14:
+                break
+        p_exact = p_degree - 1
+        assert p_exact == 2*N - 3
