@@ -1,5 +1,5 @@
-from polynomials import gauss_legendre_points as gl_points,\
-    lagrange_basis as l_basis
+from points import gauss_legendre_points as gl_points
+from functions import lagrange_basis as l_basis
 from quadrature import GLQuadrature
 from sympy import lambdify, symbols, integrate
 import numpy.linalg as la

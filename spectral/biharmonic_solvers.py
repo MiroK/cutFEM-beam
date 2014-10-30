@@ -1,6 +1,6 @@
 from solvers import VariationalSolver1d, VariationalSolver2d
 from scipy.sparse.linalg import LinearOperator
-from polynomials import sine_basis
+from functions import sine_basis
 from quadrature import __EPS__
 import numpy as np
 

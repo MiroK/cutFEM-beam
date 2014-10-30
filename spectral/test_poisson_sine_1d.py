@@ -1,6 +1,6 @@
 from problems import manufacture_poisson_1d
 from quadrature import errornorm, GLQuadrature, __EPS__
-from polynomials import sine_basis
+from functions import sine_basis
 from poisson_solvers import solve_sine_1d
 import numpy as np
 from matplotlib import rc

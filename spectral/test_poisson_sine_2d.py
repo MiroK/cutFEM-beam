@@ -1,6 +1,6 @@
 from problems import manufacture_poisson_2d
 from quadrature import errornorm, GLQuadrature, __EPS__
-from polynomials import sine_basis
+from functions import sine_basis
 from poisson_solvers import solve_sine_2d
 import numpy as np
 from matplotlib import rc
@@ -30,7 +30,7 @@ f_lambda = lambdify([x, y], f)
 solver_N_max = 3               # max frequency in solver
 power_N_max = 10               # max frequency for power spectrum
 plot_power = False              # plot the power spectrum
-eps = 10*__EPS__               # tolerance for computing accuracy of rhs
+eps = 100*__EPS__               # tolerance for computing accuracy of rhs
 # ------
 
 # Frequencies for solver in convergence test

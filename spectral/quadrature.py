@@ -10,6 +10,7 @@ import time
 import os
 
 __EPS__ = np.finfo(float).eps
+__CACHE_DIR__ = '.cache'
 
 
 class Quadrature(object):
@@ -33,10 +34,17 @@ class Quadrature(object):
             N = [N]
         self.dim = len(N)
 
+        if not os.path.exists(__CACHE_DIR__):
+            os.mkdir(__CACHE_DIR__)
+        else:
+            os.path.isdir(__CACHE_DIR__)
+
+        # Lists for points and weights
         zs_dir = []
         ws_dir = []
         for i in range(self.dim):
-            quad_name = '.quadrature_%s_%d.pickle' % (self.name, N[i])
+            quad_name = '%s/.quadrature_%s_%d.pickle' % \
+                (__CACHE_DIR__, self.name, N[i])
 
             # Try loading points that were already computed
             if os.path.exists(quad_name):
@@ -159,6 +167,9 @@ class GLLQuadrature(Quadrature):
         return (xi, wi)
 
 
+# This registers quadrature for generation by script
+all_quads = [GLQuadrature, GLLQuadrature]
+
 def errornorm(u, (U, basis), norm_type, domain):
     '''
     TODO, Uses GL quadrature
@@ -195,7 +206,6 @@ def errornorm(u, (U, basis), norm_type, domain):
 
 if __name__ == '__main__':
     from sympy import integrate, sin, exp, cos
-    from sympy.polys import Poly
     import matplotlib.pyplot as plt
 
     # GLL 1d

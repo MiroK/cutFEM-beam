@@ -1,6 +1,6 @@
 from problems import manufacture_biharmonic_1d
 from quadrature import errornorm, GLQuadrature, __EPS__
-from polynomials import sine_basis
+from functions import sine_basis
 from biharmonic_solvers import solve_biharmonic_1d
 import numpy as np
 from matplotlib import rc
