@@ -145,7 +145,7 @@ def solve_lagrange_2d(f, E, domain, MN, points, quadrature, method):
         def matvec(vec):
             # Applying first A_m diad B_n
             dir_x = A_m.dot(np.vstack([vec[i*N:(i+1)*N].dot(B_n)
-                                    for i in range(M)]))
+                                       for i in range(M)]))
             # Applying B_m diad A_n
             dir_x += B_m.dot(np.vstack([vec[i*N:(i+1)*N].dot(A_n)
                                         for i in range(M)]))
@@ -173,9 +173,20 @@ def solve_lagrange_2d(f, E, domain, MN, points, quadrature, method):
         U = U_flat.reshape((M, N))
 
     elif method == 'tensor':
-        pass
+        # Solve the x-dir eigenvalue problem
+        lmbda_m, Q_m = la.eigh(A_m, B_m)
 
+        # Solve the y-dir eigenvalue problem
+        lmbda_n, Q_n = la.eigh(A_n, B_n)
 
+        # Compute the inverse
+        # Map the right hand side to eigen space
+        b_ = (Q_m.T).dot(b.dot(Q_n))
+        # Apply the inverse in eigen space
+        U_ = np.array([[b_[i, j]/(lmbda_m[i] + lmbda_n[j]) for j in range(N)]
+                      for i in range(M)])
+        # Map back to physical space
+        U = (Q_m).dot(U_.dot(Q_n.T))
 
     # Map the basis back to [a, b]
     basis_functions_x = np.array(map(lambda f: f.subs({x: Pi_x}),
@@ -201,18 +212,18 @@ if __name__ == '__main__':
 
     # 2d
     x, y = symbols('x, y')
-    ax, bx = -1, 2
-    ay, by = 0, 2
-    E = 2.5
+    ax, bx = -1, 1
+    ay, by = 0, 1
+    E = 2.3
     domain = [[ax, bx], [ay, by]]
 
     u = (x-ax)*(x-bx)*(y-ay)*(y-by)
     problem = manufacture_poisson_2d(u=u, domain=domain, E=E)
     f = problem['f']
 
-    (U, basis) = solve_lagrange_2d(f=f, E=E, domain=domain, MN=[3, 5],
+    (U, basis) = solve_lagrange_2d(f=f, E=E, domain=domain, MN=[5, 3],
                                    points=gll_points, quadrature=GLLQuadrature,
-                                   method='operator')
+                                   method='tensor')
 
     plots.plot(u, domain)
     plots.plot((U, basis), domain)
