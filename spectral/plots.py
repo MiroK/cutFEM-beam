@@ -55,6 +55,20 @@ def plot(f, domain, figure=None, **kwargs):
         else:
             return s_plot.plot3d(f_plot, bounds_x, bounds_y, **kwargs)
 
+
+def spy_operator(operator, figure):
+    'Plot sparsity pattern of operator where we only know matvec.'
+    m, n = operator.shape
+
+    I_m = np.eye(m)
+    I_n = np.eye(n)
+
+    A = np.array([[row_m.dot(operator.matvec(row_n)) for row_m in I_m]
+                  for row_n in I_n])
+
+    ax = figure.gca()
+    ax.spy(A)
+
 # -----------------------------------------------------------------------------
 
 if __name__ == '__main__':

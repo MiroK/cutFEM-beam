@@ -4,6 +4,7 @@ from functions import lagrange_basis
 from itertools import product
 import scipy.linalg as la
 import numpy as np
+import plots
 
 
 def solve_lagrange_2d(f, E, domain, MN, points, quadrature, method):
@@ -154,6 +155,12 @@ def solve_lagrange_2d(f, E, domain, MN, points, quadrature, method):
 
         A = LinearOperator((M*N, M*N), matvec=matvec, dtype='float64')
 
+        if False:
+            import matplotlib.pyplot as plt
+            fig = plt.figure()
+            plots.spy_operator(A, fig)
+            plt.show()
+
         # Counting iterations of cg
         class Counter(object):
             def __init__(self, n=0):
@@ -208,7 +215,6 @@ if __name__ == '__main__':
     from quadrature import GLLQuadrature
     from problems import manufacture_poisson_2d
     from quadrature import errornorm
-    import plots
 
     # 2d
     x, y = symbols('x, y')
@@ -221,9 +227,9 @@ if __name__ == '__main__':
     problem = manufacture_poisson_2d(u=u, domain=domain, E=E)
     f = problem['f']
 
-    (U, basis) = solve_lagrange_2d(f=f, E=E, domain=domain, MN=[5, 3],
+    (U, basis) = solve_lagrange_2d(f=f, E=E, domain=domain, MN=[5, 5],
                                    points=gll_points, quadrature=GLLQuadrature,
-                                   method='tensor')
+                                   method='operator')
 
     plots.plot(u, domain)
     plots.plot((U, basis), domain)
