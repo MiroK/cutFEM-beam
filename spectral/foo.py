@@ -90,6 +90,7 @@ def solve_lagrange_1d(f, N, E, a, b, points, quadrature):
 
 if __name__ == '__main__':
     from points import gauss_legendre_lobatto_points as gll_points
+    from points import equidistant_points as eq_points
     from quadrature import GLLQuadrature
     from problems import manufacture_poisson_1d
     from quadrature import errornorm
@@ -105,10 +106,12 @@ if __name__ == '__main__':
     f = problem1d['f']
 
     (U, basis) = solve_lagrange_1d(f=f, N=7, E=E, a=a, b=b,
-                                   points=gll_points, quadrature=GLLQuadrature)
+                                   points=gll_points, #eq_points,
+                                   quadrature=GLLQuadrature)
 
     plots.plot(u, [[a, b]])
     plots.plot((U, basis), [[a, b]])
 
     e = errornorm(u, (U, basis), domain=[[a, b]], norm_type='L2')
+    print e
     assert abs(e) < 1E-13
