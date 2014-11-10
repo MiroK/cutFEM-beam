@@ -52,8 +52,30 @@ def cg_solver(mesh, problem, p=2, verbose=False):
     bc = DirichletBC(V, Constant(0), DomainBoundary())
 
     # Solve variational problem
+    A, M = PETScMatrix(), PETScMatrix()
+    b = PETScVector()
+
+    m = inner(u, v)*dx
+    assemble_system(m, L, bc, A_tensor=M, b_tensor=b)
+    assemble_system(a, L, bc, A_tensor=A, b_tensor=b)
+
+    try:
+        esolver = SLEPcEigenSolver(A)
+        esolver.parameters['spectrum'] = 'largest magnitude'
+        esolver.solve(1)
+        max_r, max_c = esolver.get_eigenvalue(0)
+
+        if mesh.num_cells() < 513:
+            print '..'
+            esolver.parameters['spectrum'] = 'smallest magnitude'
+            esolver.solve(1)
+            min_r, min_c = esolver.get_eigenvalue(0)
+
+            print '%2E %2E %2E \t' % (max_r, min_r, max_r/min_r)
+    except:
+        print 'Eigensolver went wrong'
+
     u = Function(V)
-    A, b = assemble_system(a, L, bc)
     solve(A, u.vector(), b)
 
     # Plot solution
@@ -64,7 +86,7 @@ def cg_solver(mesh, problem, p=2, verbose=False):
 
     e_L2 = errornorm(u_exact, u, 'l2')
 
-    return {'h': mesh.hmax(), 'L2': e_L2}
+    return {'h': mesh.hmax(), 'L2': e_L2, 'a_max': max_r}
 
 
 def mixed_solver(mesh, problem, p, vertbose=False):
