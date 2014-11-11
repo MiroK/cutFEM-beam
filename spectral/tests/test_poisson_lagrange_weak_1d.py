@@ -1,42 +1,45 @@
-from problems import manufacture_biharmonic_1d
+import sys                                                      
+sys.path.insert(0, '../') 
+
+from problems import manufacture_poisson_1d
 from quadrature import errornorm
-from try_biharm_1d import solve_biharmonic_1d
+from cux import solve_lagrange_weak_1d
 import numpy as np
 from matplotlib import rc
 rc('text', usetex=True)
 rc('font', family='serif')
 import matplotlib.pyplot as plt
-from sympy import sin, symbols, lambdify, pi
+from sympy import exp, symbols, lambdify
 from math import log as ln
-import plots
+from points import gauss_legendre_points as gl_points
+from quadrature import GLQuadrature
 import time
 
 result_dir = './results'
 # Specs for problem
 x = symbols('x')
 
-method = 'gll_mixed'
+# Dicide Nitsche
+formulation = 'babuska'
 
-a = 0
-b = 1
-E = 2
-f, test_spec = (sin(4*pi*x)*x, 'test_1d_%s' % method)
+u, test_spec = (exp(x)*x*(x-1), 'test_%s' % formulation)
+
 # Generate problem from specs
-problem = manufacture_biharmonic_1d(f=f, a=a, b=b, E=E)
+problem = manufacture_poisson_1d(u=u, a=0, b=1)
 u = problem['u']
-plots.plot(u, [[a, b]])
 f = problem['f']
 u_lambda = lambdify(x, u)
 f_lambda = lambdify(x, f)
 
-Ns = np.arange(2, 20, 1)
+Ns = np.arange(3, 20, 1)
 eL2s = []
 eH10s = []
 for i, N in enumerate(Ns):
     start = time.time()
-    U, basis = solve_biharmonic_1d(f, N=[N, N], a=a, b=b, E=E,
-                                   method=method)
-    plots.plot((U, basis), [[a, b]])
+    U, basis = solve_lagrange_weak_1d(f, N=N, a=0, b=1, E=1,
+                                      points=gl_points,
+                                      quadrature=GLQuadrature,
+                                      formulation=formulation)
     stop = time.time() - start
     eL2 = errornorm(u, (U, basis), norm_type='L2', domain=[[0, 1]])
     eH10 = errornorm(u, (U, basis), norm_type='H10', domain=[[0, 1]])
@@ -49,7 +52,7 @@ for i, N in enumerate(Ns):
         print '-'*79
         print '\t Solved with %dx%d | %g%% completed' % (N, N,
                                                          100.*(i+1)/len(Ns))
-        print '\t Error L2=%.4e, Error H10=%.4e' % (eL2, eH10)
+        print '\t Error L2=%.4E, Error H10=%.4E' % (eL2, eH10)
         print '\t Rate L2=%.2f, Rate H10=%.2f' % (rate_L2, rate_H10)
         print '\t Assembly + inverse', stop
         print '-'*79
@@ -64,8 +67,8 @@ plt.loglog(Ns, eH10s, label='$H^1_0$')
 plt.ylabel('$e$')
 plt.xlabel(r'$N$')
 plt.legend(loc='best')
-plt.savefig('%s/lagrange_biharmonic_convergence_%s.pdf' %
-            (result_dir, test_spec))
+plt.savefig('%s/lagrange_poisson_weak_convergence_%s.pdf' % (result_dir,
+                                                             test_spec))
 
 # Plot final solution
 uh = sum(Ui*base for (Ui, base) in zip(U.flatten(), basis.flatten()))
@@ -79,7 +82,8 @@ plt.plot(t, u_values, label='$u$')
 plt.plot(t, uh_values, label='$u_h$')
 plt.xlabel('$x$')
 plt.legend(loc='best')
-plt.savefig('%s/lagrange_biharmonic_solution_%s.pdf' % (result_dir, test_spec))
+plt.savefig('%s/lagrange_poisson_weak_solution_%s.pdf' % (result_dir,
+                                                          test_spec))
 
 # Lets print the rates
 for i in range(1, len(Ns)):

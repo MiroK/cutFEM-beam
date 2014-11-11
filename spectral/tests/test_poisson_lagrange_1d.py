@@ -1,3 +1,6 @@
+import sys                                                      
+sys.path.insert(0, '../') 
+
 from problems import manufacture_poisson_1d
 from quadrature import errornorm, GLQuadrature, __EPS__
 from functions import sine_basis

@@ -1,3 +1,6 @@
+import sys                                                      
+sys.path.insert(0, '../') 
+
 from problems import manufacture_poisson_2d
 from quadrature import errornorm
 from bar import solve_lagrange_2d
