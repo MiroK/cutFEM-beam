@@ -1,5 +1,5 @@
 import problem2d
-from fenics_solvers import cg_solver
+from fenics_solvers import cg_solver, mixed_solver
 from math import log as ln
 import matplotlib.pyplot as plt
 
@@ -42,8 +42,8 @@ if __name__ == '__main__':
               for i in range(3, 8)]
 
     # Specialize the solver for the problem and polynomial order
-    solver0 = partial(cg_solver, problem=problem0, p=2, verbose=False)
-    solver1 = partial(cg_solver, problem=problem1, p=3, verbose=False)
+    solver0 = partial(mixed_solver, problem=problem0, p=2, verbose=False)
+    solver1 = partial(mixed_solver, problem=problem0, p=3, verbose=False)
 
     # Now run the test
     test_convergence(meshes, solver0)
