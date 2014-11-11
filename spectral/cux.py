@@ -70,9 +70,9 @@ def solve_lagrange_nitsche_1d(f, N, E, a, b, points, quadrature, formulation):
         # Need to assemble the penalty term
         P = np.zeros_like(A)
         for i, bi in enumerate(basis_lambda):
-            P[i, i] = bi(1)*bi(1) - bi(-1)*bi(-1)
+            P[i, i] = bi(1)*bi(1) + bi(-1)*bi(-1)
             for j, bj in enumerate(basis_lambda[i+1:], i+1):
-                P[i, j] = bi(1)*bj(1) - bi(-1)*bj(-1)
+                P[i, j] = bi(1)*bj(1) + bi(-1)*bj(-1)
                 P[j, i] = P[i, j]
 
         # Multiply the penalty
