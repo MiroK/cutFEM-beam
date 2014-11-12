@@ -55,10 +55,26 @@ def lagrange_basis(points, xi=None):
                                                 for i in range(dim)])]
                         ).reshape(shape)
 
+
 # -----------------------------------------------------------------------------
 
 if __name__ == '__main__':
     from points import chebyshev_points
+    from quadrature import zero_mean, GLQuadrature
+    import plots
+
+    if True:
+        from sympy import lambdify
+        x = symbols('x')
+        N = 5
+        quad = GLQuadrature(N/2 + 2)
+        bs = lagrange_basis([chebyshev_points([N])])
+        b0_s = zero_mean(bs)
+        for b, b0 in zip(bs, b0_s):
+            plots.plot(b, [[-1, 1]])
+            plots.plot(b0, [[-1, 1]])
+            print 'mean of b0', quad.eval(lambdify(x, b0), [[-1, 1]])
+
     # Make sure that the 1d basis is orthonormal
     if False:
         x = symbols('x')
@@ -83,10 +99,10 @@ if __name__ == '__main__':
                 else:
                     assert abs(l2_ip) < 1E-15
 
-    import sympy.plotting as s_plot
-    x, y = symbols('x, y')
-    points_x, points_y = chebyshev_points([2, 2])
-    for lp in lagrange_basis([points_x, points_y]).flatten():
-        print lp
-        s_plot.plot3d(diff(lp, x, 1), (x, -1, 1), (y, -1, 1))
-        s_plot.plot3d(diff(lp, y, 1), (x, -1, 1), (y, -1, 1))
+    if False:
+        import sympy.plotting as s_plot
+        x, y = symbols('x, y')
+        points_x, points_y = chebyshev_points([2, 2])
+        for lp in lagrange_basis([points_x, points_y]).flatten():
+            s_plot.plot3d(diff(lp, x, 1), (x, -1, 1), (y, -1, 1))
+            s_plot.plot3d(diff(lp, y, 1), (x, -1, 1), (y, -1, 1))

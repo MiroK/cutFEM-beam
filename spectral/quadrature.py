@@ -170,6 +170,7 @@ class GLLQuadrature(Quadrature):
 # This registers quadrature for generation by script
 all_quads = [GLQuadrature, GLLQuadrature]
 
+
 def errornorm(u, (U, basis), norm_type, domain):
     '''
     TODO, Uses GL quadrature
@@ -201,6 +202,20 @@ def errornorm(u, (U, basis), norm_type, domain):
         return 1E-16
     else:
         return sqrt(norm)
+
+
+def zero_mean(basis):
+    '''
+    Return functions with zero mean over [-1, 1] that can be used as basis
+    of L^2_0(-1, 1).
+    '''
+    N = len(basis)
+    # Degree of N polynomials is N-1 which is integrated exactly by GL
+    # quadrature with N/2 points. Add 1 just to be on the safe side
+    quad = GLQuadrature(N/2 + 1)
+    x = symbols('x')
+    return np.array([f - S(quad.eval(lambdify(x, f), [[-1, 1]])/2)
+                     for f in basis])
 
 # -----------------------------------------------------------------------------
 
