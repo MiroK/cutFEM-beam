@@ -46,8 +46,8 @@ class PointGenerator(object):
         # used for quadrature, tensor product basis etc
         else:
             self.xi = np.array([[point
-                                 for point in self._get_points_([N[i]],
-                                                                n_digits)
+                                 for point in self._get_points(N[i],
+                                                               n_digits)
                                  ]
                                 for i in range(dim)])
 
