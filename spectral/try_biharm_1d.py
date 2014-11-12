@@ -141,6 +141,8 @@ def solve_biharmonic_1d_BAA(f, N, E, a, b, points):
 
         Am[0, :], Am[:, 0], Am[0, 0] = 0, 0, 1
         Am[-1, :], Am[:, -1], Am[-1, -1] = 0, 0, 1
+    else:
+        raise NotImplementedError('No Nitsche yet')
 
     S = la.solve(An, b)
     b = B.dot(S)
@@ -233,6 +235,8 @@ def solve_biharmonic_1d_A(f, N, E, a, b, points):
         A[-1, :] = 0
         A[:, -1] = 0
         A[-1, -1] = 1
+    else:
+        raise NotImplementedError('No Nitsche yet')
 
     # Solve the system to get expansion coeffs for basis of [-1, 1]
     U = la.solve(A, b)
@@ -287,8 +291,8 @@ if __name__ == '__main__':
     problem1d = manufacture_biharmonic_1d(u=u, a=a, b=b, E=E)
     f = problem1d['f']
 
-    U, basis = solve_biharmonic_1d(f, N=[9, 8], E=E, a=a, b=b,
-                                   method='gll_mixed')
+    U, basis = solve_biharmonic_1d(f, N=[3, 3], E=E, a=a, b=b,
+                                   method='gl_mixed')
     plots.plot(u, [[a, b]])
     plots.plot((U, basis), [[a, b]])
     e = errornorm(u, (U, basis), domain=[[a, b]], norm_type='L2')

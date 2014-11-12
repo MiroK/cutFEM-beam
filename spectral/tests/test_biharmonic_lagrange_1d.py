@@ -1,6 +1,6 @@
-import sys                                                                       
+import sys
 sys.path.insert(0, '../')
-      
+
 from problems import manufacture_biharmonic_1d
 from quadrature import errornorm
 from try_biharm_1d import solve_biharmonic_1d
@@ -11,7 +11,6 @@ rc('font', family='serif')
 import matplotlib.pyplot as plt
 from sympy import sin, symbols, lambdify, pi
 from math import log as ln
-import plots
 import time
 
 result_dir = './results'
@@ -27,19 +26,17 @@ f, test_spec = (sin(4*pi*x)*x, 'test_1d_%s' % method)
 # Generate problem from specs
 problem = manufacture_biharmonic_1d(f=f, a=a, b=b, E=E)
 u = problem['u']
-plots.plot(u, [[a, b]])
 f = problem['f']
 u_lambda = lambdify(x, u)
 f_lambda = lambdify(x, f)
 
-Ns = np.arange(2, 20, 1)
+Ns = np.arange(5, 20, 1)
 eL2s = []
 eH10s = []
 for i, N in enumerate(Ns):
     start = time.time()
     U, basis = solve_biharmonic_1d(f, N=[N, N], a=a, b=b, E=E,
                                    method=method)
-    plots.plot((U, basis), [[a, b]])
     stop = time.time() - start
     eL2 = errornorm(u, (U, basis), norm_type='L2', domain=[[0, 1]])
     eH10 = errornorm(u, (U, basis), norm_type='H10', domain=[[0, 1]])
