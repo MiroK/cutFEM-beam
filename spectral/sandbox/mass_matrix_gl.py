@@ -1,3 +1,6 @@
+import sys
+sys.path.insert(0, '../')
+
 from points import gauss_legendre_points as gl_points
 from functions import lagrange_basis as l_basis
 from quadrature import GLQuadrature

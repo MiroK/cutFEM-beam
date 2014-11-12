@@ -1,3 +1,6 @@
+import sys
+sys.path.insert(0, '../')
+
 from matplotlib import rc
 rc('text', usetex=True)
 rc('font', family='serif')

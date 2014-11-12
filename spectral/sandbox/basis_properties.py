@@ -1,5 +1,7 @@
 # Let's have a look at function values of 0-th, first and second derivative
 # of Lagrange polynomials in nodes
+import sys
+sys.path.insert(0, '../')
 
 from points import gauss_legendre_lobatto_points as gll_points
 from points import gauss_legendre_points as gl_points
