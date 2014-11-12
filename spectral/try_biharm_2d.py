@@ -1,29 +1,20 @@
 from points import gauss_legendre_lobatto_points as gl_points
-from scipy.sparse.linalg import LinearOperator, cg
 from sympy import symbols, lambdify, Rational, diff
 from functions import lagrange_basis
-from quadrature import GLQuadrature
+from quadrature import GLLQuadrature
 from itertools import product
+import scipy.linalg as la
 import numpy as np
 
 
-def solve_lagrange_2d(f, E, domain, m, method):
-    '''
-    For now only 4-th order, as operator and equal order in x, y
-    '''
+def solve_lagrange_2d(f, E, domain, m):
     [[ax, bx], [ay, by]] = domain
-    x, y = symbols('x, y')
 
-    nodes_m = gl_points([m])
-    quad_m = GLQuadrature(m)
-    basis_functions_m = lagrange_basis([nodes_m])
-    # Make lambads of basis
-    basis_lambda_m = map(lambda f: lambdify(x, f), basis_functions_m)
-    # Derivetives are only needed as lambdas
-    d1_basis_functions_m = map(lambda f: lambdify(x, diff(f, x, 1)),
-                               basis_functions_m)
-    d2_basis_functions_m = map(lambda f: lambdify(x, diff(f, x, 2)),
-                               basis_functions_m)
+    x, y = symbols('x, y')
+    nodes = gl_points([m])
+
+    basis_functions = lagrange_basis([nodes])
+    dbasis_functions = map(lambda f: diff(f, x, 1), basis_functions)
 
     # Everything is assembled in [[-1, 1], [-1, 1]]. We need to map the load
     # vector and  scale the matrices
@@ -46,111 +37,81 @@ def solve_lagrange_2d(f, E, domain, m, method):
 
     # Represent f_ref in the space H^1([[-1, 1], [-1, 1]]) spanned by
     # basis_functions F is a mxn matrix
-    F = np.array([[f_lambda(xi, yj) for yj in nodes_m] for xi in nodes_m])
+    F = np.array([[f_lambda(xi, yj) for yj in nodes] for xi in nodes])
     assert F.shape == (m, m)
 
-    # Assembling the matrices
-    # Matrix of biharmonic problem ddf_i * ddf_j
+    quad = GLLQuadrature(m)
+
+    # Mass
     B = np.zeros((m, m))
-    for i, bi in enumerate(d2_basis_functions_m):
-        B[i, i] = quad_m.eval(lambda x: bi(x)*bi(x), [[-1, 1]])
-        for j, bj in enumerate(d2_basis_functions_m[i+1:], i+1):
-            B[i, j] = quad_m.eval(lambda x: bi(x)*bj(x), [[-1, 1]])
+    basis_lambda = map(lambda f: lambdify(x, f), basis_functions)
+    for i, bi in enumerate(basis_lambda):
+        B[i, i] = quad.eval(lambda x: bi(x)*bi(x), [[-1, 1]])
+        for j, bj in enumerate(basis_lambda[i+1:], i+1):
+            B[i, j] = quad.eval(lambda x: bi(x)*bj(x), [[-1, 1]])
             B[j, i] = B[i, j]
-    Bx = B*E*(2./Lx)**3
-    By = B*E*(2./Ly)**3
 
-    # Matrix of the laplacian df_i * df_j
+    # Assemble the stiffness matrix for x direction
     A = np.zeros_like(B)
-    for i, bi in enumerate(d1_basis_functions_m):
-        A[i, i] = quad_m.eval(lambda x: bi(x)*bj(x), [[-1, 1]])
-        for j, bj in enumerate(d1_basis_functions_m[i+1:], i+1):
-            A[i, j] = quad_m.eval(lambda x: bi(x)*bj(x), [[-1, 1]])
+    dbasis_lambda = map(lambda f: lambdify(x, f), dbasis_functions)
+    for i, bi in enumerate(dbasis_lambda):
+        A[i, i] = quad.eval(lambda x: bi(x)*bi(x), [[-1, 1]])
+        for j, bj in enumerate(dbasis_lambda[i+1:], i+1):
+            A[i, j] = quad.eval(lambda x: bi(x)*bj(x), [[-1, 1]])
             A[j, i] = A[i, j]
-    Ax = A*E*(2./Lx)
-    Ay = A*E*(2./Ly)
 
-    # Mass matrix f_i* f_J
-    M = np.zeros_like(A)
-    for i, bi in enumerate(basis_lambda_m):
-        M[i, i] = quad_m.eval(lambda x: bi(x)*bj(x), [[-1, 1]])
-        for j, bj in enumerate(basis_lambda_m[i+1:], i+1):
-            M[i, j] = quad_m.eval(lambda x: bi(x)*bj(x), [[-1, 1]])
-            M[j, i] = M[i, j]
-    Mx = M*(Lx/2.)
-    My = M*(Ly/2.)
+    # Apply boundary conditions to A
+    # Zero rows and cols
+    A[0, :], A[-1, :], A[:, 0], A[:, -1] = 0, 0, 0, 0
+    B[0, :], B[-1, :], B[:, 0], B[:, -1] = 0, 0, 0, 0
+    # Puts ones
+    A[0, 0], A[-1, -1] = 1, 1
+    B[0, 0], B[-1, -1] = 1, 1
 
-    # Apply the boundary conditions
-    for mat in [Bx, By, Ax, Ay]:
-        # Zeros
-        mat[0, :], mat[-1, :], mat[:, 0], mat[:, -1] = 0, 0, 0, 0
-        # Ones
-        mat[0, 0], mat[-1, -1] = 1, 1
-
-    # Assemble the rhs
     # Right hand side is a projection
-    b = (Mx.dot(F)).dot(My)
-    # Apply boundary conditions
+    b = (B.dot(F)).dot(B)
+    b *= 0.25*Lx*Ly
+    # Apply bcs to b
     b[0, :], b[-1, :], b[:, 0], b[:, -1] = 0, 0, 0, 0
 
     # Let's solve the discrete problem now
-    if method not in ['operator', 'tensor']:
-        raise ValueError('method %s not supported' % method)
+    lmbda, Q = la.eigh(A, B)
 
-    elif method == 'operator':
-        # Flatten everything
-        b_flat = b.flatten()  # m,n vector collapsed by row
+    # S
+    # Map the right hand side to eigen space
+    b_ = (Q.T).dot(b.dot(Q))
+    # Apply the inverse in eigen space
+    S_ = np.array([[b_[i, j]/(lmbda[i]*E*Ly/Lx + lmbda[j]*E*Lx/Ly)
+                    for j in range(m)]
+                    for i in range(m)])
+    # Map back to physical space
+    S = (Q).dot(S_.dot(Q.T))
 
-        # Define A as an m.n x m.n opeerator acting on m.n vector
-        def matvec(vec):
-            # Applying Bx.T diad My
-            y = Bx.dot(np.vstack([vec[i*m:(i+1)*m].dot(My) for i in range(m)]))
-            # Applying Ax.T diad A.x
-            #y += 2*Ax.dot(np.vstack([vec[i*m:(i+1)*m].dot(Ay) for i in range(m)]))
-            # Applying Mx.T diad My
-            y += Mx.dot(np.vstack([vec[i*m:(i+1)*m].dot(By) for i in range(m)]))
+    # U
+    b = (B.dot(S)).dot(B)
+    b *= 0.25*Lx*Ly
 
-            return y.flatten()
+    b_ = (Q.T).dot(b.dot(Q))
 
-        A = LinearOperator((m*m, m*m), matvec=matvec, dtype='float64')
-
-        # Counting iterations of cg
-        class Counter(object):
-            def __init__(self, n=0):
-                self.n = n
-            def __call__(self, x):
-                self.n += 1
-            def __str__(self):
-                return str(self.n)
-
-        # Solve the system to get expansion coeffs for basis
-        # of [[-1, 1], [-1, 1]]
-        iter_counter = Counter()
-        U_flat, info = cg(A, b_flat, tol=1E-12, callback=iter_counter)
-        assert info == 0
-
-        print 'CG finished in', iter_counter, 'iterations'
-        U = U_flat.reshape((m, m))
-
-    elif method == 'tensor':
-        raise NotImplementedError
+    # Apply the inverse in eigen space
+    U_ = np.array([[b_[i, j]/(lmbda[i]*E*Ly/Lx + lmbda[j]*E*Lx/Ly)
+                    for j in range(m)]
+                    for i in range(m)])
+    # Map back to physical space
+    U = (Q).dot(U_.dot(Q.T))
 
     # Map the basis back to [a, b]
     basis_functions_x = np.array(map(lambda f: f.subs({x: Pi_x}),
-                                     basis_functions_m))
-    # Note that everything is defined in terms of x, its's the substitution
-    # that makes the basis fuctions of y
+                                     basis_functions))
     basis_functions_y = np.array(map(lambda f: f.subs({x: Pi_y}),
-                                     basis_functions_m))
+                                     basis_functions))
 
     # Create the basis phi(x, y)
     basis_functions = np.array([phi_x*psi_y
                                 for phi_x, psi_y in product(basis_functions_x,
                                                             basis_functions_y)
                                 ]).reshape((m, m))
-
     return (U, basis_functions)
-
 # -----------------------------------------------------------------------------
 
 if __name__ == '__main__':
@@ -169,10 +130,19 @@ if __name__ == '__main__':
     problem = manufacture_biharmonic_2d(u=u, domain=domain, E=E)
     u = problem['u']
     f = problem['f']
-
-    U, basis = solve_lagrange_2d(f, m=10, E=E, domain=domain, method='operator')
-
     plots.plot(u, domain)
-    plots.plot((U, basis), domain)
 
-    # e = errornorm(u, (U, basis), domain=domain, norm_type='L2')
+    U, basis = solve_lagrange_2d(f, m=8, E=E, domain=domain)
+    plots.plot((U, basis), domain)
+    e = errornorm(u, (U, basis), domain=domain, norm_type='L2')
+    print e
+
+    U, basis = solve_lagrange_2d(f, m=10, E=E, domain=domain)
+    plots.plot((U, basis), domain)
+    e = errornorm(u, (U, basis), domain=domain, norm_type='L2')
+    print e
+
+    U, basis = solve_lagrange_2d(f, m=12, E=E, domain=domain)
+    plots.plot((U, basis), domain)
+    e = errornorm(u, (U, basis), domain=domain, norm_type='L2')
+    print e
