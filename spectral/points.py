@@ -2,6 +2,7 @@ from sympy import pi, Dummy, S, Rational, cos
 from sympy.polys.orthopolys import legendre_poly
 from sympy.polys.rootoftools import RootOf
 from quadrature import __CACHE_DIR__
+from mpi4py import MPI
 import numpy as np
 import pickle
 import os
@@ -15,26 +16,34 @@ class PointGenerator(object):
         use_cache = kwargs.get('use_cache', True)
         n_digits = kwargs.get('n_digits', 15)
 
+        # Split for parallel
+        comm = MPI.COMM_WORLD
+        proc = comm.Get_rank()
         if dim == 1:
             n = N[0]
             assert isinstance(n, int)
 
             # With cache, check if they are available. If not compute and dump
+            # Let only root/pickle out the points
             if use_cache:
-                # Make sure we have directory
-                if not os.path.exists(__CACHE_DIR__):
-                    os.mkdir(__CACHE_DIR__)
-                else:
-                    os.path.isdir(__CACHE_DIR__)
+                if proc == 0:
+                    # Make sure we have directory
+                    if not os.path.exists(__CACHE_DIR__):
+                        os.mkdir(__CACHE_DIR__)
+                    else:
+                        os.path.isdir(__CACHE_DIR__)
 
-                pts_name = '%s/.%s_points_%d.pickle' % \
-                    (__CACHE_DIR__, self.name, n)
+                    pts_name = '%s/.%s_points_%d.pickle' % \
+                        (__CACHE_DIR__, self.name, n)
 
-                if os.path.exists(pts_name):
-                    xi = pickle.load(open(pts_name, 'rb'))
+                    if os.path.exists(pts_name):
+                        xi = pickle.load(open(pts_name, 'rb'))
+                    else:
+                        xi = self._get_points(n, n_digits)
+                    pickle.dump(xi, open(pts_name, 'wb'))
                 else:
-                    xi = self._get_points(n, n_digits)
-                pickle.dump(xi, open(pts_name, 'wb'))
+                    xi = None
+                xi = comm.bcast(xi, root=0)
             else:
                 xi = self._get_points(n, n_digits)
 
