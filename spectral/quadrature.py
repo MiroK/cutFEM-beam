@@ -3,12 +3,10 @@ from sympy.polys.orthopolys import legendre_poly
 from sympy.polys.rootoftools import RootOf
 from sympy.integrals import quadrature
 from itertools import product
-
 import matrices
 from functions import lagrange_basis
 from points import gauss_legendre_points as gl_points
 from common import __CACHE_DIR__, __EPS__
-
 from math import sqrt
 from mpi4py import MPI
 import numpy as np
@@ -214,11 +212,11 @@ def errornorm(u, (U, basis), norm_type, domain):
 
     xyz = symbols('x, y, z')
     e = u - uh
-    if norm_type == 'L2':
+    if norm_type.lower() == 'l2':
         f = e**2
-    elif norm_type == 'H10':
+    elif norm_type.lower() == 'h10':
         f = sum([diff(e, xi, 1)**2 for xi in xyz[:dim]])
-    elif norm_type == 'H20':
+    elif norm_type.lower() == 'h20':
         laplace_comps = [diff(e, xi, 2) for xi in xyz[:dim]]
         f = sum(c0*c1 for c0 in laplace_comps for c1 in laplace_comps)
     # Make for fast evaluation
@@ -249,12 +247,12 @@ def tensor_errornorm(u, (U, basis), norm_type, domain,
     for x, (a, b) in zip(xy, domain):
         e = e.subs(x, Rational(a, 2)*(1-x) + (1+x)*Rational(b, 2))
     # Matrices for higher orther space on [-1, 1]^dim must be scaled
-    jacobians = [(b-a)/2. for a, b in domain]
+    J0, J1 = [(b-a)/2. for a, b in domain]
     # Finally in the computation we need only lambda of error
     e = lambdify(xy[:dim], e)
 
+    N = max(U.shape)
     # Variables for adaptive loop
-    Ns = np.ones(dim)*np.max(U.shape)
     n_iter = 0
     diff = 1
     error_ = None
@@ -262,25 +260,22 @@ def tensor_errornorm(u, (U, basis), norm_type, domain,
         n_iter += 1
         # Represent error in higher order space over [-1, 1]^dim
         # First define points of the higher order space
-        Ns += 1
-        points = gl_points(Ns)
+        N += 1
+        points = gl_points([N])
         # Interpolate
-        E = np.array([e(*p) for p in product(*points)]).reshape(Ns)
+        E = np.array([e(*p) for p in product(points, points)]).reshape((N, N))
         # Compute the error using matrices
-        # Always need mass matrices
-        M = [J*matrices.assemble_mass_matrix(lagrange_basis([pts]))
-             for J, pts in zip(jacobians, points)]
-
+        # Always need mass matrix
+        basis = lagrange_basis([points])
+        M = matrices.assemble_mass_matrix(basis)
         if norm_type.lower() == 'l2':
-            error = ((M[0].dot(E))*(E.dot(M[1]))).sum()
+            error = ((J0*M.dot(E))*(E.dot(J1*M))).sum()
 
         elif norm_type.lower() == 'h10':
-            A = [matrices.assemble_stiffness_matrix(lagrange_basis([pts]))/J
-                 for J, pts in zip(jacobians, points)]
+            A = matrices.assemble_stiffness_matrix(basis)
 
-            error = ((A[0].dot(E))*(E.dot(M[1]))).sum()
-            error += ((M[0].dot(E))*(E.dot(A[1]))).sum()
-
+            error = (((A/J0).dot(E))*(E.dot(J1*M))).sum()
+            error += ((J0*M.dot(E))*(E.dot(A/J1))).sum()
         else:
             raise NotImplementedError
 
@@ -290,6 +285,7 @@ def tensor_errornorm(u, (U, basis), norm_type, domain,
         error_ = error
 
     # Prevent taking square root of negative numbers (likely due to round-off)
+    print error
     if error > 0:
         return sqrt(error)
     else:
@@ -318,13 +314,16 @@ if __name__ == '__main__':
     x, y = symbols('x, y')
     u = 1 + x + y + x*y
     basis = np.array([[1, 1*y, y**2],
-                      [x*1, x*y, x*y**2]])
-    U = np.array([[1.3, 2, 0.1],
-                  [-1, 1.2, 0.01]])
+                      [x*1, x*y, x*y**2],
+                      [x**2*1, x**2*y, x**2*y**2]])
+    U = np.array([[1.3, 2, 0.1, 1],
+                  [-1, 1.2, 0.01, 1],
+                  [1, 1, 0, 2]])
 
-    two = errornorm(u, (U, basis), 'H10', [[-1, 1], [-1, 3]])
+    exit()
+    two = errornorm(u, (U, basis), 'H10', [[-1, 0], [-1, 2]])
     print 'errornorm', two
-    one = tensor_errornorm(u, (U, basis), 'H10', [[-1, 1], [-1, 3]])
+    one = tensor_errornorm(u, (U, basis), 'H10', [[-1, 0], [-1, 2]])
     print 'tensor', one
     print abs(one - two)
 
