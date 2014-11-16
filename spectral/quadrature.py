@@ -3,15 +3,18 @@ from sympy.polys.orthopolys import legendre_poly
 from sympy.polys.rootoftools import RootOf
 from sympy.integrals import quadrature
 from itertools import product
+
+import matrices
+from functions import lagrange_basis
+from points import gauss_legendre_points as gl_points
+from common import __CACHE_DIR__, __EPS__
+
 from math import sqrt
 from mpi4py import MPI
 import numpy as np
 import pickle
 import time
 import os
-
-__EPS__ = np.finfo(float).eps
-__CACHE_DIR__ = '.cache'
 
 
 class Quadrature(object):
@@ -72,7 +75,6 @@ class Quadrature(object):
         points = np.array([point for point in product(*zs_dir)])
         weights = np.array([np.product(weight)
                            for weight in product(*ws_dir)])
-
 
         glob_len = len(points)
         loc_len = glob_len/n_procs
@@ -229,18 +231,69 @@ def errornorm(u, (U, basis), norm_type, domain):
         return sqrt(norm)
 
 
-def tensor_errornorm(u, (U, basis), norm_type, domain, n_iters):
+def tensor_errornorm(u, (U, basis), norm_type, domain,
+                     n_iters=10, prec=100*__EPS__):
     '''
-    TODO
+    The integral in the error definition is computed by matrix-matrix or
+    matrix-vector products.
     '''
     dim = len(domain)
+    assert 1 < dim < 3
     assert dim == len(U.shape)
-    # Heuristic choice for quadrature order
-    Ns = U.shape
-    # Then for the L2 the max is 2*N for this N+1 is sufficient but u does
-    # not have to be polynomials so increase to N+2
-    quad = GLQuadrature([N+2])
-    #TODO
+    # Assemble uh as linear combination
+    uh = sum(Ui*base for (Ui, base) in zip(U.flatten(), basis.flatten()))
+    # Now make a symbolic error
+    e = u - uh
+    # Map the error to [-1, 1]^dim
+    xy = symbols('x, y')
+    for x, (a, b) in zip(xy, domain):
+        e = e.subs(x, Rational(a, 2)*(1-x) + (1+x)*Rational(b, 2))
+    # Matrices for higher orther space on [-1, 1]^dim must be scaled
+    jacobians = [(b-a)/2. for a, b in domain]
+    # Finally in the computation we need only lambda of error
+    e = lambdify(xy[:dim], e)
+
+    # Variables for adaptive loop
+    Ns = np.ones(dim)*np.max(U.shape)
+    n_iter = 0
+    diff = 1
+    error_ = None
+    while n_iter < n_iters and diff > prec:
+        n_iter += 1
+        # Represent error in higher order space over [-1, 1]^dim
+        # First define points of the higher order space
+        Ns += 1
+        points = gl_points(Ns)
+        # Interpolate
+        E = np.array([e(*p) for p in product(*points)]).reshape(Ns)
+        # Compute the error using matrices
+        # Always need mass matrices
+        M = [J*matrices.assemble_mass_matrix(lagrange_basis([pts]))
+             for J, pts in zip(jacobians, points)]
+
+        if norm_type.lower() == 'l2':
+            error = ((M[0].dot(E))*(E.dot(M[1]))).sum()
+
+        elif norm_type.lower() == 'h10':
+            A = [matrices.assemble_stiffness_matrix(lagrange_basis([pts]))/J
+                 for J, pts in zip(jacobians, points)]
+
+            error = ((A[0].dot(E))*(E.dot(M[1]))).sum()
+            error += ((M[0].dot(E))*(E.dot(A[1]))).sum()
+
+        else:
+            raise NotImplementedError
+
+        if n_iter > 1:
+            diff = abs(error - error_)/error
+
+        error_ = error
+
+    # Prevent taking square root of negative numbers (likely due to round-off)
+    if error > 0:
+        return sqrt(error)
+    else:
+        return 0
 
 
 def zero_mean(basis):
@@ -263,9 +316,23 @@ if __name__ == '__main__':
     import matplotlib.pyplot as plt
 
     x, y = symbols('x, y')
-    quad = GLQuadrature([45, 45])
-    f = lambdify([x, y], sin(exp(x))*cos(y))
-    print quad.eval(f, [[-1, 1], [2, 3]])
+    u = 1 + x + y + x*y
+    basis = np.array([[1, 1*y, y**2],
+                      [x*1, x*y, x*y**2]])
+    U = np.array([[1.3, 2, 0.1],
+                  [-1, 1.2, 0.01]])
+
+    two = errornorm(u, (U, basis), 'H10', [[-1, 1], [-1, 3]])
+    print 'errornorm', two
+    one = tensor_errornorm(u, (U, basis), 'H10', [[-1, 1], [-1, 3]])
+    print 'tensor', one
+    print abs(one - two)
+
+    if False:
+        x, y = symbols('x, y')
+        quad = GLQuadrature([45, 45])
+        f = lambdify([x, y], sin(exp(x))*cos(y))
+        print quad.eval(f, [[-1, 1], [2, 3]])
 
     if False:
         # GLL 1d

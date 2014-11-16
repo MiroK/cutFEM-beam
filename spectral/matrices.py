@@ -61,7 +61,7 @@ def assemble_stiffness_matrix(basis):
     '''
     # Transform the basis
     x = symbols('x')
-    basis_lambda = map(lambda f: lambdify(x, f.diff(x, 1)) for f in basis)
+    basis_lambda = map(lambda f: lambdify(x, f.diff(x, 1)), basis)
     return assemble_matrix(basis_lambda, is_symmetric=True)
 
 
@@ -70,7 +70,7 @@ def assemble_biharmonic_matrix(basis):
     Assemble matrix of the biharmonic operator.
     '''
     x = symbols('x')
-    basis_lambda = map(lambda f: lambdify(x, f.diff(x, 2)) for f in basis)
+    basis_lambda = map(lambda f: lambdify(x, f.diff(x, 2)), basis)
     return assemble_matrix(basis_lambda, is_symmetric=True)
 
 # -----------------------------------------------------------------------------

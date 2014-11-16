@@ -2,6 +2,7 @@ from scipy.sparse.linalg import LinearOperator, cg
 from sympy import symbols, lambdify, diff, Rational
 from functions import lagrange_basis
 from itertools import product
+from common import Counter
 import scipy.linalg as la
 import numpy as np
 import plots

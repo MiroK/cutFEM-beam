@@ -1,7 +1,7 @@
 from sympy import pi, Dummy, S, Rational, cos
 from sympy.polys.orthopolys import legendre_poly
 from sympy.polys.rootoftools import RootOf
-from quadrature import __CACHE_DIR__
+from common import __CACHE_DIR__
 from mpi4py import MPI
 import numpy as np
 import pickle

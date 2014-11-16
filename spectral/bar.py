@@ -1,6 +1,7 @@
 from scipy.sparse.linalg import LinearOperator, cg
 from sympy import symbols, lambdify, diff, Rational
 from functions import lagrange_basis
+from common import Counter
 from itertools import product
 import scipy.linalg as la
 import numpy as np
@@ -76,6 +77,7 @@ def solve_lagrange_2d(f, E, domain, MN, points, quadrature, method):
         for j, bj in enumerate(basis_lambda_x[i+1:], i+1):
             B_m[i, j] = quadM.eval(lambda x: bi(x)*bj(x), [[-1, 1]])
             B_m[j, i] = B_m[i, j]
+
     # Scale
     B_m *= 0.5*Lx
 
@@ -161,14 +163,6 @@ def solve_lagrange_2d(f, E, domain, MN, points, quadrature, method):
             plots.spy_operator(A, fig)
             plt.show()
 
-        # Counting iterations of cg
-        class Counter(object):
-            def __init__(self, n=0):
-                self.n = n
-            def __call__(self, x):
-                self.n += 1
-            def __str__(self):
-                return str(self.n)
 
         # Solve the system to get expansion coeffs for basis
         # of [[-1, 1], [-1, 1]]
