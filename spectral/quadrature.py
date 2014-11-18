@@ -7,12 +7,20 @@ import matrices
 from functions import lagrange_basis
 from points import gauss_legendre_points as gl_points
 from common import __CACHE_DIR__, __EPS__
+from multiprocessing import Pool
 from math import sqrt
-from mpi4py import MPI
 import numpy as np
 import pickle
 import time
 import os
+
+
+class Foo(object):
+    def __init__(self, f, F):
+        self.f = f
+        self.F = F
+    def __call__(self, points, weights):
+        return sum(w*self.f(*F(p)) for p, w in zip(points, weights))
 
 
 class Quadrature(object):
@@ -41,52 +49,33 @@ class Quadrature(object):
         else:
             os.path.isdir(__CACHE_DIR__)
 
-        # Split for parallel
-        comm = MPI.COMM_WORLD
-        proc = comm.Get_rank()
-        n_procs = comm.Get_size()
-
         # Lists for points and weights
         zs_dir = []
         ws_dir = []
-        # Only root touches the pickle
-        if proc == 0:
-            for i in range(self.dim):
-                quad_name = '%s/.quadrature_%s_%d.pickle' % \
-                    (__CACHE_DIR__, self.name, N[i])
+        for i in range(self.dim):
+            quad_name = '%s/.quadrature_%s_%d.pickle' % \
+                (__CACHE_DIR__, self.name, N[i])
 
-                # Try loading points that were already computed
-                if os.path.exists(quad_name):
-                    z, w = pickle.load(open(quad_name, 'rb'))
-                # Compute points, weights and dump for next time
-                else:
-                    z, w = self.get_points_weights(N[i], n_digits)
-                    pickle.dump((z, w), open(quad_name, 'wb'))
+            # Try loading points that were already computed
+            if os.path.exists(quad_name):
+                z, w = pickle.load(open(quad_name, 'rb'))
+            # Compute points, weights and dump for next time
+            else:
+                z, w = self.get_points_weights(N[i], n_digits)
+                pickle.dump((z, w), open(quad_name, 'wb'))
 
-                assert len(z) == N[i] and len(w) == N[i]
-                zs_dir.append(z)
-                ws_dir.append(w)
-
-        zs_dir = comm.bcast(zs_dir, root=0)
-        ws_dir = comm.bcast(ws_dir, root=0)
+            assert len(z) == N[i] and len(w) == N[i]
+            zs_dir.append(z)
+            ws_dir.append(w)
 
         points = np.array([point for point in product(*zs_dir)])
         weights = np.array([np.product(weight)
                            for weight in product(*ws_dir)])
 
-        glob_len = len(points)
-        loc_len = glob_len/n_procs
-        begin = proc*loc_len
-        end = begin + loc_len if proc != n_procs-1 else glob_len
-
-        points = points[begin:end]
-        weights = weights[begin:end]
-
         time_q = time.time() - time_q
         print 'Computing %s-point %s quadrature :' % \
             ('x'.join(map(str, N)), self.name), time_q
 
-        self.comm = comm
         self.N = np.array(N)
         self.z = points
         self.w = weights
@@ -109,10 +98,20 @@ class Quadrature(object):
 
         # Jacobian of pull back
         J = np.product([0.5*(b - a) for (a, b) in domain])
-        local_sum = np.array(J*sum(wi*f(*F(zi))
-                                   for zi, wi in zip(self.z, self.w)))
 
-        return self.comm.allreduce(local_sum, MPI.DOUBLE)
+        n_threads = 8
+        pool = Pool(n_threads)
+        # Use dill and pathos, but this can be done so let's see how
+        # fast it gets
+        foo = Foo(f, F)
+        results = []
+        for points, weights in zip(np.array_split(self.z, n_threads),
+                                   np.array_split(self.w, n_threads)):
+            results.append(pool.apply_async(foo, (points, weights)))
+        pool.close()
+        pool.join()
+        return J*sum(r.get() for r in results)
+
 
     def eval_adapt(self, f, domain, eps=__EPS__, n_refs=5):
         '''
@@ -285,7 +284,6 @@ def tensor_errornorm(u, (U, basis), norm_type, domain,
         error_ = error
 
     # Prevent taking square root of negative numbers (likely due to round-off)
-    print error
     if error > 0:
         return sqrt(error)
     else:
@@ -320,7 +318,6 @@ if __name__ == '__main__':
                   [-1, 1.2, 0.01, 1],
                   [1, 1, 0, 2]])
 
-    exit()
     two = errornorm(u, (U, basis), 'H10', [[-1, 0], [-1, 2]])
     print 'errornorm', two
     one = tensor_errornorm(u, (U, basis), 'H10', [[-1, 0], [-1, 2]])
