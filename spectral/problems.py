@@ -24,8 +24,8 @@ def manufacture_poisson_1d(**kwargs):
     # With both u, f check solution properties
     if u is not None and f is not None:
         # Match bcs on u
-        assert abs(u.evalf(subs={x: a})) < 1E-15
-        assert abs(u.evalf(subs={x: b})) < 1E-15
+        assert abs(u.evalf(subs={x: a})) < 1E-14
+        assert abs(u.evalf(subs={x: b})) < 1E-14
 
         # Match ode
         try:
