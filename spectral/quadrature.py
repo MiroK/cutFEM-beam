@@ -3,24 +3,17 @@ from sympy.polys.orthopolys import legendre_poly
 from sympy.polys.rootoftools import RootOf
 from sympy.integrals import quadrature
 from itertools import product
-import matrices
+#import matrices
 from functions import lagrange_basis
 from points import gauss_legendre_points as gl_points
 from common import __CACHE_DIR__, __EPS__
-from multiprocessing import Pool
 from math import sqrt
 import numpy as np
 import pickle
 import time
 import os
 
-
-class Foo(object):
-    def __init__(self, f, F):
-        self.f = f
-        self.F = F
-    def __call__(self, points, weights):
-        return sum(w*self.f(*F(p)) for p, w in zip(points, weights))
+__VERBOSE__ = False
 
 
 class Quadrature(object):
@@ -73,8 +66,10 @@ class Quadrature(object):
                            for weight in product(*ws_dir)])
 
         time_q = time.time() - time_q
-        print 'Computing %s-point %s quadrature :' % \
-            ('x'.join(map(str, N)), self.name), time_q
+
+        if __VERBOSE__:
+            print 'Computing %s-point %s quadrature :' % \
+                ('x'.join(map(str, N)), self.name), time_q
 
         self.N = np.array(N)
         self.z = points
@@ -98,22 +93,10 @@ class Quadrature(object):
 
         # Jacobian of pull back
         J = np.product([0.5*(b - a) for (a, b) in domain])
-
-        n_threads = 8
-        pool = Pool(n_threads)
-        # Use dill and pathos, but this can be done so let's see how
-        # fast it gets
-        foo = Foo(f, F)
-        results = []
-        for points, weights in zip(np.array_split(self.z, n_threads),
-                                   np.array_split(self.w, n_threads)):
-            results.append(pool.apply_async(foo, (points, weights)))
-        pool.close()
-        pool.join()
-        return J*sum(r.get() for r in results)
+        return J*sum(w*f(*F(p)) for p, w in zip(self.z, self.w))
 
 
-    def eval_adapt(self, f, domain, eps=__EPS__, n_refs=5):
+    def eval_adapt(self, f, domain, eps=__EPS__, n_refs=5, error=False):
         '''
         Given starting(initialized) quadrature, this function computes
         integral[domain(with tensor product structure)\in R^d] f(x) dx
@@ -133,8 +116,13 @@ class Quadrature(object):
             diff = abs(result_new_N - result_N)
             result_N = result_new_N
 
-        print 'eval_adapt final diff', diff
-        return result_N
+        if __VERBOSE__:
+            print 'eval_adapt final diff', diff
+
+        if error:
+            return result_N, diff
+        else:
+            return result_N
 
     def plot_points(self, figure):
         'Plot points of the quadrature.'
