@@ -3,18 +3,16 @@ import sys
 sys.path.insert(0, '../')
 
 from problems import manufacture_poisson_2d
-from scipy.interpolate import interp2d
-from points import gauss_legendre_points as gl_points
 from sympy.mpmath import legendre
 from sympy import symbols, lambdify
 from quadrature import GLQuadrature
 from math import sqrt, log as ln
-from itertools import product
 from functools import partial
 import scipy.linalg as la
 import numpy as np
 import time
 
+quad = GLQuadrature([40, 40])
 
 def solve_2d(f, E, domain, n):
     '''
@@ -58,35 +56,20 @@ def solve_2d(f, E, domain, n):
     f_hat = f.subs({x: 0.5*ax*(1-x) + 0.5*bx*(1+x),
                     y: 0.5*ay*(1-y) + 0.5*by*(1+y)})
     f_lambda = lambdify([x, y], f_hat)
-    # Further we represent f_hat as a polynomial
-    # for n --> n+2 is max degree
-    points = gl_points([n+3])
-    values = np.array([f_lambda(x_, y_)
-                       for x_, y_ in product(points, points)])
-    values = values.reshape((len(points), len(points)))
-    F = interp2d(points, points, values.T)
 
     # The right hand side over [-1, 1]^2 = B, B_ij = int_[-1, 1] F*bi(x)*bj(y)
     # The inner product is at least polynomial of degree 2*n + 2
     # Note that this is not exact
     start = time.time()
     B = np.zeros_like(M)
-    _errors = []
     for i, bi in enumerate(basis):
         for j, bj in enumerate(basis):
-            quad = GLQuadrature([n+3, n+3])
-            B[i, j], _e = quad.eval_adapt(lambda x, y:
-                                          F(float(x), float(y))[0]*bi(x)*bj(y),
-                                          [[-1., 1.], [-1., 1.]],
-                                          n_refs=10,
-                                          eps=1E-8,
-                                          error=True)
-            _errors.append(_e)
+            B[i, j] = quad.eval(lambda x, y: f_lambda(x, y)*bi(x)*bj(y),
+                                [[-1., 1.], [-1., 1.]])
 
     # Scale
     B *= 0.25*Lx*Ly
-    print '\t\t Assembled B in %g s with error in [%.2E, %.2E]' % \
-        (time.time() - start, min(_errors), max(_errors))
+    print '\t\t Assembled B in %g s.' % (time.time() - start)
 
     # The tensor product method
     lmbda, V = la.eigh(M)
@@ -164,9 +147,7 @@ if __name__ == '__main__':
         def e(x, y):
             return u_lambda(x, y) - uh(x, y)
 
-        quad = GLQuadrature([n+3, n+3])
-        error = quad.eval_adapt(lambda x, y: e(x, y)**2,
-                                domain, n_refs=10, eps=1E-8)
+        error = quad.eval(lambda x, y: e(x, y)**2, domain)
 
         if error < 0:
             error = 0
