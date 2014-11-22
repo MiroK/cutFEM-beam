@@ -4,3 +4,14 @@ git checkout better_branch
 git merge --strategy=ours master    # keep the content of this branch, but record a merge
 git checkout master
 git merge better_branch             # fast-forward master up to the merge
+
+## Renaming local and remote branches
+#rename local branch
+git branch -m old-branch-name new-branch-name
+
+#delete remote branch with old name
+# origin is the name of remote branch
+git push origin :old-branch-name
+
+#create remote renamed branch and setup remote branch tracking (-u flag)
+git push -u origin new-branch-name
