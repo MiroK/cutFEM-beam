@@ -204,8 +204,21 @@ if  True:
             Aany[j, i] = Aany[i, j]
     print Aany
 
+    Many = np.zeros((n, n))
+    for i, bi in enumerate(any_basis):
+        Many[i, i] = quad(lambda x: bi(x)*bi(x), [-1, 1])
+        for j, bj in enumerate(any_basis[i+1:], i+1):
+            Many[i, j] = quad(lambda x: bi(x)*bj(x), [-1, 1])
+            Many[j, i] = Many[i, j]
+    print Many
+
+
     plt.figure()
     plt.spy(Aany, precision=1E-13)
+
+    plt.figure()
+    plt.spy(Many, precision=1E-13)
+
     plt.show()
 # -----------------------------------------------------------------------------
 
