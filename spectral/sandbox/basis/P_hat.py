@@ -74,7 +74,7 @@ def Rmat(m):
 
     return R
 
-m = 40
+m = 6
 assert m > 2
 M = matrix(m)
 vectors0 = eigv0(m, True)
@@ -107,3 +107,87 @@ U = eigv0(m, True)
 R = Rmat(m)
 assert la.norm(V.T - U.T.dot(R)) < 1E-15
 
+# We nor claim that transformation matrices alpha_phi, alpha_psi can be com-
+# puted from V and special matrices C
+def c(k):
+    return sqrt(4*k + 6)**-1
+
+# Now build transformation matrix
+def alpha_psi(n, m):
+    alpha = np.zeros((n, m))
+    for i in range(n):
+        alpha[i, i] = c(i)
+        alpha[i, i+2] = -c(i)
+    return alpha
+
+n = m - 2
+alpha_s = alpha_psi(n, m)
+
+C_psi = np.zeros((n, n))
+for i in range(n):
+    C_psi[i, i] = c(i)
+
+assert la.norm(alpha_s.T - V.T.dot(C_psi))/m < 1E-15
+
+# -------------------
+
+def alpha_phi(n, m):
+    alpha_phi = np.zeros((n, m))
+    for i in range(alpha_phi.shape[0]):
+        if (i % 2) == 0:
+            alpha_phi[i, 0] = -1
+        else:
+            alpha_phi[i, 1] = -1
+        alpha_phi[i, i+2] = 1
+    return alpha_phi
+
+alpha_h = alpha_phi(n, m)
+C_phi = np.zeros((n, n))
+for j in range(n):
+    if j % 2 == 0:
+        i_range = range(0, j+1, 2)
+    else:
+        i_range = range(1, j+1, 2)
+
+    for i in i_range:
+        C_phi[i, j] = -1
+
+#print alpha_h.T
+assert la.norm(alpha_h.T - V.T.dot(C_phi))/m < 1E-15
+
+# C_psi is symmetric, positive definite invertible, diagonal
+# C_phi is only invertible
+x = np.zeros(n)
+# print la.solve(C_psi, x)
+# print la.solve(C_phi, x)
+
+G = np.zeros((m, m))
+for i in range(m):
+    for j in range(m):
+        G[i, j] = 0.5*j*(j+1)*(1 + (-1)**(i+j))
+
+for v in V:
+    assert la.norm(v.dot(G))/len(v) < 1E-13
+
+D = np.zeros((m, m))
+for i in range(m):
+    for j in range(m):
+        D[i, j] = j*(j+1) - i*(i+1) if (i < j-1) and ((i+j) % 2) == 0 else 0
+print D
+DD = D[:-2, 2:]
+
+vals, vecs = la.eig(DD)
+
+print vals
+print vecs
+
+X = np.zeros((m, m-2))
+for i, vec in enumerate(vecs.T):
+    X[2:, i] = vec
+
+print
+print X
+print
+for x, val in zip(X.T, vals):
+    print x
+    print D.dot(x)

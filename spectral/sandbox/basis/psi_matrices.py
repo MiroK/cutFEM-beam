@@ -30,7 +30,7 @@ for i in range(n):
         M[j, i] = M[i, j]
 
 # Now build transformation matrix and show
-def alpha_phi(n, m):
+def alpha_psi(n, m):
     alpha = np.zeros((n, m))
     for i in range(n):
         alpha[i, i] = -c(i)
@@ -38,7 +38,7 @@ def alpha_phi(n, m):
     return alpha
 
 m = n+2
-alpha = alpha_phi(n, m)
+alpha = alpha_psi(n, m)
 
 # Hat matrices
 Mhat = np.zeros((m, m))
