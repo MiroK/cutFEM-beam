@@ -65,31 +65,46 @@ def solve_sine_2d(f, MN, E=1, domain=[[0, 1], [0, 1]], eps=__EPS__, n_refs=10):
 if __name__ == '__main__':
     from problems import manufacture_poisson_1d
     from quadrature import errornorm
-    from sympy import sin, symbols, pi
+    from sympy import sin, symbols, pi, Piecewise
+    import sympy.plotting as spp
 
-    # 1d
     x = symbols('x')
     a = -1
     b = 2.
     E = 2
-    u = sin(pi*(x-a)/(b-a))
-    problem1d = manufacture_poisson_1d(u=u, a=a, b=b, E=E)
-    f = problem1d['f']
-    U, basis = solve_sine_1d(f, N=20, E=E, a=a, b=b, eps=__EPS__, n_refs=10)
-    e = errornorm(u, (U, basis), domain=[[a, b]], norm_type='L2')
-    assert abs(e) < 1E-15
+    f = Piecewise((0, x < 0.5), (1, True))
 
-    from problems import manufacture_poisson_2d
-    # 2d
-    x, y = symbols('x, y')
-    E = 2
-    ax, bx = -1, 2.
-    ay, by = 1, 2.
-    domain = [[ax, bx], [ay, by]]
-    u = sin(3*pi*(x-ax)/(bx-ax))*sin(pi*(y-ay)/(by-ay))
-    problem2d = manufacture_poisson_2d(u=u, domain=domain, E=E)
-    f = problem2d['f']
-    U, basis = solve_sine_2d(f, MN=[3, 3], E=E, domain=domain, eps=__EPS__,
-                             n_refs=-1)
-    e = errornorm(u, (U, basis), domain=domain, norm_type='L2')
-    assert abs(e) < 1E-14
+    U, basis = solve_sine_1d(f, N=5, E=E, a=a, b=b, eps=1E-13, n_refs=10)
+
+    uh = sum(Ui*basis_i for (Ui, basis_i) in zip(U, basis))
+    spp.plot(uh, (x, 0, 1))
+
+    # 1d
+    DIM = None
+    if DIM == 1:
+        x = symbols('x')
+        a = -1
+        b = 2.
+        E = 2
+        u = sin(pi*(x-a)/(b-a))
+        problem1d = manufacture_poisson_1d(u=u, a=a, b=b, E=E)
+        f = problem1d['f']
+        U, basis = solve_sine_1d(f, N=20, E=E, a=a, b=b, eps=__EPS__, n_refs=10)
+        e = errornorm(u, (U, basis), domain=[[a, b]], norm_type='L2')
+        assert abs(e) < 1E-15
+
+    elif DIM == 2:
+        from problems import manufacture_poisson_2d
+        # 2d
+        x, y = symbols('x, y')
+        E = 2
+        ax, bx = -1, 2.
+        ay, by = 1, 2.
+        domain = [[ax, bx], [ay, by]]
+        u = sin(3*pi*(x-ax)/(bx-ax))*sin(pi*(y-ay)/(by-ay))
+        problem2d = manufacture_poisson_2d(u=u, domain=domain, E=E)
+        f = problem2d['f']
+        U, basis = solve_sine_2d(f, MN=[3, 3], E=E, domain=domain, eps=__EPS__,
+                                n_refs=-1)
+        e = errornorm(u, (U, basis), domain=domain, norm_type='L2')
+        assert abs(e) < 1E-14
