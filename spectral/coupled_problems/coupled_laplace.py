@@ -23,8 +23,8 @@ def solve(params, eigs_only=False):
     The beam is a line from A--B and has stiffness E_beam.
     The system is loaded with f.
 
-    The deformation of plate and beam is governed by biharmonic equation.
-    We use boundary conditions u=laplace(u)=0 on the boundary.
+    The deformation of both plate and beam is governed by laplace equation.
+    We use boundary conditions u=0 on the boundary.
     '''
     # Problem properties
     E_plate = params.get('E_plate', 1)
@@ -52,19 +52,18 @@ def solve(params, eigs_only=False):
     #                [-B0.T, B1.T, 0]]    [p]]   [0]]
     # Block A0 has size n_plate**2 x n_plate**2
     A0 = np.zeros((n_plate**2, n_plate**2))
-    A0[np.diag_indices_from(A0)] = np.array([(mpi*i)**4 +
-                                            2.*(mpi*i)**2*(mpi*j)**2 +
-                                            (mpi*j)**4
+    A0[np.diag_indices_from(A0)] = np.array([(mpi*i)**2 +
+                                            (mpi*j)**2
                                             for i in range(1, n_plate+1)
                                             for j in range(1, n_plate+1)])
     A0 *= E_plate
 
     # Block A1 has size n_beam x n_beam
     A1 = np.zeros((n_beam, n_beam))
-    A1[np.diag_indices_from(A1)] = np.array([(mpi*i)**4
+    A1[np.diag_indices_from(A1)] = np.array([(mpi*i)**2
                                              for i in range(1, n_beam+1)])
     A1 *= E_beam
-    A1 /= L**3
+    A1 /= L
 
     # Basis functions of plate flattened
     x, y = symbols('x, y')
@@ -125,10 +124,8 @@ def solve(params, eigs_only=False):
         C0 = np.eye(n_lambda)
         # Laplace
         C1 = np.diag(np.array([(i*mpi)**2 for i in range(1, n_lambda+1)]))
-        # Biharmonic
-        C2 = np.diag(np.array([(i*mpi)**4 for i in range(1, n_lambda+1)]))
 
-        Cs = {'mass': C0, 'laplace': C1, 'biharmonic': C2}
+        Cs = {'mass': C0, 'laplace': C1}
 
         eigenvalues = {}
         S = B.T.dot(Ainv.dot(B))

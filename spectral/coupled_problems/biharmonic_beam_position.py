@@ -6,6 +6,25 @@ from coupled_biharmonic import solve
 import numpy as np
 import pickle
 
+
+class nRule(object):
+    def __init__(self, name, plate_n, beam_n, lmbda_n):
+        self.name = name
+        self.plate = plate_n
+        self.beam = beam_n
+        self.lmbda = lmbda_n
+
+    def __call__(self, n):
+        return (self.plate(n), self.beam(n), self.lmbda(n))
+
+# -----------------------------------------------------------------------------
+
+# The rule that will define number of sines in the test
+rule = nRule(name='all_equal',
+             plate_n=lambda n: n,
+             beam_n=lambda n: n,
+             lmbda_n=lambda n: n)
+
 f = 1
 params = {'E_plate': 1.,
           'E_beam': 10.,
@@ -30,7 +49,8 @@ Bs = np.array([[0.5, 1],
 n_points = As.shape[0]
 
 # Explored beam positions
-# Row rotetes faster here
+# Row rotates faster here, store angles in radians
+angles = []
 fig, axarr = plt.subplots(n_points, n_points)
 for i, (A, B) in enumerate(product(As, Bs)):
     row = i % n_points
@@ -41,6 +61,14 @@ for i, (A, B) in enumerate(product(As, Bs)):
     ax.set_ylim([0, 1])
     ax.set_xticklabels([])
     ax.set_yticklabels([])
+
+    sin_phi = 1./np.hypot(*(A-B))
+    phi = np.arcsin(sin_phi)
+    angle = np.degrees(phi)
+
+    angles.append(angle)
+
+
 fig.subplots_adjust(hspace=0, wspace=0)
 fig.savefig('biharmonic_positions.pdf')
 
@@ -49,6 +77,7 @@ m_points = n_points // 2
 counter = 0
 figs = []
 eigen_data = {}
+betas = []
 for i, (A, B) in enumerate(product(As, Bs)):
     # Switch to new figure per column
     if i % n_points == 0:
@@ -72,9 +101,10 @@ for i, (A, B) in enumerate(product(As, Bs)):
     params['A'] = A
     params['B'] = B
     for n in range(3, 5):
-        params['n_plate'] = n
-        params['n_beam'] = n
-        params['n_lambda'] = n
+        n_plate, n_beam, n_lambda = rule(n)
+        params['n_plate'] = n_plate
+        params['n_beam'] = n_beam
+        params['n_lambda'] = n_lambda
         eigenvalues = solve(params, eigs_only=True)
 
         for key in eigenvalues:
@@ -88,12 +118,24 @@ for i, (A, B) in enumerate(product(As, Bs)):
         for key in eigs:
             ax.loglog(ns, eigs[key])
 
+    # In biharmonic norm, the eigenvalues should be abount constant
+    beta = np.mean(eigs['biharmonic'])
+    betas.append(beta)
+
     counter += 1
 
 # Remeber to save figures and data
 for i, fig in enumerate(figs):
-    fig.savefig('biharmonic_col%d.pdf' % i)
+    fig.savefig('biharmonic_col%d_%s.pdf' % (i, rule.name))
 
-pickle.dump(eigen_data, open('biharmonic_data.picle', 'wb'))
+pickle.dump(eigen_data, open('biharmonic_data_%s.pickle' % rule.name, 'wb'))
 
+angles = np.array(angles)
+betas = np.array(betas)
+idx = np.argsort(betas)
+
+plt.figure()
+plt.plot(angles[idx], betas[idx], '*-')
+plt.xlabel(r'$\theta$ [rad]')
+plt.ylabel(r'$\beta$')
 plt.show()
