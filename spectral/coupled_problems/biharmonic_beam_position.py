@@ -138,4 +138,6 @@ plt.figure()
 plt.plot(angles[idx], betas[idx], '*-')
 plt.xlabel(r'$\theta$ [rad]')
 plt.ylabel(r'$\beta$')
+plt.savafig('biharmonic_beta.pdf')
+
 plt.show()
