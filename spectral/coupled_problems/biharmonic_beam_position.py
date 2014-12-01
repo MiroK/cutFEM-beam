@@ -6,6 +6,7 @@ from coupled_biharmonic import solve
 import numpy as np
 import pickle
 
+results_dir = './results'
 
 class nRule(object):
     def __init__(self, name, plate_n, beam_n, lmbda_n):
@@ -34,27 +35,26 @@ params = {'E_plate': 1.,
           'n_plate': 10,
           'n_beam': 10,
           'n_lambda': 10}
-# Checkout LBB
-# Space for plate is n**2, beam and penalty have n
-As = np.array([[0, 0],
-               [1/6, 0],
-               [2/6, 0],
-               [0.5, 0]])
+# Checkout LBB for different positions of the beam
+# The beam position is given by A = A(s) = [0.5*s, 0],
+# B = B(t) = [0.5 + 0.5*t, 1]. Both s, t are in [0, 1]
+s = np.linspace(0, 1, 4)
+t = np.linspace(0, 1, 4)
 
-Bs = np.array([[0.5, 1],
-               [4/6, 1],
-               [5/6, 1],
-               [1., 1]])
+As = np.vstack([0.5*s, 0*np.ones_like(s)]).T
+Bs = np.vstack([0.5*t + 0.5, np.ones_like(t)]).T
 
-n_points = As.shape[0]
+n_rows = len(s)
+n_cols = len(t)
+n_positions = n_rows*n_cols
 
 # Explored beam positions
-# Row rotates faster here, store angles in radians
-angles = []
-fig, axarr = plt.subplots(n_points, n_points)
+fig, axarr = plt.subplots(n_rows, n_cols)
+print n_rows, n_cols, n_positions
 for i, (A, B) in enumerate(product(As, Bs)):
-    row = i % n_points
-    col = i // n_points
+    row = i // n_cols
+    col = i % n_cols
+    print '\t', i, row, col
     ax = axarr[row, col]
     ax.plot([A[0], B[0]], [A[1], B[1]], linewidth=3)
     ax.set_xlim([0, 1])
@@ -62,36 +62,35 @@ for i, (A, B) in enumerate(product(As, Bs)):
     ax.set_xticklabels([])
     ax.set_yticklabels([])
 
-    sin_phi = 1./np.hypot(*(A-B))
-    phi = np.arcsin(sin_phi)
-    angle = np.degrees(phi)
-
-    angles.append(angle)
-
-
 fig.subplots_adjust(hspace=0, wspace=0)
-fig.savefig('biharmonic_positions.pdf')
+fig.savefig('%s/biharmonic_positions.pdf' % results_dir)
 
-# Plot the eigenvalues for each row problem as 2, 2 plot
-m_points = n_points // 2
+# Plot the eigenvalues of fixed A, that is each n_cols, into tiled plot
+# The number of rows and cols in this plots N_rows, N_cols
+N_cols = 2
+N_rows = n_cols // 2 if (n_cols % 2) == 0 else (n_cols // 2) + 1
 counter = 0
 figs = []
 eigen_data = {}
-betas = []
+betas, angles = defaultdict(list), defaultdict(list)
+row_betas, row_angles = [], []
 for i, (A, B) in enumerate(product(As, Bs)):
-    # Switch to new figure per column
-    if i % n_points == 0:
+    # Switch to new figure with new row
+    if i % n_cols == 0:
+        # Reset
+        row_betas = []
+        row_angles = []
         counter = 0
-        fig, axarr = plt.subplots(m_points, m_points,
-                                  sharex=True, sharey=True)
-        fig.suptitle('Column %d' % (i//n_points))
+        fig, axarr = plt.subplots(N_rows, N_cols, sharex=True, sharey=True)
+        print i, n_positions, i // n_cols
+        fig.suptitle('Row %d' % (i//n_cols))
         figs.append(fig)
 
-    # Decife position in 2x2 figure
-    row = counter // m_points
-    col = counter % m_points
+    # Decide position in 2x2 figure
+    row = counter // N_cols
+    col = counter % N_cols
     ax = axarr[row, col]
-    ax.set_title('Row %d' % counter)
+    ax.set_title('Column %d' % counter)
 
     # For each subwindow compute the convergence curve
     eigen_data[i] = defaultdict(list)
@@ -119,25 +118,54 @@ for i, (A, B) in enumerate(product(As, Bs)):
             ax.loglog(ns, eigs[key])
 
     # In biharmonic norm, the eigenvalues should be abount constant
+    # Get the average constant
     beta = np.mean(eigs['biharmonic'])
-    betas.append(beta)
+    row_betas.append(beta)
+    # This will be plotted against the angle
+    sin_phi = 1./np.hypot(*(A-B))
+    phi = np.arcsin(sin_phi)
+    angle = np.degrees(phi)
+    row_angles.append(angle)
+
+    # Store the angle dependence from the row if we are switching to new on
+    # in the next iteration
+    if ((i+1) % n_cols) == 0:
+        # Sort
+        row_angles = np.array(row_angles)
+        row_betas = np.array(row_betas)
+        idx = np.argsort(row_betas)
+
+        row_angles = row_angles[idx]
+        row_betas = row_betas[idx]
+
+        this_row = i//n_cols
+
+        angles[this_row].append(row_angles)
+        betas[this_row].append(row_betas)
 
     counter += 1
 
 # Remeber to save figures and data
+# Eigenvalues
 for i, fig in enumerate(figs):
-    fig.savefig('biharmonic_col%d_%s.pdf' % (i, rule.name))
+    fig.savefig('%s/biharmonic_row%d_%s.pdf' % (results_dir, i, rule.name))
 
-pickle.dump(eigen_data, open('biharmonic_data_%s.pickle' % rule.name, 'wb'))
+pickle.dump(eigen_data, open('%s/biharmonic_eigv_data_%s.pickle' %
+                             (results_dir, rule.name), 'wb'))
 
-angles = np.array(angles)
-betas = np.array(betas)
-idx = np.argsort(betas)
+# Betas
+fig, axarr = plt.subplots(len(betas), 1, sharex=True)
+for row in range(n_rows):
+    ax = axarr[row]
+    ax.plot(angles[row][0], betas[row][0], '*-')
+    ax.set_ylabel(r'$\beta$')
 
-plt.figure()
-plt.plot(angles[idx], betas[idx], '*-')
-plt.xlabel(r'$\theta$ [rad]')
-plt.ylabel(r'$\beta$')
-plt.savafig('biharmonic_beta.pdf')
+axarr[-1].set_xlabel(r'$\theta$ [deg]')
+
+fig.savefig('%s/biharmonic_betas_%s.pdf' % (results_dir, rule.name))
+
+angle_data = {'angles': angles, 'betas': betas}
+pickle.dump(angle_data, open('%s/biharmonic_angle_data_%s.pickle' %
+                             (results_dir, rule.name), 'wb'))
 
 plt.show()
