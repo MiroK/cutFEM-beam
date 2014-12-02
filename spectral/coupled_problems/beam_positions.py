@@ -10,7 +10,8 @@ import pickle
 results_dir = './results'
 solvers = {'laplace': solve_laplace,
            'biharmonic': solve_biharmonic}
-operator = 'laplace'
+operator = 'biharmonic'
+
 
 class nRule(object):
     def __init__(self, name, plate_n, beam_n, lmbda_n):
@@ -76,14 +77,19 @@ N_rows = n_cols // 2 if (n_cols % 2) == 0 else (n_cols // 2) + 1
 counter = 0
 figs = []
 eigen_data = {}
-betas, angles = defaultdict(list), defaultdict(list)
-row_betas, row_angles = [], []
+# To get dependency of beta on angle
+abetas, angles = defaultdict(list), defaultdict(list)
+row_abetas, row_angles = [], []
+# To get dependency of beta on angle
+lbetas, lens = defaultdict(list), defaultdict(list)
+row_lbetas, row_lens = [], []
+
 for i, (A, B) in enumerate(product(As, Bs)):
     # Switch to new figure with new row
     if i % n_cols == 0:
         # Reset
-        row_betas = []
-        row_angles = []
+        row_abetas, row_angles = [], []
+        row_lbetas, row_lens = [], []
         counter = 0
         fig, axarr = plt.subplots(N_rows, N_cols, sharex=True, sharey=True)
         print i, n_positions, i // n_cols
@@ -124,9 +130,13 @@ for i, (A, B) in enumerate(product(As, Bs)):
     # In operator norm, the eigenvalues should be abount constant
     # Get the average constant
     beta = np.mean(eigs[operator])
-    row_betas.append(beta)
-    # This will be plotted against the angle
-    sin_phi = 1./np.hypot(*(A-B))
+    row_abetas.append(beta)
+    row_lbetas.append(beta)
+    # This will be plotted against the angle and len
+    length = np.hypot(*(A-B))
+    row_lens.append(length)
+
+    sin_phi = 1./length
     phi = np.arcsin(sin_phi)
     angle = np.degrees(phi)
     row_angles.append(angle)
@@ -134,18 +144,29 @@ for i, (A, B) in enumerate(product(As, Bs)):
     # Store the angle dependence from the row if we are switching to new on
     # in the next iteration
     if ((i+1) % n_cols) == 0:
-        # Sort
+        # Sort angles
         row_angles = np.array(row_angles)
-        row_betas = np.array(row_betas)
-        idx = np.argsort(row_angles)
+        row_abetas = np.array(row_abetas)
 
+        idx = np.argsort(row_angles)
         row_angles = row_angles[idx]
-        row_betas = row_betas[idx]
+        row_abetas = row_abetas[idx]
+
+        # Sort lengths
+        row_lens = np.array(row_lens)
+        row_lbetas = np.array(row_lbetas)
+
+        idx = np.argsort(row_lens)
+        row_lens = row_lens[idx]
+        row_lbetas = row_lbetas[idx]
 
         this_row = i//n_cols
 
         angles[this_row].append(row_angles)
-        betas[this_row].append(row_betas)
+        abetas[this_row].append(row_abetas)
+
+        lens[this_row].append(row_lens)
+        lbetas[this_row].append(row_lbetas)
 
     counter += 1
 
@@ -157,19 +178,32 @@ for i, fig in enumerate(figs):
 pickle.dump(eigen_data, open('%s/%s_eigv_data_%s.pickle' %
                              (results_dir, operator, rule.name), 'wb'))
 
-# Betas
-fig, axarr = plt.subplots(len(betas), 1, sharex=True)
+# Betas as function of angle
+fig, axarr = plt.subplots(len(abetas), 1, sharex=True)
 for row in range(n_rows):
     ax = axarr[row]
-    ax.plot(angles[row][0], betas[row][0], '*-')
+    ax.plot(angles[row][0], abetas[row][0], '*-')
     ax.set_ylabel(r'$\beta$')
-
 axarr[-1].set_xlabel(r'$\theta$ [deg]')
-
-fig.savefig('%s/%s_betas_%s.pdf' % (results_dir, operator, rule.name))
-
-angle_data = {'angles': angles, 'betas': betas}
+# Save
+fig.savefig('%s/%s_betas_angles_%s.pdf' % (results_dir, operator, rule.name))
+# Dump data
+angle_data = {'angles': angles, 'betas': abetas}
 pickle.dump(angle_data, open('%s/%s_angle_data_%s.pickle' %
                              (results_dir, operator, rule.name), 'wb'))
+
+# Betas as function of length
+fig, axarr = plt.subplots(len(lbetas), 1, sharex=True)
+for row in range(n_rows):
+    ax = axarr[row]
+    ax.plot(lens[row][0], lbetas[row][0], '*-')
+    ax.set_ylabel(r'$\beta$')
+axarr[-1].set_xlabel(r'$L$')
+# Save
+fig.savefig('%s/%s_betas_lens_%s.pdf' % (results_dir, operator, rule.name))
+# Dump data
+len_data = {'lens': lens, 'betas': lbetas}
+pickle.dump(len_data, open('%s/%s_len_data_%s.pickle' %
+                           (results_dir, operator, rule.name), 'wb'))
 
 plt.show()
