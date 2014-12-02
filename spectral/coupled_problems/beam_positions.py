@@ -10,7 +10,7 @@ import pickle
 results_dir = './results'
 solvers = {'laplace': solve_laplace,
            'biharmonic': solve_biharmonic}
-operator = 'laplace'
+operator = 'biharmonic'
 
 class nRule(object):
     def __init__(self, name, plate_n, beam_n, lmbda_n):
@@ -42,8 +42,8 @@ params = {'E_plate': 1.,
 # Checkout LBB for different positions of the beam
 # The beam position is given by A = A(s) = [0.5*s, 0],
 # B = B(t) = [0.5 + 0.5*t, 1]. Both s, t are in [0, 1]
-s = np.linspace(0, 1, 4)
-t = np.linspace(0, 1, 4)
+s = np.linspace(0, 1, 6)
+t = np.linspace(0, 1, 6)
 
 As = np.vstack([0.5*s, 0*np.ones_like(s)]).T
 Bs = np.vstack([0.5*t + 0.5, np.ones_like(t)]).T
@@ -72,7 +72,7 @@ fig.savefig('%s/%s_positions.pdf' % (results_dir, operator))
 # Plot the eigenvalues of fixed A, that is each n_cols, into tiled plot
 # The number of rows and cols in this plots N_rows, N_cols
 N_cols = 2
-N_rows = n_cols // 2 if (n_cols % 2) == 0 else (n_cols // 2) + 1
+N_rows = 3
 counter = 0
 figs = []
 eigen_data = {}
@@ -103,7 +103,7 @@ for i, (A, B) in enumerate(product(As, Bs)):
     ns = []
     params['A'] = A
     params['B'] = B
-    for n in range(3, 5):
+    for n in range(3, 16):
         n_plate, n_beam, n_lambda = rule(n)
         params['n_plate'] = n_plate
         params['n_beam'] = n_beam
