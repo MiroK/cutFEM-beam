@@ -114,16 +114,15 @@ def solve(params, eigs_only=False):
     B[:n_plate**2, :] = B0
     B[n_plate**2:, :] = B1
 
-    # Eigenvalues of Schur
-    Ainv = np.zeros_like(A)
-    Ainv[np.diag_indices_from(Ainv)] = A.diagonal()**-1
-
     if eigs_only:
+        # Eigenvalues of Schur
+        Ainv = np.zeros_like(A)
+        Ainv[np.diag_indices_from(Ainv)] = A.diagonal()**-1
         # Put together the C matrices
         # Mass matrix
-        C0 = np.eye(n_lambda)
+        C0 = np.eye(n_lambda)*L
         # Laplace
-        C1 = np.diag(np.array([(i*mpi)**2 for i in range(1, n_lambda+1)]))
+        C1 = np.diag(np.array([(i*mpi)**2 for i in range(1, n_lambda+1)]))/L
 
         Cs = {'mass': C0, 'laplace': C1}
 

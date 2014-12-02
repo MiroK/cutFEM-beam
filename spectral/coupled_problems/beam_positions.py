@@ -2,11 +2,15 @@ from __future__ import division
 import matplotlib.pyplot as plt
 from collections import defaultdict
 from itertools import product
-from coupled_biharmonic import solve
+from coupled_biharmonic import solve as solve_biharmonic
+from coupled_laplace import solve as solve_laplace
 import numpy as np
 import pickle
 
 results_dir = './results'
+solvers = {'laplace': solve_laplace,
+           'biharmonic': solve_biharmonic}
+operator = 'laplace'
 
 class nRule(object):
     def __init__(self, name, plate_n, beam_n, lmbda_n):
@@ -63,7 +67,7 @@ for i, (A, B) in enumerate(product(As, Bs)):
     ax.set_yticklabels([])
 
 fig.subplots_adjust(hspace=0, wspace=0)
-fig.savefig('%s/biharmonic_positions.pdf' % results_dir)
+fig.savefig('%s/%s_positions.pdf' % (results_dir, operator))
 
 # Plot the eigenvalues of fixed A, that is each n_cols, into tiled plot
 # The number of rows and cols in this plots N_rows, N_cols
@@ -104,7 +108,7 @@ for i, (A, B) in enumerate(product(As, Bs)):
         params['n_plate'] = n_plate
         params['n_beam'] = n_beam
         params['n_lambda'] = n_lambda
-        eigenvalues = solve(params, eigs_only=True)
+        eigenvalues = solvers[operator](params, eigs_only=True)
 
         for key in eigenvalues:
             eigs[key].append(eigenvalues[key][-1])
@@ -117,9 +121,9 @@ for i, (A, B) in enumerate(product(As, Bs)):
         for key in eigs:
             ax.loglog(ns, eigs[key])
 
-    # In biharmonic norm, the eigenvalues should be abount constant
+    # In operator norm, the eigenvalues should be abount constant
     # Get the average constant
-    beta = np.mean(eigs['biharmonic'])
+    beta = np.mean(eigs[operator])
     row_betas.append(beta)
     # This will be plotted against the angle
     sin_phi = 1./np.hypot(*(A-B))
@@ -133,7 +137,7 @@ for i, (A, B) in enumerate(product(As, Bs)):
         # Sort
         row_angles = np.array(row_angles)
         row_betas = np.array(row_betas)
-        idx = np.argsort(row_betas)
+        idx = np.argsort(row_angles)
 
         row_angles = row_angles[idx]
         row_betas = row_betas[idx]
@@ -148,10 +152,10 @@ for i, (A, B) in enumerate(product(As, Bs)):
 # Remeber to save figures and data
 # Eigenvalues
 for i, fig in enumerate(figs):
-    fig.savefig('%s/biharmonic_row%d_%s.pdf' % (results_dir, i, rule.name))
+    fig.savefig('%s/%s_row%d_%s.pdf' % (results_dir, operator, i, rule.name))
 
-pickle.dump(eigen_data, open('%s/biharmonic_eigv_data_%s.pickle' %
-                             (results_dir, rule.name), 'wb'))
+pickle.dump(eigen_data, open('%s/%s_eigv_data_%s.pickle' %
+                             (results_dir, operator, rule.name), 'wb'))
 
 # Betas
 fig, axarr = plt.subplots(len(betas), 1, sharex=True)
@@ -162,10 +166,10 @@ for row in range(n_rows):
 
 axarr[-1].set_xlabel(r'$\theta$ [deg]')
 
-fig.savefig('%s/biharmonic_betas_%s.pdf' % (results_dir, rule.name))
+fig.savefig('%s/%s_betas_%s.pdf' % (results_dir, operator, rule.name))
 
 angle_data = {'angles': angles, 'betas': betas}
-pickle.dump(angle_data, open('%s/biharmonic_angle_data_%s.pickle' %
-                             (results_dir, rule.name), 'wb'))
+pickle.dump(angle_data, open('%s/%s_angle_data_%s.pickle' %
+                             (results_dir, operator, rule.name), 'wb'))
 
 plt.show()
