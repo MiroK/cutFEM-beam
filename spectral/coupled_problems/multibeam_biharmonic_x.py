@@ -93,9 +93,13 @@ def sine_basis(n):
     return [sqrt(2)*sin(k*pi*x) for k in range(1, n+1)]
 
 
-def solve(params, eigs_only):
+def solve(params, eigs_only, point_constraints):
     '''
     Plate problem with beams(0 or more) that can intersect.
+
+        intersects are specially treated only if point_contraints
+
+        if eigs_only we only solve the Schur complement eigenvalues
     '''
     # Extract plate material and degree of space
     E_plate = params.get('E_plate', 1)
@@ -124,8 +128,12 @@ def solve(params, eigs_only):
 
     # Learn about intersects in the system
     # Incident matrix, map i, j to intersect order k, intersect is then I_x[k]
-    _, Imap, I_x = intersects(beams_params)
-    n_intersects = len(I_x)
+    if point_constraints:
+        _, Imap, I_x = intersects(beams_params)
+        n_intersects = len(I_x)
+    else:
+        Imap = dict()
+        n_intersects = 0
 
     # To assemble the linear system we need some block info
     # The linear system becomes   AA = [[A, B],]
@@ -316,6 +324,7 @@ def solve(params, eigs_only):
     bb[:Asizes[0]] = F
 
     # Solve the system AA*U = bb
+    print '\tSolving linear system %d x %d' % AA.shape
     U = la.solve(AA, bb)
 
     # Split the vector to get expansions coeffs of each unknown and return
@@ -370,12 +379,12 @@ if __name__ == '__main__':
     A3, B3 = np.array([1, 0.5]), np.array([0.5, 1])
     params = {'f': f,
               'E_plate': 1.,
-              'q_plate': 15,
+              'q_plate': 10,
               'beams': [{'E_beam': 5.,
                          'A': A1,
                          'B': B1,
-                         'n_beam': 15,
-                         'n_lambda': 15},
+                         'n_beam': 10,
+                         'n_lambda': 10},
                         #
                         {'E_beam': 5.,
                          'A': A2,
@@ -407,7 +416,8 @@ if __name__ == '__main__':
         plt.legend(loc='best')
 
         # Compute
-        u_plate, u_beams, lmbdas = solve(params, eigs_only=False)
+        u_plate, u_beams, lmbdas = solve(params, eigs_only=False,
+                                         point_constraints=False)
 
         # Plot beam displacement
         plot3d(u_plate, (x, 0, 1), (y, 0, 1), xlabel='$x$', ylabel='$y$',
@@ -447,7 +457,7 @@ if __name__ == '__main__':
     # No beams
     else:
         # Only compute plate
-        u_plate = solve(params, eigs_only=False)
+        u_plate = solve(params, eigs_only=False, point_constraints=True)
 
         # Plot beam displacement
         plot3d(u_plate, (x, 0, 1), (y, 0, 1), xlabel='$x$', ylabel='$y$',
