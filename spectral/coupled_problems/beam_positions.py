@@ -10,7 +10,12 @@ import pickle
 results_dir = './results'
 solvers = {'laplace': solve_laplace,
            'biharmonic': solve_biharmonic}
-operator = 'biharmonic'
+
+operator = 'laplace'
+# Norm to consider with Schur
+fractions = np.array([-0.5, 0., 0.5, 1.])
+# Norm in which C*Schur has constant eigenvalues
+__NORM__ = str(0.5)
 
 class nRule(object):
     def __init__(self, name, plate_n, beam_n, lmbda_n):
@@ -113,22 +118,25 @@ for i, (A, B) in enumerate(product(As, Bs)):
         params['n_plate'] = n_plate
         params['n_beam'] = n_beam
         params['n_lambda'] = n_lambda
-        eigenvalues = solvers[operator](params, eigs_only=True)
+        eigenvalues = solvers[operator](params,
+                                        eigs_only=True, fractions=fractions)
 
         for key in eigenvalues:
             eigs[key].append(eigenvalues[key][-1])
 
         ns.append(n)
 
-        print '\t\t', n, ' '.join(map(str, (eigenvalues[key][-1]
-                                            for key in eigenvalues)))
+        print '\t\t', [(key, str(values[-1]))
+                       for key, values in eigenvalues.iteritems()]
 
+        eigen_lines = []
         for key in eigs:
-            ax.loglog(ns, eigs[key])
+            line, = ax.loglog(ns, eigs[key], label=key)
+            eigen_lines.append(line)
 
-    # In operator norm, the eigenvalues should be abount constant
+    # In some __NORM__, the eigenvalues should be abount constant
     # Get the average constant
-    beta = np.mean(eigs[operator])
+    beta = np.mean(eigs[__NORM__])
     row_abetas.append(beta)
     row_lbetas.append(beta)
     # This will be plotted against the angle and len
@@ -167,6 +175,9 @@ for i, (A, B) in enumerate(product(As, Bs)):
         lens[this_row].append(row_lens)
         lbetas[this_row].append(row_lbetas)
 
+        # Put legend
+        fig.legend(eigen_lines, map(str, fractions), 'lower right')
+
     counter += 1
 
 # Remeber to save figures and data
@@ -179,6 +190,7 @@ pickle.dump(eigen_data, open('%s/%s_eigv_data_%s.pickle' %
 
 # Betas as function of angle
 fig, axarr = plt.subplots(len(abetas), 1, sharex=True)
+fig.suptitle('Based on %s norm' % __NORM__)
 for row in range(n_rows):
     ax = axarr[row]
     ax.plot(angles[row][0], abetas[row][0], '*-')
@@ -193,6 +205,7 @@ pickle.dump(angle_data, open('%s/%s_angle_data_%s.pickle' %
 
 # Betas as function of length
 fig, axarr = plt.subplots(len(lbetas), 1, sharex=True)
+fig.suptitle('Based on %s norm' % __NORM__)
 for row in range(n_rows):
     ax = axarr[row]
     ax.plot(lens[row][0], lbetas[row][0], '*-')

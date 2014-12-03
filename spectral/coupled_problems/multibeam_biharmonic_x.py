@@ -93,15 +93,19 @@ def sine_basis(n):
     return [sqrt(2)*sin(k*pi*x) for k in range(1, n+1)]
 
 
-def solve(params, eigs_only):
+def solve(params, eigs_only, point_constraints):
     '''
     Plate problem with beams(0 or more) that can intersect.
+
+        intersects are specially treated only if point_contraints
+
+        if eigs_only we only solve the Schur complement eigenvalues
     '''
     # Extract plate material and degree of space
     E_plate = params.get('E_plate', 1)
     q_plate = params.get('q_plate')
 
-    beams_params = params.get('beams', [])
+    beams_params = params['beams'] if 'beams' in params else []
     n_beams = len(beams_params)
     # Extract beam positions, material and degree of spaces for deflection
     # and penalty
@@ -124,8 +128,12 @@ def solve(params, eigs_only):
 
     # Learn about intersects in the system
     # Incident matrix, map i, j to intersect order k, intersect is then I_x[k]
-    _, Imap, I_x = intersects(beams_params)
-    n_intersects = len(I_x)
+    if point_constraints:
+        _, Imap, I_x = intersects(beams_params)
+        n_intersects = len(I_x)
+    else:
+        Imap = dict()
+        n_intersects = 0
 
     # To assemble the linear system we need some block info
     # The linear system becomes   AA = [[A, B],]
@@ -316,6 +324,7 @@ def solve(params, eigs_only):
     bb[:Asizes[0]] = F
 
     # Solve the system AA*U = bb
+    print '\tSolving linear system %d x %d' % AA.shape
     U = la.solve(AA, bb)
 
     # Split the vector to get expansions coeffs of each unknown and return
@@ -365,12 +374,18 @@ if __name__ == '__main__':
 
     x, y, s = symbols('x, y, s')
     f = 1
-    A2, B2 = np.array([0, 0.5]), np.array([0.5, 0])
+    A1, B1 = np.array([0., 0.]), np.array([1., 1.])
+    A2, B2 = np.array([0, 0.75]), np.array([0.75, 0])
     A3, B3 = np.array([1, 0.5]), np.array([0.5, 1])
     params = {'f': f,
               'E_plate': 1.,
               'q_plate': 10,
-              'beams': [
+              'beams': [{'E_beam': 5.,
+                         'A': A1,
+                         'B': B1,
+                         'n_beam': 10,
+                         'n_lambda': 10},
+                        #
                         {'E_beam': 5.,
                          'A': A2,
                          'B': B2,
@@ -384,18 +399,68 @@ if __name__ == '__main__':
                          'n_lambda': 10}
                         ]
               }
-    # Plo the beam positions
-    fig = plt.figure()
-    ax = fig.gca()
-    for beam in params['beams']:
-        ax.plot([beam['A'][0], beam['B'][0]], [beam['A'][1], beam['B'][1]])
-    ax.set_xlim([0, 1])
-    ax.set_ylim([0, 1])
+    beams = params['beams'] if 'beams' in params else []
+    if beams:
+        # Plot the beam positions
+        fig = plt.figure()
+        ax = fig.gca()
+        for i, beam in enumerate(params['beams']):
+            ax.plot([beam['A'][0], beam['B'][0]], [beam['A'][1], beam['B'][1]],
+                    label=str(i))
+        ax.set_xlim([0, 1])
+        ax.set_ylim([0, 1])
+        # Add intersects
+        I, Imap, I_x = intersects(beams)
+        for X in I_x:
+            ax.plot(X[0], X[1], 'o')
+        plt.legend(loc='best')
 
-    u_plate, u_beams, u_lambdas = solve(params, eigs_only=False)
+        # Compute
+        u_plate, u_beams, lmbdas = solve(params, eigs_only=False,
+                                         point_constraints=False)
 
-    # Plot beam displacement
-    plot3d(u_plate, (x, 0, 1), (y, 0, 1), xlabel='$x$', ylabel='$y$',
-           title='Plate deflection')
+        # Plot beam displacement
+        plot3d(u_plate, (x, 0, 1), (y, 0, 1), xlabel='$x$', ylabel='$y$',
+               title='Plate deflection')
+
+        # Displacement of beams and plate on the beams
+        for i, (beam, u_beam) in enumerate(zip(beams, u_beams)):
+            A, B = beam['A'], beam['B']
+            x_s = A[0] + (B[0] - A[0])*s
+            y_s = A[1] + (B[1] - A[1])*s
+            # Restrict plate to beam
+            u0_beam = u_plate.subs({x: x_s, y: y_s})
+            plot(u_beam, u0_beam, (s, 0, 1), xlabel='$s/L$',
+                 title='Beam deflection vs plate deflection on beam %d' % i)
+
+        # Lagrange multipliers on beams
+        for i, lmbda in enumerate(lmbdas):
+            plot(lmbda, (s, 0, 1), xlabel='$s/L$',
+                 title='Lagrange multiplier on beam %d' % i)
+
+        # Values of beam deflaction in intersects
+        for ij in Imap:
+            i_sect_order = Imap[ij]
+            i_sect = I_x[i_sect_order]
+            values = []
+            for k in ij:
+                beam = beams[k]
+                # Represent i_sect as s such that F_i(s) = i_sect
+                A, B = beam['A'], beam['B']
+                Q = [A[0], A[1]]
+                vec = [B[0]-A[0], B[1]-A[1]]
+                s_value = np.hypot(*(i_sect - Q))/np.hypot(*vec)
+                # Extract beam deflections
+                u_beam = u_beams[k]
+                values.append((s_value, u_beam.evalf(subs={s: s_value})))
+            print 'At intersect', i_sect, 'beam deflections [s, value]', values
+    # No beams
+    else:
+        # Only compute plate
+        u_plate = solve(params, eigs_only=False, point_constraints=True)
+
+        # Plot beam displacement
+        plot3d(u_plate, (x, 0, 1), (y, 0, 1), xlabel='$x$', ylabel='$y$',
+               title='Plate deflection')
 
     plt.show()

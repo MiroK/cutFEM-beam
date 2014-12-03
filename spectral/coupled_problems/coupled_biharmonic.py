@@ -16,7 +16,7 @@ def sine_basis(n):
     return [sqrt(2)*sin(k*pi*x) for k in range(1, n+1)]
 
 
-def solve(params, eigs_only=False):
+def solve(params, eigs_only=False, fractions=None):
     '''
     Solve the plate-beam problem.
     The plate occupies region [0, 1]^2 and has stiffness E_plate.
@@ -25,6 +25,10 @@ def solve(params, eigs_only=False):
 
     The deformation of plate and beam is governed by biharmonic equation.
     We use boundary conditions u=laplace(u)=0 on the boundary.
+
+    If eigs_only we return smallest eigenvalues of C*(B*inv(A)*B.T) where
+    C are matrices of H^s norm on the penalty space (defined on beam). The
+    fractions s are taken from fractions.
     '''
     # Problem properties
     E_plate = params.get('E_plate', 1)
@@ -46,6 +50,10 @@ def solve(params, eigs_only=False):
     assert L > 0
 
     print A, B
+
+    if eigs_only:
+        assert isinstance(fractions, np.ndarray)
+        assert len(fractions)
 
     # The system is [[A0,    0,   -B0],  [[u0]  [[F],
     #                [0,     A1,   B1], * [u1] = [0],
@@ -121,22 +129,30 @@ def solve(params, eigs_only=False):
         Ainv[np.diag_indices_from(Ainv)] = A.diagonal()**-1
 
         # Put together the C matrices
-        # Mass matrix
-        C0 = np.eye(n_lambda)*L
-        # Laplace
-        C1 = np.diag(np.array([(i*mpi)**2 for i in range(1, n_lambda+1)]))/L
-        # Biharmonic
-        C2 = np.diag(np.array([(i*mpi)**4 for i in range(1, n_lambda+1)]))/L**3
+        # The matrices are scaled by L to the L_power = 2*(0.5 - s)
+        L_powers = 2*(0.5 - fractions)
+        # n*pi are scaled as e_power = 2*s
+        e_powers = 2*fractions
 
-        Cs = {'mass': C0, 'laplace': C1, 'biharmonic': C2}
-
+        # This will be scaled
+        values = np.array([(i*mpi) for i in range(1, n_lambda+1)])
+        # Now assemble different C and use it to precondition Schur and compute
+        # the eigenvalues - stored with key=str(s)
         eigenvalues = {}
         S = B.T.dot(Ainv.dot(B))
-        for key, C in Cs.iteritems():
+        for i, s in enumerate(fractions):
+            L_power = L_powers[i]
+            e_power = e_powers[i]
+
+            diagonal = values**e_power
+            C = np.diag(diagonal)
+            C *= L**L_power
+
+            # Preconditioned
             Mat = C.dot(S)
             eigs = la.eigvals(Mat)
             lmbda_min = sorted(eigs)[:3]
-            eigenvalues[key] = lmbda_min
+            eigenvalues[str(s)] = lmbda_min
 
         return eigenvalues
 
