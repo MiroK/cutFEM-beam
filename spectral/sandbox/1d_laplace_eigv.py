@@ -36,7 +36,7 @@ def mass_matrix(n):
 
 def stiffness_matrix(n):
     'Stiffness matrix assembled from Shen basis'
-    return np.eye(M.shape[0])
+    return np.eye(n)
 
 
 def assemble_uh(basis, coefs):
