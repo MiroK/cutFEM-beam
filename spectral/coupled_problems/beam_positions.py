@@ -11,11 +11,11 @@ results_dir = './results'
 solvers = {'laplace': solve_laplace,
            'biharmonic': solve_biharmonic}
 
-operator = 'laplace'
+operator = 'biharmonic'
 # Norm to consider with Schur
-fractions = np.array([-0.5, 0., 0.5, 1.])
+fractions = np.array([0., 1, 1.5, 2.])
 # Norm in which C*Schur has constant eigenvalues
-__NORM__ = str(0.5)
+__NORM__ = str(2.)
 
 
 class nRule(object):
@@ -114,7 +114,7 @@ for i, (A, B) in enumerate(product(As, Bs)):
     ns = []
     params['A'] = A
     params['B'] = B
-    for n in range(3, 5):
+    for n in range(3, 8):
         n_plate, n_beam, n_lambda = rule(n)
         params['n_plate'] = n_plate
         params['n_beam'] = n_beam
@@ -127,13 +127,14 @@ for i, (A, B) in enumerate(product(As, Bs)):
 
         ns.append(n)
 
-        print '\t\t', [(key, str(values[-1]))
+        print '\t\t', [(key, values[-1])
                        for key, values in eigenvalues.iteritems()]
 
-        eigen_lines = []
-        for key in eigs:
-            line, = ax.loglog(ns, eigs[key], label=key)
-            eigen_lines.append(line)
+    eigen_lines = []
+    for key in eigs:
+        print 'plot', key, eigs[key]
+        line, = ax.loglog(ns, eigs[key], label=key)
+        eigen_lines.append(line)
 
     # In some __NORM__, the eigenvalues should be abount constant
     # Get the average constant
@@ -177,7 +178,7 @@ for i, (A, B) in enumerate(product(As, Bs)):
         lbetas[this_row].append(row_lbetas)
 
         # Put legend
-        fig.legend(eigen_lines, map(str, fractions), 'lower right')
+        fig.legend(eigen_lines, eigs.keys(), 'lower right')
 
     counter += 1
 
