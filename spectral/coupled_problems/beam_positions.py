@@ -11,11 +11,11 @@ results_dir = './results'
 solvers = {'laplace': solve_laplace,
            'biharmonic': solve_biharmonic}
 
-operator = 'laplace'
+operator = 'biharmonic'
 # Norm to consider with Schur
-fractions = np.array([-0.5, 0., 0.5, 1.])
+fractions = np.array([0., 1., 1.5, 2.])
 # Norm in which C*Schur has constant eigenvalues
-__NORM__ = str(0.5)
+__NORM__ = str(2.0)
 
 class nRule(object):
     def __init__(self, name, plate_n, beam_n, lmbda_n):
@@ -30,10 +30,10 @@ class nRule(object):
 # -----------------------------------------------------------------------------
 
 # The rule that will define number of sines in the test
-rule = nRule(name='all_equal',
+rule = nRule(name='wp_2*n',
              plate_n=lambda n: n,
-             beam_n=lambda n: n,
-             lmbda_n=lambda n: n)
+             beam_n=lambda n: 2*n,
+             lmbda_n=lambda n: 2*n)
 
 f = 1
 params = {'E_plate': 1.,
@@ -47,8 +47,8 @@ params = {'E_plate': 1.,
 # Checkout LBB for different positions of the beam
 # The beam position is given by A = A(s) = [0.5*s, 0],
 # B = B(t) = [0.5 + 0.5*t, 1]. Both s, t are in [0, 1]
-s = np.linspace(0, 1, 6)
-t = np.linspace(0, 1, 6)
+s = np.linspace(0, 1, 4)
+t = np.linspace(0, 1, 4)
 
 As = np.vstack([0.5*s, 0*np.ones_like(s)]).T
 Bs = np.vstack([0.5*t + 0.5, np.ones_like(t)]).T
@@ -77,7 +77,7 @@ fig.savefig('%s/%s_positions.pdf' % (results_dir, operator))
 # Plot the eigenvalues of fixed A, that is each n_cols, into tiled plot
 # The number of rows and cols in this plots N_rows, N_cols
 N_cols = 2
-N_rows = 3
+N_rows = 2
 counter = 0
 figs = []
 eigen_data = {}
@@ -113,7 +113,7 @@ for i, (A, B) in enumerate(product(As, Bs)):
     ns = []
     params['A'] = A
     params['B'] = B
-    for n in range(3, 16):
+    for n in range(4, 16):
         n_plate, n_beam, n_lambda = rule(n)
         params['n_plate'] = n_plate
         params['n_beam'] = n_beam
@@ -126,13 +126,14 @@ for i, (A, B) in enumerate(product(As, Bs)):
 
         ns.append(n)
 
-        print '\t\t', [(key, str(values[-1]))
+        print '\t\t', [(key, values[-1])
                        for key, values in eigenvalues.iteritems()]
 
-        eigen_lines = []
-        for key in eigs:
-            line, = ax.loglog(ns, eigs[key], label=key)
-            eigen_lines.append(line)
+    eigen_lines = []
+    for key in eigs:
+        print 'plot', key, eigs[key]
+        line, = ax.loglog(ns, eigs[key], label=key)
+        eigen_lines.append(line)
 
     # In some __NORM__, the eigenvalues should be abount constant
     # Get the average constant
@@ -176,7 +177,7 @@ for i, (A, B) in enumerate(product(As, Bs)):
         lbetas[this_row].append(row_lbetas)
 
         # Put legend
-        fig.legend(eigen_lines, map(str, fractions), 'lower right')
+        fig.legend(eigen_lines, eigs.keys(), 'lower right')
 
     counter += 1
 
