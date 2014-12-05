@@ -4,18 +4,20 @@ from collections import defaultdict
 from itertools import product
 from coupled_biharmonic import solve as solve_biharmonic
 from coupled_laplace import solve as solve_laplace
+from leg_coupled_laplace import solve as solve_laplace_leg
 import numpy as np
 import pickle
 
 results_dir = './results'
 solvers = {'laplace': solve_laplace,
-           'biharmonic': solve_biharmonic}
+           'biharmonic': solve_biharmonic,
+           'laplace_leg': solve_laplace_leg}
 
-operator = 'biharmonic'
+operator = 'laplace_leg'
 # Norm to consider with Schur
-fractions = np.array([0., 1, 1.5, 2.])
+fractions = np.array([0., 1.])
 # Norm in which C*Schur has constant eigenvalues
-__NORM__ = str(2.)
+__NORM__ = str(0)
 
 
 class nRule(object):
@@ -78,7 +80,7 @@ fig.savefig('%s/%s_positions.pdf' % (results_dir, operator))
 # Plot the eigenvalues of fixed A, that is each n_cols, into tiled plot
 # The number of rows and cols in this plots N_rows, N_cols
 N_cols = 2
-N_rows = n_cols // 2 if (n_cols % 2) == 0 else (n_cols // 2) + 1
+N_rows = 2
 counter = 0
 figs = []
 eigen_data = {}
@@ -114,7 +116,7 @@ for i, (A, B) in enumerate(product(As, Bs)):
     ns = []
     params['A'] = A
     params['B'] = B
-    for n in range(3, 8):
+    for n in range(4, 6):
         n_plate, n_beam, n_lambda = rule(n)
         params['n_plate'] = n_plate
         params['n_beam'] = n_beam
