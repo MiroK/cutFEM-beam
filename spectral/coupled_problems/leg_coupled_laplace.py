@@ -57,20 +57,22 @@ def shen_stiffness_matrix(n):
 def solve(params, eigs_only=False, fractions=None):
     '''
     Solve the plate-beam problem.
-    The plate occupies region [0, 1]^2 and has stiffness E_plate.
-    The beam is a line from A--B and has stiffness E_beam.
-    The system is loaded with f.
-
-    The deformation of both plate and beam is governed by laplace equation.
+    The plate and beam deformation are governed by the laplace equation.
     We use boundary conditions u=0 on the boundary.
+
+    The plate occupies region rectangular defined by point V0, V1.
+    By defualt, these are V0 = [0, 0] and V1 = [1, 1].
+    The beam is a line from P, Q somewhere on the boundary of place.
+    The system is loaded with f.
     '''
     # TODO Make [0, 1]^2 a special case
     # Choices for n_place, n_beam and n_lambda
     # Same with biharmonic
 
-
     # Problem properties
     E_plate = params.get('E_plate', 1)
+    V0 = params['V0'] if 'V0' in params else np.array([0, 0])
+    V1 = params['V1'] if 'V1' in params else np.array([1, 1])
     E_beam = params.get('E_beam', 1)
     P = params.get('P', np.array([0, 0]))
     Q = params.get('Q', np.array([1, 1]))
@@ -86,13 +88,40 @@ def solve(params, eigs_only=False, fractions=None):
 
     assert f is not None
 
-    # Beam length
+    # Plate len in x dir L0, in y dir L1, and center
+    L0 = np.abs(V1[0] - V0[0])
+    L1 = np.abs(V1[1] - V0[1])
+    assert L0 > 0 and L1 > 0
+    center0 = 0.5*(V1[0] + V0[0])
+    center1 = 0.5*(V1[0] + V0[0])
+
+    # Beam length, the beam is parametrized [0, L] --> beam
     L = np.hypot(*(Q-P))
     assert L > 0
+    center = 0.5
 
     if eigs_only:
         assert isinstance(fractions, np.ndarray)
         assert len(fractions)
+
+    # The plate problem is solved on domain [-1, 1]^2 which is mapped to plate
+    # by mapping F2(x_hat, y_hat)
+    def F2(x_hat, y_hat):
+        return np.array([L0*x_hat/2 + center0, L1*y_hat/2 + center1])
+
+    # its inverse
+    def F2_inv(x, y):
+        return np.array([2*(x - center0)/L0, 2*(y - center1)/L1])
+
+    # The beam needs to be mapped to [-1, 1]^2
+    P_hat = F2_inv(*P)
+    Q_hat = F2_inv(*Q)
+
+    # To describe the beam we need a mapping from -1, 1 to (x_hat, y_hat)
+    # coordinates of beam
+    def Beam_map(s_hat):
+        return np.array([(P_hat[0]+Q_hat[0])/2 + s_hat*(Q_hat[0]-P_hat[0])/2,
+                         (P_hat[1]+Q_hat[1])/2 + s_hat*(Q_hat[1]-P_hat[1])/2])
 
     # This is already lambdified
     basis = shen_basis(n_all)
@@ -108,8 +137,8 @@ def solve(params, eigs_only=False, fractions=None):
     M_1d = shen_mass_matrix(size)
 
     # A0 block for plate is A x M + M x A
-    A0 = np.kron(A_1d, M_1d)
-    A0 += np.kron(M_1d, A_1d)
+    A0 = np.kron(A_1d, M_1d)*(L1/L0)
+    A0 += np.kron(M_1d, A_1d)*(L0/L1)
     assert A0.shape == (size**2, size**2)
     A0 *= E_plate
     print '.'
@@ -127,19 +156,6 @@ def solve(params, eigs_only=False, fractions=None):
     B1 *= L/2
     print '.'
 
-    # B0 has to be assembled
-    # First we map A, B to domain [-1, 1]^2
-    P_hat = 2*(P-0.5)
-    Q_hat = 2*(Q-0.5)
-
-    # To describe the beam we need a mapping from -1, 1 to (x_hat, y_hat)
-    # coordinates of beam
-    def x_hat(s):
-        return 0.5*(P_hat[0]+Q_hat[0]) + 0.5*(Q_hat[0]-P_hat[0])*s
-
-    def y_hat(s):
-        return 0.5*(P_hat[1]+Q_hat[1]) + 0.5*(Q_hat[1]-P_hat[1])*s
-
     # We create the tensor product basis of plate, note over [-1, 1]^2
     basis_plate = [lambda x, y, bi=bi, bj=bj: bi(x)*bj(y)
                    for (bi, bj) in product(basis, basis)]
@@ -147,12 +163,13 @@ def solve(params, eigs_only=False, fractions=None):
     # Basis of penalty also on [-1, 1]
     basis_p = basis
 
+    # Block B0 must be assembled
     start = time.time()
     B0 = np.zeros((size**2, size))
     print '\tAssembling B0 ...'
     for k, phi_k in enumerate(basis_plate):
         for j, chi_j in enumerate(basis_p):
-            B0[k, j] = quad(lambda s: phi_k(x_hat(s), y_hat(s))*chi_j(s),
+            B0[k, j] = quad(lambda s_hat: phi_k(*Beam_map(s_hat))*chi_j(s_hat),
                             [-1, 1])
             print '*',
         print
@@ -214,22 +231,22 @@ def solve(params, eigs_only=False, fractions=None):
     AA[:n_plate**2 + n_beam, n_plate**2 + n_beam:] = B
     AA[n_plate**2 + n_beam:, :n_plate**2 + n_beam] = B.T
 
-    # To get the right hand side first map f from domain to [-1, 1]^2
+    # To get the right hand side map f from domain to [-1, 1]^2
     x, y, s = symbols('x, y, s')
-    f_hat = f.subs({x: 0.5*(1+x),
-                    y: 0.5*(1+y)})
-    f_lambda = lambdify([x, y], f_hat)
+    f_lambda = lambdify([x, y], f)
 
     # Assemble the plate rhs
     start = time.time()
     F = np.zeros(n_plate**2)
     print '\tAssembling F ...'
     for i, v in enumerate(basis_plate):
-        F[i] = quad(lambda x, y: f_lambda(x, y)*v(x, y), [-1., 1.], [-1., 1.])
+        F[i] = quad(lambda x_hat, y_hat:
+                    f_lambda(*F2(x_hat, y_hat))*v(x_hat, y_hat),
+                    [-1., 1.], [-1., 1.])
         print ' '*i, '*'
 
     # Scale
-    F *= 0.25
+    F *= L0*L1/4
     print '\tAssembled F in %g s.' % (time.time() - start)
 
     # Place in global right hand
@@ -245,13 +262,13 @@ def solve(params, eigs_only=False, fractions=None):
     U_lmbda = U[(n_plate**2 + n_beam):]
 
     # Return expansion coefficients and basis combined into functions
-    # defined over [0, 1]^2 and [0, 1], [0, 1] respectively
+    # defined over V0 x V1 and [0, 1], [0, 1] respectively
     # First map the functions
     basis = shen_basis_symbolic(n_all, x)
-    basis_plate = [v0.subs({x: 2*x-1})*v1.subs({x: 2*y-1})
+    basis_plate = [v0.subs({x: 2*(x-center0)/L0})*v1.subs({x: 2*(y-center1)/L1})
                    for v0, v1 in product(basis, basis)]
-    basis_beam = [v.subs({x: 2*x - 1}) for v in basis]
-    basis_lmbda = [v.subs({x: 2*x - 1}) for v in basis]
+    basis_beam = [v.subs({x: 2*(x-center)}) for v in basis]
+    basis_lmbda = [v.subs({x: 2*(x-center)}) for v in basis]
 
     assert len(U_plate) == len(basis_plate)
     assert len(U_beam) == len(basis_beam)
@@ -273,28 +290,32 @@ if __name__ == '__main__':
     # Define problem
     x, y, s = symbols('x, y, s')
     f = S(1)
-    P = np.array([0.25, 0])
-    Q = np.array([0.5, 1])
+    P = np.array([-1, 0])
+    Q = np.array([1, 0.5])
+    V0 = np.array([-1, -1])
+    V1 = np.array([1, 1])
     params = {'E_plate': 1.,
               'E_beam': 10.,
               'P': P,
               'Q': Q,
+              'V0': V0,
+              'V1': V1,
               'f': f,
-              'n_plate': 10}
+              'n_plate': 5}
 
     # Solve
     u_plate, u_beam, u_lmbda = solve(params)
 
     # Plot
     # Plate displacement
-    plot3d(u_plate, (x, 0, 1), (y, 0, 1), xlabel='$x$', ylabel='$y$',
-           title=r'$u_h$')
+    plot3d(u_plate, (x, V0[0], V1[0]), (y, V0[1], V1[1]),
+           xlabel='$x$', ylabel='$y$', title=r'$u_h$')
     # Displacement of beam and plate on the beam
     x_s = P[0] + (Q[0] - P[0])*s
     y_s = P[1] + (Q[1] - P[1])*s
     u_plate_beam = u_plate.subs({x: x_s, y: y_s})
-    plot(u_beam - u_plate_beam, (s, 0, 1), xlabel='$s/L$',
+    plot(u_beam - u_plate_beam, (s, 0, 1), xlabel='$s L$',
          title=r'$u_h|_{B} - w_h$')
     # Lagrange multiplier
-    plot(u_lmbda, (s, 0, 1), xlabel='$s/L$',
+    plot(u_lmbda, (s, 0, 1), xlabel='$s L$',
          title=r'$\lambda$')
