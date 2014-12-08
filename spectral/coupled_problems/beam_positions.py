@@ -4,18 +4,20 @@ from collections import defaultdict
 from itertools import product
 from coupled_biharmonic import solve as solve_biharmonic
 from coupled_laplace import solve as solve_laplace
+from leg_coupled_laplace import solve as solve_laplace_leg
 import numpy as np
 import pickle
 
 results_dir = './results'
 solvers = {'laplace': solve_laplace,
-           'biharmonic': solve_biharmonic}
+           'biharmonic': solve_biharmonic,
+           'laplace_leg': solve_laplace_leg}
 
-operator = 'biharmonic'
+operator = 'laplace_leg'
 # Norm to consider with Schur
-fractions = np.array([0., 1., 1.5, 2.])
+fractions = np.array([0., 1.])
 # Norm in which C*Schur has constant eigenvalues
-__NORM__ = str(2.0)
+__NORM__ = str(0)
 
 class nRule(object):
     def __init__(self, name, plate_n, beam_n, lmbda_n):
@@ -30,10 +32,10 @@ class nRule(object):
 # -----------------------------------------------------------------------------
 
 # The rule that will define number of sines in the test
-rule = nRule(name='wp_2*n',
+rule = nRule(name='all_equal',
              plate_n=lambda n: n,
-             beam_n=lambda n: 2*n,
-             lmbda_n=lambda n: 2*n)
+             beam_n=lambda n: n,
+             lmbda_n=lambda n: n)
 
 f = 1
 params = {'E_plate': 1.,
