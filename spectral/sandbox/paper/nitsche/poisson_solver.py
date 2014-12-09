@@ -82,7 +82,7 @@ class PoissonSolver(object):
         for i, bi in enumerate(basis):
             A[i, i] = quad(lambda x: bi(x)**2, [-1, 1])
             for j, bj in enumerate(basis[i+1:], i+1):
-                A[i, j] = quad(lambda x: bi(x)*bj(x), [-1, 1], maxdegree=40)
+                A[i, j] = quad(lambda x: bi(x)*bj(x), [-1, 1])
                 A[j, i] = A[i, j]
         return A
 
@@ -96,7 +96,7 @@ class PoissonSolver(object):
         for i, bi in enumerate(basis):
             M[i, i] = quad(lambda x: bi(x)**2, [-1, 1])
             for j, bj in enumerate(basis[i+1:], i+1):
-                M[i, j] = quad(lambda x: bi(x)*bj(x), [-1, 1], maxdegree=40)
+                M[i, j] = quad(lambda x: bi(x)*bj(x), [-1, 1])
                 M[j, i] = M[i, j]
         return M
 
@@ -112,5 +112,5 @@ class PoissonSolver(object):
         for i, bi in enumerate(basis):
             for j, bj in enumerate(basis):
                 b[i, j] = quad(lambda x, y: bi(x)*bj(y)*f(x, y),
-                               [-1, 1], [-1, 1], maxdegree=40)
+                               [-1, 1], [-1, 1])
         return b

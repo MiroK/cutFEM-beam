@@ -20,8 +20,6 @@ from sympy import symbols, lambdify, pi, sin, exp
 from sympy.plotting import plot3d
 from sympy.mpmath import quad
 from math import sqrt, log as ln
-# Guad
-from quadrature import GLLQuadrature
 
 # Specs for problem
 x, y = symbols('x, y')
@@ -41,13 +39,13 @@ solvers = {'shen1': Shen1PoissonSolver(),
            'eigen': EigenPoissonSolver(),
            'leg_nitsche': LegendrePoissonSolver(),
            # 'gl_nitsche': GLLagrangePoissonSolver(),
-           'gll': GLLLagrangePoissonSolver()}
+           'gll': GLLLagrangePoissonSolver()
+           }
 
 
-ns = range(2, 7)
+ns = range(2, 16)
 #plt.figure()
 
-quadrature = GLLQuadrature([40, 40])
 for key in solvers:
     print key
     solver = solvers[key]
@@ -57,8 +55,7 @@ for key in solvers:
         # plot3d(uh, (x, -1, 1), (y, -1, 1))
 
         error = (uh - u)**2
-        error = lambdify([x, y], error)
-        e = quad(error, domain)
+        e = quad(lambdify([x, y], error), [-1, 1], [-1, 1])
         if e > 0:
             e = sqrt(e)
 
