@@ -1,0 +1,6 @@
+Codes for the note on the computational framework ...
+
+1) Compare (GLL lagrange, shen1, shen2, eigen) vs
+           ((Legendre, GL lagrange) + Nitsche)
+these can be viewed as two groups, one with built in bcs and the other without
+   

@@ -1,6 +1,7 @@
 *.pickle
 *.pyc
 *.sw*
+*.png
 *~
 .ropeproject/
 results/
