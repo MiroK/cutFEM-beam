@@ -1,5 +1,5 @@
 from __future__ import division
-from sympy.mpmath import legendre, quad, sqrt
+from sympy.mpmath import legendre, quad, sqrt, diff
 import numpy as np
 from functools import partial
 import scipy.linalg as la
@@ -25,7 +25,7 @@ def shen_basis(m):
             _d(i)*(partial(legendre, n=i)(x=x) -
                    2*(2*i+5)/(2*i+7)*partial(legendre, n=i+2)(x=x) +
                    (2*i+3)/(2*i+7)*partial(legendre, n=i+4)(x=x))
-            for i in range(m-4)]
+            for i in range(m-3)]
 
 def mass_matrix(n):
     M = np.zeros((n, n))
@@ -38,6 +38,16 @@ def mass_matrix(n):
                 M[k, k+4] = _d(k)*_d(k+4)*_g(k)*_e(k+4)
                 M[k+4, k] = M[k, k+4]
     return M
+
+def C_matrix(n):
+    C = np.zeros((n, n))
+    for k in range(n):
+        C[k, k] = -2*(2*k + 3)*_d(k)**2*_h(k)
+        if k + 2 < n:
+            C[k, k+2] = -2*(2*k + 3)*_d(k)*_d(k+2)
+            C[k+2, k] = C[k, k+2]
+            print C[k+2, k], C[k, k+2]
+    return C
 
 def stiffness_matrix(n):
     'Stiffness matrix assembled from Shen basis'

@@ -5,6 +5,7 @@ from math import pi as mpi, sqrt
 import numpy as np
 import time
 import numpy.linalg as la
+from scipy.linalg import logm
 from itertools import product
 from functools import partial
 
@@ -74,12 +75,11 @@ def solve(params, eigs_only=False, fractions=None):
     Q = params.get('Q', np.array([1, 1]))
     f = params.get('f', None)
     # Solver properties, i.e. highest Legendre polynomial to be used
-    # The plate is the ~ n**2, the beam and penalty have n
     N_plate = params.get('n_plate')
     N_beam = params.get('n_beam', N_plate)
     N_lmbda = params.get('n_lmbda', N_beam)
 
-    assert min([N_plate, N_beam, N_lmbda]) > 3
+    assert min([N_plate, N_beam, N_lmbda]) > 1
 
     assert f is not None
 
@@ -179,6 +179,7 @@ def solve(params, eigs_only=False, fractions=None):
 
     if eigs_only:
         # Eigenvalues of Schur
+        # A inversed
         Ainv = la.inv(A)
 
         # Put together the C matrices
@@ -192,11 +193,13 @@ def solve(params, eigs_only=False, fractions=None):
         # () -- norm matrix + add L scaling
         e_powers = 1 - fractions
 
-        e_values, V = la.eigh(shen_mass_matrix(n_lmbda))
+        M_penalty = shen_mass_matrix(n_lmbda)
+        e_values, V = la.eigh(M_penalty)
+
         # Now assemble different C and use it to precondition Schur and compute
         # the eigenvalues - stored with key=str(s)
         eigenvalues = {}
-        S = B.T.dot(Ainv.dot(B))
+        S = logm(B.T.dot(Ainv.dot(B)))
         for i, s in enumerate(fractions):
             L_power = L_powers[i]
             e_power = e_powers[i]
@@ -204,7 +207,7 @@ def solve(params, eigs_only=False, fractions=None):
             diagonal = e_values**e_power
             C = V.dot(np.diag(diagonal).dot(V.T))
             C *= (0.5*L)**L_power
-            C *= N_lmbda**s
+            C = logm(C)
 
             # Preconditioned
             Mat = C.dot(S)
@@ -283,9 +286,9 @@ if __name__ == '__main__':
     # Define problem
     x, y, s = symbols('x, y, s')
     f = S(1)
-    P = np.array([-1, 0])
-    Q = np.array([1, 0.5])
-    V0 = np.array([-1, -1])
+    P = np.array([0.25, 0])
+    Q = np.array([0.5, 1])
+    V0 = np.array([0, 0])
     V1 = np.array([1, 1])
     params = {'E_plate': 1.,
               'E_beam': 10.,
@@ -295,8 +298,8 @@ if __name__ == '__main__':
               'V1': V1,
               'f': f,
               'n_plate': 10,
-              'n_beam': 6,
-              'n_lmbda': 4}
+              'n_beam': 10,
+              'n_lmbda': 10}
 
     # Solve
     u_plate, u_beam, u_lmbda = solve(params)

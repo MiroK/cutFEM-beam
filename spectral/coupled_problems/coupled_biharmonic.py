@@ -240,9 +240,9 @@ if __name__ == '__main__':
     x_s = A[0] + (B[0] - A[0])*s
     y_s = A[1] + (B[1] - A[1])*s
     u0_beam = u0.subs({x: x_s, y: y_s})
-    plot(u1, u0_beam, (s, 0, 1), xlabel='$s/L$',
+    plot(u1-u0_beam, (s, 0, 1), xlabel='$sL$',
         title='Beam deflection vs plate deflection on the beam')
     # Lagrange multiplier
-    plot(lmbda, (s, 0, 1), xlabel='$s/L$',
+    plot(lmbda, (s, 0, 1), xlabel='$sL$',
         title='Lagrange multiplier')
 

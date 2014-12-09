@@ -15,9 +15,9 @@ solvers = {'laplace': solve_laplace,
 
 operator = 'laplace_leg'
 # Norm to consider with Schur
-fractions = np.array([0., 1.])
+fractions = np.array([0., 0.5, 1.])
 # Norm in which C*Schur has constant eigenvalues
-__NORM__ = str(0)
+__NORM__ = str(1)
 
 class nRule(object):
     def __init__(self, name, plate_n, beam_n, lmbda_n):
