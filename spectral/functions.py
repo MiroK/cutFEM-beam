@@ -1,4 +1,4 @@
-from sympy import sin, pi, sqrt, symbols, integrate, diff
+from sympy import sin, pi, sqrt, symbols, integrate, diff, binomial
 from itertools import product
 import numpy as np
 import operator
@@ -55,6 +55,14 @@ def lagrange_basis(points, xi=None):
                                                 for i in range(dim)])]
                         ).reshape(shape)
 
+
+def bernstein_basis(n):
+    '''
+    Return Bernestein polynomials of degree n. This is n+1 polynomials.
+    They are shifted for interval [-1, 1].
+    '''
+    x = symbols('x')
+    return [binomial(n, i)*(1+x)**i*(1-x)**(n-i)/2**n for i in range(n+1)]
 
 # -----------------------------------------------------------------------------
 

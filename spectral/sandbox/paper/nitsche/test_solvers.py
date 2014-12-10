@@ -62,7 +62,7 @@ for key in solvers:
         if n > 2:
             cond = data['monitor_cond']
             rate = ln(e/e_)/ln(n_/n)
-            print '\terror=%.2E rate=%.2f cond=%2E' % (e, rate, cond)
+            print '\tn=%d error=%.2E rate=%.2f cond=%.2E' % (n, e, rate, cond)
         #    es.append(e)
 
         e_ = e

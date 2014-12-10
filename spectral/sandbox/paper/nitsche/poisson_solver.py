@@ -20,7 +20,8 @@ class PoissonSolver(object):
         '''
         Solve the Poisson problem on [-1, 1]**2 with rhs f and homog Dirichlet
         boundary conditions. The basis functions are taken as tensor product of
-        first n basis functions.
+        basis functions of space characterized by basis (n parameterizes this
+        approximation).
 
         Return solution and data based on kwargs.
         '''
