@@ -4,22 +4,25 @@ sys.path.insert(0, '../../../')
 # Problem
 from problems import manufacture_poisson_2d
 # Solvers
-from shen1 import Shen1PoissonSolver
-from shen2 import Shen2PoissonSolver
-from eigen import EigenPoissonSolver
-from gll_lagrange import GLLLagrangePoissonSolver
-from legendre import LegendrePoissonSolver
-from gl_lagrange import GLLagrangePoissonSolver
-
+from poisson_solver import PoissonSolver
+from basis_generators import __basis_d__
 # Postprocessing
 from matplotlib import rc
 rc('text', usetex=True)
 rc('font', family='serif')
-import matplotlib.pyplot as plt
 from sympy import symbols, lambdify, pi, sin, exp
-from sympy.plotting import plot3d
 from sympy.mpmath import quad
 from math import sqrt, log as ln
+from collections import defaultdict
+import pickle
+# mpi
+from mpi4py import MPI
+comm = MPI.COMM_WORLD
+proc_number = comm.Get_rank()
+n_processes = comm.Get_size()
+
+
+# -----------------------------------------------------------------------------
 
 # Specs for problem
 x, y = symbols('x, y')
@@ -34,22 +37,24 @@ f = problem['f']
 
 # plot3d(u, (x, -1, 1), (y, -1, 1))
 
-solvers = {'shen1': Shen1PoissonSolver(),
-           'shen2': Shen2PoissonSolver(),
-           'eigen': EigenPoissonSolver(),
-           'leg_nitsche': LegendrePoissonSolver(),
-           # 'gl_nitsche': GLLagrangePoissonSolver(),
-           'gll': GLLLagrangePoissonSolver()
-           }
+basis = __basis_d__
+keys = sorted(basis.keys())
+n_keys = len(keys)
+loc_size = n_keys//n_processes
 
+my_b = proc_number*loc_size
+my_end = my_b + loc_size if proc_number != (n_processes - 1) else n_keys
+my_keys = keys[my_b:my_end]
+print proc_number, my_keys
 
-ns = range(2, 16)
-#plt.figure()
+ns = range(1, 21)
+all_results = {}
+for key in my_keys:
+    print proc_number, key
+    all_results[key] = defaultdict(list)
+    solver_results = all_results[key]
 
-for key in solvers:
-    print key
-    solver = solvers[key]
-    es = []
+    solver = PoissonSolver(basis[key]())
     for n in ns:
         uh, data = solver.solve(f, n, monitor_cond=True)
         # plot3d(uh, (x, -1, 1), (y, -1, 1))
@@ -59,15 +64,28 @@ for key in solvers:
         if e > 0:
             e = sqrt(e)
 
-        if n > 2:
-            cond = data['monitor_cond']
+        if n > ns[0]:
+            cond_op = data['monitor_cond']['op']
+            cond_A = data['monitor_cond']['A']
+            cond_M = data['monitor_cond']['M']
             rate = ln(e/e_)/ln(n_/n)
-            print '\tn=%d error=%.2E rate=%.2f cond=%.2E' % (n, e, rate, cond)
-        #    es.append(e)
+
+            print '\tproc=%s, n=%d, conds(%.2E, %.2E, %.2E) e=%.2E rate=%.2f'\
+                % (proc_number, n, cond_op, cond_A, cond_M, e, rate)
+
+            solver_results['n'].append(n)
+            solver_results['cond_A'].append(cond_A)
+            solver_results['cond_M'].append(cond_M)
+            solver_results['cond_op'].append(cond_op)
+            solver_results['e'].append(e)
+            solver_results['rate'].append(rate)
+
+            # No point to run this forever
+            if e < 1E-13:
+                break
 
         e_ = e
         n_ = n
-#    plt.loglog(n, es, label=key)
 
-#plt.legend(loc='best')
-#plt.show()
+pickle.dump(all_results,
+            open('results/results_H_%d.pickle' % proc_number, 'wb'))
