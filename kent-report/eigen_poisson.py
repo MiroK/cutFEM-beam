@@ -6,7 +6,6 @@ import numpy.linalg as la
 from math import log as ln, sqrt
 from eigen_basis import eigen_basis
 from itertools import product
-from scipy.linalg import eigh
 
 def poisson_solver_1d(f, n):
     '''
@@ -56,15 +55,9 @@ def poisson_solver_2d(f, n):
         i, j = k // n, k % n
         b[i, j] = quad(lambda x, y: v(x, y)*f(x, y), [-1, 1], [-1, 1])
 
-    # Solve by tensor product method
-    lmbda, Q = eigh(A, M)
-    # Map the rhs to eigen space
-    bb = (Q.T).dot(b.dot(Q))
-    # Solve the system in eigen space
-    UU = np.array([[bb[i, j]/(lmbda[i] + lmbda[j]) for j in range(n)]
-                    for i in range(n)])
-    # Map the solution back to real space
-    U = Q.dot(UU.dot(Q.T))
+    # Solve by tensor product method - very easy - no mappings :)
+    U = np.array([[b[i, j]/(eigenvalues[i] + eigenvalues[j]) for j in range(n)]
+                   for i in range(n)])
     # Flatten the 2d representation so match the basis
     U = U.flatten()
     assert len(U) == len(basis)
@@ -76,6 +69,7 @@ def poisson_solver_2d(f, n):
 # ----------------------------------------------------------------------------
 
 if __name__ == '__main__':
+    from numpy.linalg import lstsq
     # Rest the poisson solvers
     # Rate in L2 norm should be 2
 
@@ -89,6 +83,9 @@ if __name__ == '__main__':
     # Numerical solution
     ns = range(2, 16)
     print '1D'
+    # Data for least square
+    b = []
+    col0 = []
     for n in ns:
         uh = poisson_solver_1d(f, n)
         # L2 Error as lambda
@@ -102,6 +99,16 @@ if __name__ == '__main__':
         error_ = error
         n_ = n
 
+        b.append(ln(error))
+        col0.append(ln(n))
+
+    # The rate should be e = n**(-p) + shift
+    A = np.ones((len(b), 2))
+    A[:, 0] = col0
+    ans = lstsq(A, b)[0]
+    p = -ans[0]
+    print '\tLeast square rate %.2f' % p
+
     # 2D
     # Exact solution
     y = Symbol('y')
@@ -112,6 +119,9 @@ if __name__ == '__main__':
     # Numerical solution
     ns = range(2, 11)
     print '2D'
+    # Data for least square
+    b = []
+    col0 = []
     for n in ns:
         uh = poisson_solver_2d(f, n)
         # L2 Error as lambda
@@ -127,3 +137,13 @@ if __name__ == '__main__':
 
         error_ = error
         n_ = n
+
+        b.append(ln(error))
+        col0.append(ln(n))
+
+    # The rate should be e = n**(-p) + shift
+    A = np.ones((len(b), 2))
+    A[:, 0] = col0
+    ans = lstsq(A, b)[0]
+    p = -ans[0]
+    print '\tLeast square rate %.2f' % p

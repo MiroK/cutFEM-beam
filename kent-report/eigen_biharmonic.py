@@ -1,5 +1,5 @@
 from __future__ import division
-from sympy import Symbol, lambdify, exp, pi, symbols
+from sympy import Symbol, lambdify, exp, pi, symbols, S
 from sympy.mpmath import quad
 import numpy as np
 import numpy.linalg as la
@@ -30,12 +30,53 @@ def biharmonic_solver_1d(f, n):
     uh = lambda x: sum(Uk*v(x) for Uk, v in zip(U, basis))
     return uh
 
+def biharmonic_solver_2d(f, n):
+    '''
+    Simple solver for laplace(laplace) = f in (-1, 1)^2 with zero boundary 
+    values on u and laplace(u). Uses tensor product of eigenbasis.
+    '''
+    # Use the tensor product method so only 1d matrices are needed
+    # Eigenvalues of laplacian
+    C_eigenvalues = np.array([(pi/2 + k*pi/2)**2 for k in range(n)],
+                             dtype='float')
+    # Eigenvalues of biharmonic operator
+    A_eigenvalues = C_eigenvalues**2
+    A = np.diag(A_eigenvalues)
+    # Mass matrix
+    M = np.eye(n)
+
+    # Create tensor product basis
+    x, y = symbols('x, y')
+    basis = [vx*(vy.subs(x, y))
+             for vx, vy in product(eigen_basis(n), eigen_basis(n))]
+
+    # Assemble right hand side b
+    f = lambdify([x, y], f)
+    basis = [lambdify([x, y], v) for v in basis]
+    b = np.zeros((n, n))
+    for k, v in enumerate(basis):
+        i, j = k // n, k % n
+        b[i, j] = quad(lambda x, y: v(x, y)*f(x, y), [-1, 1], [-1, 1])
+
+    # Solve by tensor product method - very easy - no mappings :)
+    U = np.array([[b[i, j]/(A_eigenvalues[i] + \
+                            2*C_eigenvalues[i]*C_eigenvalues[j] + \
+                            A_eigenvalues[j])
+                   for j in range(n)]
+                  for i in range(n)])
+    # Flatten the 2d representation so match the basis
+    U = U.flatten()
+    assert len(U) == len(basis)
+
+    # Assemble the solution as a linear combination
+    uh = lambda x, y: sum(Uk*v(x, y) for Uk, v in zip(U, basis))
+    return uh
 # ----------------------------------------------------------------------------
 
 if __name__ == '__main__':
     from sympy import exp, integrate, sin, pi, simplify
     from numpy.linalg import solve, lstsq
-    # Rest the poisson solvers
+    # Test the biharmonic solvers
     # Rate in L2 norm should be 4
 
     # 1D
@@ -98,4 +139,64 @@ if __name__ == '__main__':
     A[:, 0] = col0
     ans = lstsq(A, b)[0]
     p = -ans[0]
-    print 'Least square rate %.2f' % p
+    print '\tLeast square rate %.2f' % p
+
+    # 2d
+    # Does this satisfy u, u`` = 0 on the boundary
+    y = symbols('y')
+    u = (x-1)**2*(x+1)**2*sin(pi*x)*(y-1)**2*(y+1)**2*sin(-pi*y)
+    # Boundary values
+    assert u.subs(x, 1) == 0
+    assert u.subs(x, -1) == 0
+    assert u.subs(y, 1) == 0
+    assert u.subs(y, -1) == 0
+    # Combined these would make up laplacian on the boundary
+    assert u.diff(x, 2).subs(x, 1) == 0
+    assert u.diff(x, 2).subs(x, -1) == 0
+    assert u.diff(y, 2).subs(y, 1) == 0
+    assert u.diff(y, 2).subs(y, -1) == 0
+
+    # If here, we can compute f for which u is the solution
+    u_xx = u.diff(x, 2)
+    u_yy = u.diff(y, 2)
+
+    u_xxxx = u_xx.diff(x, 2)
+    u_xxyy = u_xx.diff(y, 2)
+    u_yyxx = u_yy.diff(x, 2)
+    u_yyyy = u_yy.diff(y, 2)
+    # Here it is
+    f = u_xxxx + u_xxyy + u_yyxx + u_yyyy
+
+    # We are ready for numerics
+    u = lambdify([x, y], u)
+    # Numerical solution
+    ns = range(2, 11)
+    print '2D'
+    # Data for least square
+    b = []
+    col0 = []
+    for n in ns:
+        uh = biharmonic_solver_2d(f, n)
+        # L2 Error as lambda
+        e = lambda x, y: (u(x, y) - uh(x, y))**2
+        error, integral_error = quad(e, [-1, 1], [-1, 1],
+                                     maxdegree=40,
+                                     error=True)
+        error = sqrt(error)
+
+        if n > ns[0]:
+            rate = ln(error/error_)/ln(n_/n)
+            print '\t', n, error, rate, '[%4e]' % integral_error
+
+        error_ = error
+        n_ = n
+
+        b.append(ln(error))
+        col0.append(ln(n))
+
+    # The rate should be e = n**(-p) + shift
+    A = np.ones((len(b), 2))
+    A[:, 0] = col0
+    ans = lstsq(A, b)[0]
+    p = -ans[0]
+    print '\tLeast square rate %.2f' % p
