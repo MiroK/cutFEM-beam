@@ -52,4 +52,28 @@ if __name__ == '__main__':
             A[j, i] = A[i, j]
     assert np.allclose(A, np.diag(eigenvalues), 1E-13)
 
+    # This basis also has functions that are eigenfunctions of
+    # u'''' = lmbda u on (-1, 1), with u=u''= 0 {-1, 1}
+    # Verify these props
+    for k, uk in enumerate(eigen_basis(n)):
+        # We already know that the value is correct
+        dd_uk = uk.diff(x, 2)
+        # Check derivative value at -1
+        assert uk.subs(x, -1) == 0
+        # Check derivative value at 1
+        assert uk.subs(x, 1) == 0
+        # Check that uk is an eigenfunction of laplacian
+        assert ((uk.diff(x, 4)/uk).simplify() - (pi/2 + k*pi/2)**4) == 0
+
+    # Check the stiffness matrix of the biharmonic operator
+    basis = [lambdify(x, v.diff(x, 2)) for v in list(eigen_basis(n))]
+    eigenvalues = [float((pi/2 + k*pi/2)**4) for k in range(n)]
+    A = np.zeros((n, n))
+    for i, v in enumerate(basis):
+        A[i, i] = quad(lambda x: v(x)**2, [-1, 1])
+        for j, u in enumerate(basis[(i+1):], i+1):
+            A[i, j] = quad(lambda x: u(x)*v(x), [-1, 1])
+            A[j, i] = A[i, j]
+    assert np.allclose(A, np.diag(eigenvalues), 1E-13)
+
     print 'OK'
