@@ -1,0 +1,25 @@
+1. Need 2d solution for shen biharmonic problem
+
+2. Test 2d biharmonic
+
+3a. Text for appendix part, outline
+3b. Code for appendix
+3c. Finish appendix
+
+4. Consider why shen vs eigen convergence just for Poisson
+
+5. Outlitline of complere report with observation for plate-beam(like) problems
+
+6a. Read on SVD
+6b. Read on the continuous trace operator[properties, sur, inj, ...,],
+    in general - how do props of operators translate to matrices (svds, eigs)
+6c. Read Kent's preconditioning survey
+
+7. It would be nice to have basis of Leg polynomials for u, u`` bcs
+
+8. For Poisson physics consider the plate-beam coupling in FEniCS
+
+9. If the beam were curved what is the governing Poisson equation?
+
+10. Mikael NS solver with 2-periodic and 1-nonperiodic direction resolved by
+    Legendre polynomials
