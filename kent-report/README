@@ -1,0 +1,7 @@
+This folder contains everything for the plate-beam project.
+
+-py:
+	contains python scripts
+
+-tex:
+	contains tex files for the paper
