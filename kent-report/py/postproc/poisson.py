@@ -132,11 +132,11 @@ if __name__ == '__main__':
         merge_tables(files, rows, columns, row_format, header)
     
     if True:
-        poisson_2d()
+        #poisson_2d()  # results/eig_p_2d
 
-        #files = ['./results/eig_p_2d']
-        #rows = [0, -2]
-        #columns = [[0, 1, 2, 3, 4, 5, 6]]
-        #row_format = ['%d', '%.2E', '%.2f', '%1.0E', '%.2E', '%.2f', '%1.0E']
-        #header = [r'$n$', r'$e$', r'$p$', r'$E$', r'$e$', r'$p$', r'$E$']
-        #merge_tables(files, rows, columns, row_format, header)
+        files = ['./results/eig_p_2d']
+        rows = [0, -2]
+        columns = [[0, 1, 2, 3, 4, 5, 6]]
+        row_format = ['%d', '%.2E', '%.2f', '%1.0E', '%.2E', '%.2f', '%1.0E']
+        header = [r'$n$', r'$e$', r'$p$', r'$E$', r'$e$', r'$p$', r'$E$']
+        merge_tables(files, rows, columns, row_format, header)

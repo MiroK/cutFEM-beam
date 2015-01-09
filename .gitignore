@@ -3,5 +3,9 @@
 *.sw*
 *.png
 *~
+*.log
+*.aux
+*.pdf
+
 .ropeproject/
 results/

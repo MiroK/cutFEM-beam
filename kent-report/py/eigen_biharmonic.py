@@ -34,7 +34,7 @@ def biharmonic_solver_1d(f, n, as_sym=False):
         uh = lambda x: sum(Uk*v(x) for Uk, v in zip(U, basis))
     return uh
 
-def biharmonic_solver_2d(f, n):
+def biharmonic_solver_2d(f, n, as_sym=False):
     '''
     Simple solver for laplace(laplace) = f in (-1, 1)^2 with zero boundary 
     values on u and laplace(u). Uses tensor product of eigenbasis.
@@ -51,12 +51,12 @@ def biharmonic_solver_2d(f, n):
 
     # Create tensor product basis
     x, y = symbols('x, y')
-    basis = [vx*(vy.subs(x, y))
-             for vx, vy in product(eigen_basis(n), eigen_basis(n))]
+    sym_basis = [vx*(vy.subs(x, y))
+                 for vx, vy in product(eigen_basis(n), eigen_basis(n))]
+    basis = [lambdify([x, y], v) for v in sym_basis]
 
     # Assemble right hand side b
     f = lambdify([x, y], f)
-    basis = [lambdify([x, y], v) for v in basis]
     b = np.zeros((n, n))
     for k, v in enumerate(basis):
         i, j = k // n, k % n
@@ -73,8 +73,12 @@ def biharmonic_solver_2d(f, n):
     assert len(U) == len(basis)
 
     # Assemble the solution as a linear combination
-    uh = lambda x, y: sum(Uk*v(x, y) for Uk, v in zip(U, basis))
+    if as_sym:
+        uh = sum(Uk*v for Uk, v in zip(U, sym_basis))
+    else:
+        uh = lambda x, y: sum(Uk*v(x, y) for Uk, v in zip(U, basis))
     return uh
+
 # ----------------------------------------------------------------------------
 
 if __name__ == '__main__':
