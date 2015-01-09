@@ -1,0 +1,608 @@
+\documentclass[a4paper,10pt]{article}
+\pdfoptionpdfminorversion=5
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{amsfonts}
+\usepackage{multicol}
+\usepackage{xcolor,colortbl}
+\usepackage{datetime}
+\usepackage{xfrac}
+
+\newcommand{\mc}[2]{\multicolumn{#1}{c}{#2}}
+\definecolor{Gray}{gray}{0.85}
+\newcolumntype{a}{>{\columncolor{Gray}}c}
+\newcolumntype{b}{>{\columncolor{white}}c}
+\newcolumntype{R}{>{\columncolor{lime}}c}
+\newcolumntype{B}{>{\columncolor{pink}}c}
+\usepackage{diagbox}
+
+\usepackage[numbers]{natbib}
+
+\usepackage[utf8]{inputenc}
+\usepackage{array,multirow,graphicx}
+\usepackage{graphics}
+\usepackage{color}
+\usepackage{ifpdf}
+\ifpdf
+\DeclareGraphicsRule{*}{mps}{*}{}
+\fi
+\usepackage[utf8]{inputenc}
+
+\hoffset = 0pt
+\voffset = 0pt
+\oddsidemargin = 0pt
+\headheight = 15pt
+\footskip = 30pt
+\topmargin = 0pt
+\marginparsep = 5pt
+\headsep =25pt
+\marginparwidth = 54pt
+\marginparpush = 7pt
+\textheight = 621pt %621/
+\textwidth = 500pt
+
+% Default fixed font does not support bold face
+\DeclareFixedFont{\ttb}{T1}{txtt}{bx}{n}{12} % for bold
+\DeclareFixedFont{\ttm}{T1}{txtt}{m}{n}{12}  % for normal
+
+\newcommand{\I}{\ensuremath{\mathbb{I}}}
+\newcommand{\R}{\ensuremath{\mathbb{R}}}
+
+\newcommand{\norm}[1]{\ensuremath{\left\|#1\right\|}}
+\newcommand{\dual}[2]{\ensuremath{\langle#1, #2 \rangle}}
+
+\newcommand{\inner}[2]{\ensuremath{\left(#1, #2\right)}}
+\newcommand{\Inner}[2]{\ensuremath{\left(\left(#1, #2\right)\right)}}
+
+\newcommand{\deriv}[2]{\ensuremath{\frac{\mathrm{d}#1}{\mathrm{d}#2}}}
+\newcommand{\meas}[1]{\ensuremath{\mathrm{d}\, #1}}
+\newcommand{\Div}[1] {\ensuremath{\text{div}#1}}
+\newcommand{\Grad}[1]{\ensuremath{\text{grad}#1}}
+\newcommand{\Curl}[1]{\ensuremath{\text{curl}#1}}
+\newcommand{\jump}[1]{\ensuremath{[\![#1]\!]} }
+
+
+\newcommand{\Vp}{\ensuremath{V_{\mathcal{P}}}}
+\newcommand{\Vb}{\ensuremath{V_{\mathcal{B}}}}
+\newcommand{\Ep}{\ensuremath{E_{\mathcal{P}}}}
+\newcommand{\Eb}{\ensuremath{E_{\mathcal{B}}}}
+
+\newcommand{\W}[1]{\ensuremath{w\!\left[#1\right]\!}}
+\newcommand{\E}[1]{\ensuremath{\epsilon \!\left[#1\right]\!}}
+\newcommand{\T}[1]{\ensuremath{\sigma \! \left[#1\right]\!}}
+
+\newcommand{\Tr}[1]{\ensuremath{\text{tr}#1}}
+\newcommand*{\defeq}{\mathrel{\vcenter{\baselineskip0.5ex \lineskiplimit0pt
+                     \hbox{\scriptsize.}\hbox{\scriptsize.}}}%
+                     =}
+
+\usepackage{lipsum}
+\usepackage{authblk}
+\usepackage{fancyhdr}
+
+\DeclareMathOperator{\spn}{span}
+
+% DEBUGGING
+\usepackage{lineno}
+\linenumbers
+%\usepackage{setspace}
+%\doublespacing
+%
+%\pagestyle{fancy}
+%
+\renewenvironment{abstract}{%
+\hfill\begin{minipage}{0.95\textwidth}
+\rule{\textwidth}{1pt}}
+{\par\noindent\rule{\textwidth}{1pt}\end{minipage}}
+%
+\makeatletter
+\renewcommand\@maketitle{%
+\hfill
+\begin{minipage}{0.95\textwidth}
+\vskip 2em
+\let\footnote\thanks 
+{\LARGE \@title \par }
+\vskip 1.5em
+{\large \@author \par}
+\end{minipage}
+\vskip 1em \par
+}
+\makeatother
+%
+\begin{document}
+%
+%title and author details
+\title{\begin{center}
+        Note on plate-beam-like problems
+       \end{center}}
+\author[1]{MK}
+%\author[2]{Name2}
+%\affil[1]{Address of author} 
+%\affil[2]{Address of second author}
+%
+\maketitle
+%
+\begin{abstract}
+  This report is a summary of observations made on the properties of saddle
+  point systems that arise when a physical process in a domain
+  $\mathcal{P}\subset\R^2$ is coupled to another physical process in a domain
+  $\mathcal{B}\subset\mathcal{P}$ with topological dimension equal to one and
+  the coupling constraint does not involve a differential operator. We discuss
+  two cases (i) the governing equations of both processes are given by the
+  Laplace operator, (ii) the governing equations of both process are given by
+  the biharmonic operator.
+\end{abstract}
+
+\section{Introduction}
+  We consider $\mathcal{P}=\left[-1, 1\right]^2$ and reffer to this domain as
+  plate. To define $\mathcal{B}$ we let
+  $\vec{\chi}, \vec{\chi}:\left[-1, 1\right]\mapsto\mathcal{P}$ denote some
+  invertible mapping from the bi-unit interval onto the plate. Then
+  $\mathcal{B}=\left\{\vec{x}\in\R^2, \vec{x}=\vec{\chi}(s), s\in\left[-1,
+  1\right]\right\}$. For simplicity we shall have
+  $\vec{\chi}(s)=\frac{\vec{A}}{2}(1-s) +\frac{\vec{B}}{2}(1+s)$ for some
+  disctinct points $\vec{A}, \vec{B}\in\partial\mathcal{P}$. We then reffer to
+  the set $\mathcal{B}$ as beam. Further we let $V_{\mathcal{P}}, V_{\mathcal{B}}$
+  be the spaces of functions that map plate and the beam respectivelly to real
+  numbers. We postpone discussion of regularity properties of functions in these
+  two spaces for later sections.
+
+  The cases considered in this report are special cases of the following
+  problem: Find $u\in\Vp, v\in\Vb$ that minimize a functional
+  \begin{equation}
+    \label{eq:energy}
+    \begin{aligned}
+      E(v, q) &= \Ep(v, v) + \Eb(q, q) - \int_{\mathcal{P}}f v d\vec{x}, \\
+      T(v) &= q\text{ on }\mathcal{B},
+    \end{aligned}
+  \end{equation}
+  where $\Ep, \Ep: \Vp\times\Vp\mapsto\R$ is a bilinear form that describes
+  energy of the physical process on the plate and similarly the bilinear form
+  $\Eb, \Eb:\Vb\times\Vb\mapsto\R$ describes energy of the beam process. The
+  last term in the expression is a potential energy due to forcing $f$. Finaly
+  we denote as $T, T:\Vp\mapsto\Vb$ the trace operator.
+  
+  The problem (\ref{eq:energy}) can be also recast into an unconstrained
+  optimization setting, where we extremize Lagrangian
+  \begin{equation}
+    \label{eq:lagrangian}
+    L(v, q, \mu) = \Ep(v, v) + \Eb(q, q) - \int_{\mathcal{P}}f u d\vec{x} -
+  \int_{\mathcal{B}}(T(v) - q)\mu d\vec{x}.
+  \end{equation}
+  Here, the function $\mu$, $\mu\in Q$ is an unknown Lagrange multipler
+  and the function space $Q$ has functions that map the beam to real scalars.
+  Regularity of functions in $Q$ is discussed later.
+
+  An extreme point of the Lagrangian (\ref{eq:lagrangian}) is given as a
+  solution of the problem: Find $u\in\Vp, p\in\Vb, \lambda\in Q$ such that
+  for all $v\in\Vp, q\in\Vb, \mu\in Q$ it holds that
+ \begin{equation}
+    \label{eq:system}
+    \begin{aligned}
+      \Ep(u, v) - \int_{\mathcal{B}}T(v)\lambda d\vec{x} &= \int_{\mathcal{P}}fvd\vec{x}, \\
+      \Eb(p, q) - \int_{\mathcal{B}}q\lambda d\vec{x} &= 0, \\
+      \int_{\mathcal{B}}(T(u)-p)\mu d\vec{x} &= 0.
+    \end{aligned}
+  \end{equation}
+  System (\ref{eq:system}) has a unique solution provided that the
+  Babuska-Brezzi conditions are satisfied. It is known that even if the
+  conditions hold for the tuple of spaces $(\Vp, \Vb, Q)$ it is not quaranteed
+  that this property will transfer down to finite-dimensional approximatations
+  of the spaces which we denote $V_m, V_n, Q_k$. A famous example of this
+  is a Stokes problem whose stable discretization with the finite element method
+  requires special pairs of finite elements for velocity and pressure.
+  Similarly, polynomials of different order are required for the velocity and
+  pressure if the problem is to be solved by spectral methods.
+
+  \section{Plans}
+
+  Problems (i), (ii) are solved by the Galekin method with Fourier basis and
+  the basis due to Shen. In the first case, the Fourier and Shen basis have
+  same bcs. In the latter one the Fourier bases gives conditions on the function
+  value and the value of the second derivative while the Shen basis constrains
+  the function value and the first derivative. \textbf{So it would be nice to 
+  get Shen like basis so that the boundary conditions are the same}.
+
+  For both (i), (ii) we have numerical experiments with the Fourier basis which
+  investigate preconditioner for the Schur complement. The preconditioner is
+  related to the norm of $\lambda$ in the LBB condition. As part of the
+  preconditioner investigations we can show that the scaling of the preconditioned
+  system is independent of the beam position. What seems to change
+  with the beam position is the condition number of the preconditioned system.
+  A fun question for me is whether stiffer systems mean stiffer plate-beam. 
+  \textbf{Similar experiments must be made with Shen basis}. It is possible that
+  there the scalling of the differential operator might be more difficult to see.
+  Finally at least \textbf{for (i), the above should be possible with FEniCS}.
+
+  Problems (i), (ii) share the constraint and the trace operator is part of the
+  LBB condition for both. We can construct a matrix that is related to the trace
+  operator with Fourier basis, both Shen basis and perhaps FEniCS. \textbf{We
+  could then ask what the properties are of this matrix for different discretization
+  parameters, $N, h$ and what are their paralles in case of the trace operator.}
+
+%------------------------------------------------------------------------------
+
+  \section{Galerkin method with the Fourier basis}
+  In this section we study convergence properties of the Galerkin method with 
+  finite-dimensional approximation spaces constructed using the Fourier basis.
+  The method is used to solve one and two dimensional Laplace and biharmonic 
+  problems. In all four cases we provide estimates for the convergence rates.
+  The rates are then verified by numerical experiments. This should validate
+  the method as a viable candidate to be used in our investigations of the
+  coupled problems.
+
+  \subsection{One dimensional Poisson problem}
+  We consider an eigenvalue problem for the one-dimensional Laplace operator
+  $\delta, \delta(u) = -\tfrac{d^2u}{dx^2}$
+  \begin{equation}
+  \label{eq:eig_pos1}
+    \delta(u) = \lambda u \,\text{ in }(-1, 1),
+  \end{equation}
+  subjected to the homegeneous Dirichlet boundary conditions.
+  Defining $\alpha_k = \frac{\pi}{2} + k\frac{\pi}{2}, k\geq0$, we have that the
+  eigenfunctions of operator $\delta$ are
+  \[
+  \phi_k(x) = \begin{cases}
+                \sin{\alpha_k x},\,\,k\,\,\text{odd}\\
+                \cos{\alpha_k x},\,\,k\,\,\text{even}\\
+              \end{cases}
+  \]
+  and $\lambda_k = \alpha_k^2$ are the eigenvalues. We note that in accordance
+  with tha fact that $\delta$ is symmetric and positive definite, the eigevalues
+  are real and positive. Morover the eigenfunctions are orthogonal in the $L^2$
+  inner product over the biunit interval which we shall denote as
+  $\inner{\cdot}{\cdot}$. By the spectral decomposition theorem
+  we can then write the operator as
+  \[
+    \delta = \sum_{k=0}^{\infty} \lambda_k \phi_k \otimes \phi_k.
+  \]
+  Its inverse is given as
+  \begin{equation}
+    \label{eq:delta_inv}
+    \delta^{-1} = \sum_{k=0}^{\infty} \frac{1}{\lambda_k} \phi_k \otimes \phi_k.
+  \end{equation}
+  As we know the inverse we can immediately get a solution to the Poisson
+  equation
+  \begin{equation}
+  \label{eq:poisson_strong_1}
+  \begin{aligned}
+    -&\deriv{^2u}{x^2} = f\,\text{ in }(-1, 1),\\
+     &u(-1) = u(1) = 0
+  \end{aligned}
+  \end{equation}
+  as a weighted projection of $f$ onto function space spanned by the
+  eigenfunctions
+  \begin{equation}
+  \label{eq:poisson_1d_sol}
+  u = \sum_{k=0}^{\infty} \frac{1}{\lambda_k} \phi_k (f, \phi_k).
+  \end{equation}
+
+  To introduce our numerical method we consider a weak formulation of
+  (\ref{eq:poisson_strong_1}): Find $u\in V\defeq H^1_0((-1, 1))$ such that
+  \[
+    \inner{\deriv{u}{x}}{\deriv{v}{x}} = \inner{f}{v},\,\forall v\in V.
+  \]
+  We now let $V_n=\spn\{\phi_j\}_{j=0}^{n-1}$. We shall refer to the set 
+  $\left\{\phi_i\right\}_{i=0}^{\infty}$ as the Fourier basis. The space $V_n$
+  is a clearly a finite dimensional subspace of $V$. The weak formulation of
+  the Poisson problem on $V_n$ reads: Find $u_n\in V_n$ such that
+  \begin{equation}
+    \label{eq:poisson_weak_1}
+    \inner{\deriv{u_n}{x}}{\deriv{v}{x}} = \inner{f}{v},\,\forall v\in V_n.
+  \end{equation}
+  Finding the solution to problem (\ref{eq:poisson_weak_1}) is equivalent to
+  obtaining the solution of linear system $\mathbb{A}\mathbf{u}=\mathbf{b}$.
+  We note that by the properties of basis function of $V_n$, the system matrix
+  $\mathbb{A}\in\R^{n\times n}$ is diagonal with $\mathbb{A}_{i, i}=\lambda_i$
+  and the $i$-th component of the solution vector is given by
+  \[
+    \mathbf{u}_i = \frac{\inner{f}{\phi_i}}{\lambda_i}.
+  \]
+  But then for the solution of (\ref{eq:poisson_weak_1}) we have
+  \[
+    u = \sum_{k=0}^{n-1} \frac{1}{\lambda_k} \phi_k (f, \phi_k).
+  \]
+  Comparing with (\ref{eq:poisson_1d_sol}) we see that the error
+  \[
+    e_n=u-u_n = \sum_{k=n}^{\infty} \frac{1}{\lambda_k} \phi_k (f, \phi_k)
+  \]
+  such that $(e_n, v)=0$ for all $v\in V_n$. With the exact expression for the
+  error we are in a position to establish convergence properties of the
+  numerical method. The convergence rate in the $L^2$ norm follows from the
+  estimate
+  \[
+    \norm{e_n}^2=\inner{e_n}{e_n} = \sum_{k=n}^{\infty} \frac{1}{\lambda^2_k}(f, \phi_k)^2 \leq
+      \frac{1}{\lambda^2_n}\sum_{k=n}^{\infty} (f, \phi_k)^2 \leq
+      \frac{1}{\lambda^2_n}\norm{f}^2.
+  \]
+  We thus have $\norm{e_n}\leq\frac{1}{\left(\frac{\pi}{2} +
+  n\frac{\pi}{2}\right)^2}\norm{f}$ and expect the error to drop as
+  $\mathcal{O}(n^{-2})$. To get the convergance rate in the energy norm we use
+  the estimate
+  \[
+    \norm{e_n}^2_1=\inner{\deriv{e_n}{x}}{\deriv{e_n}{x}} =
+    \sum_{k=n}^{\infty} \frac{\lambda_k}{\lambda^2_k}(f, \phi_k)^2 \leq
+    \frac{1}{\sqrt{\lambda_n}}\sum_{k=n}^{\infty} (f, \phi_k)^2 \leq
+    \frac{1}{\sqrt{\lambda_n}}\norm{f}^2.
+  \]
+  It follows that in the energy norm the error should behave as
+  $\mathcal{O}(n^{-1})$.
+
+  To test our convergence estimates we have performed a convergence study where
+  the exact solution of (\ref{eq:poisson_strong_1}) was given as as
+  $u=(x^2-1)e^x$. The rates in both the $L^2$ norm and the $H^1$ norm are
+  summarized in Table \ref{tab:eig_p_1d}. We see that they are slightly higher
+  than our estimates but in general agree with analysis.
+  \begin{table}
+    \centering
+    \begin{tabular}{|c|c|c|c||c|c|c|}
+    \hline
+    & \multicolumn{3}{ c|| }{$L^2$} & \multicolumn{3}{c|}{$H^1$}\\
+    \hline
+    $n$ & $e$ & $p$ & $E$ & $e$ & $p$ & $E$\\
+    \hline
+    3 & 7.50E-02 & 1.67 & 1E-21 & 5.48E-01 & 0.97 & 1E-19\\
+    4 & 3.98E-02 & 2.20 & 1E-18 & 3.75E-01 & 1.32 & 1E-33\\
+    5 & 2.57E-02 & 1.95 & 1E-36 & 2.90E-01 & 1.16 & 1E-33\\
+    6 & 1.66E-02 & 2.41 & 1E-36 & 2.23E-01 & 1.44 & 1E-33\\
+    7 & 1.21E-02 & 2.06 & 1E-36 & 1.84E-01 & 1.23 & 1E-33\\
+    8 & 8.64E-03 & 2.50 & 1E-35 & 1.51E-01 & 1.50 & 1E-31\\
+    9 & 6.73E-03 & 2.12 & 1E-32 & 1.30E-01 & 1.27 & 1E-28\\
+    10 & 5.14E-03 & 2.55 & 1E-29 & 1.11E-01 & 1.53 & 1E-24\\
+    11 & 4.19E-03 & 2.15 & 1E-27 & 9.77E-02 & 1.29 & 1E-22\\
+    12 & 3.35E-03 & 2.59 & 1E-24 & 8.54E-02 & 1.55 & 1E-19\\
+    13 & 2.81E-03 & 2.17 & 1E-21 & 7.70E-02 & 1.30 & 1E-17\\
+    14 & 2.32E-03 & 2.61 & 1E-17 & 6.85E-02 & 1.57 & 1E-34\\
+    15 & 1.99E-03 & 2.19 & 1E-38 & 6.26E-02 & 1.31 & 1E-35\\
+    \hline
+    \hline
+    & \multicolumn{3}{ c|| }{2.19} & \multicolumn{3}{c|}{1.31}\\
+    \hline
+    \end{tabular}
+    \label{tab:eig_p_1d}
+    \caption{Convergence rate of the Fourier-Galerkin method for one dimensional
+    biharmonic problem. For each norm we list as $e$ the magnitude of error,
+    $p$ the convergence rate while $E$ is the estimate of the quadrature error
+    in the computation of $e$ provided by SymPy's {\tt{quad}} function. The last
+    row in the table has the estimate for the rate obtained by least-squares fit.}
+  \end{table}
+
+  \subsection{One dimensional biharmonic problem}
+  As in the previous section, in order to solve the one dimensional biharmonic
+  problem
+  \begin{equation}
+  \label{eq:bih_strong_1}
+  \begin{aligned}
+    &\deriv{^4u}{x^4} = f\,\text{ in }(-1, 1),\\
+    &u(-1) = u(1) = 0,\\
+    &\deriv{^2u}{x^2}(-1) = \deriv{^2u}{x^2}(1) = 0
+  \end{aligned}
+  \end{equation}
+  we shall first consider the corresponding eigenvalue problem
+  \begin{equation}
+  \begin{aligned}
+    &\deriv{^4u}{x^4} = \lambda u,\text{ in }(-1, 1),\\
+    &u(-1) = u(1) = 0,\\
+    &\deriv{^2u}{x^2}(-1) = \deriv{^2u}{x^2}(1) = 0.
+  \end{aligned}
+  \end{equation}
+  With the given boundary conditions, the operator acting on the left hand
+  side is $\delta^2$. It thus has the same eigenfunctions as $\delta$ while
+  the eigenvalues are squares of the eiqenvalues of $\delta$, that is
+  $\lambda_k=\alpha_k^4$.
+  
+  Our numerical method for solving (\ref{eq:bih_strong_1}) is based on the 
+  weak formulation of the problem which reads: Find $u\in V\defeq\left\{v\in
+  H^2((-1, 1)), u(x)=\deriv{^2u}{x^2}(x),\text{for}\,x=\pm 1\right\}$ such that
+  \[
+    \inner{\deriv{^2u}{x^2}}{\deriv{^2v}{x^2}} = \inner{f}{v},\,\forall v\in V.
+  \]
+  The space $V_n$ introduced in the previous section is the subspace of $V$
+  and it is therefore valid to consider a problem: Find $u_n\in V_n$ such that
+  \begin{equation}
+    \label{eq:bih_weak_1}
+    \inner{\deriv{^2u}{x^2}}{\deriv{^2v}{x^2}} = \inner{f}{v},\,\forall v\in V_n.
+  \end{equation}
+  We find that the corresponding linear system $\mathbb{A}\mathbf{u}=\mathbf{b}$
+  is solved by vector $\mathbf{u}\in\R^n$ with components
+  $\mathbf{u}_i=\frac{\mathbf{b}_i}{\alpha_i^4}$ and consequently the error of the
+  method can be axpressed as
+  \[
+    e_n = \sum_{k=n}^{\infty} \frac{1}{\alpha_k^4} \phi_k (f, \phi_k).
+  \]
+
+  Convergence of the method in the $L^2$ norm follows from the estimate
+  \[
+    \norm{e_n}^2=\inner{e_n}{e_n} = \sum_{k=n}^{\infty} \frac{1}{\alpha^8_k}(f, \phi_k)^2 \leq
+      \frac{1}{\alpha^8_n}\sum_{k=n}^{\infty} (f, \phi_k)^2 \leq
+      \frac{1}{\alpha^8_n}\norm{f}^2
+  \]
+  which yields $\norm{e}\leq\frac{1}{\left(\frac{\pi}{2} +
+  n\frac{\pi}{2}\right)^4}\norm{f}$. We have $\norm{e}$ decreasing as
+  $\mathcal{O}(n^{-4})$. Since each differentiation of the eigenfunction 
+  $\phi_k$ produces a factor $\alpha_k$ we get the estimates of the error in 
+  $H^1$ and $H^2$ norms as
+  \begin{align*}
+    \norm{e_n}_1 &\leq \frac{1}{\alpha^3_n}\norm{f}, \\
+    \norm{e_n}_2 &\leq \frac{1}{\alpha^2_n}\norm{f}. \\
+  \end{align*}
+  The errors in the respected norms should therefore behave as
+  $\mathcal{O}(n^{-3})$ and $\mathcal{O}(n^{-2})$.
+    
+  Table \ref{tab:eig_b_1d} shows results from the convergence study we run to
+  verify convergence properties of the method established in the previous
+  pragraphs. In this study, the exact solution of (\ref{eq:bih_strong_1}) was
+  computed to match the right hand side $f=x e^x$. The results show very good
+  agreement with the theoretical estimates.
+
+  \begin{table}
+    \centering
+    \begin{tabular}{|c|c|c|c||c|c|c||c|c|c|}
+    \hline
+    & \multicolumn{3}{c||}{$L^2$} &
+      \multicolumn{3}{c||}{$H^1$} &
+      \multicolumn{3}{c|}{$H^2$}\\
+    \hline
+$n$ & $e$ & $p$ & $E$ & $e$ & $p$ & $E$ & $e$ & $p$ & $E$\\
+\hline
+3 & 3.08E-04 & 2.68 & 1E-27 & 2.00E-03 & 2.01 & 1E-25 & 1.33E-02 & 1.37 & 1E-25\\
+4 & 8.63E-05 & 4.42 & 1E-21 & 7.28E-04 & 3.50 & 1E-19 & 6.41E-03 & 2.54 & 1E-21\\
+5 & 4.42E-05 & 3.00 & 1E-20 & 4.38E-04 & 2.28 & 1E-19 & 4.49E-03 & 1.60 & 1E-18\\
+6 & 1.81E-05 & 4.90 & 1E-34 & 2.16E-04 & 3.86 & 1E-41 & 2.70E-03 & 2.79 & 1E-38\\
+7 & 1.12E-05 & 3.10 & 1E-35 & 1.50E-04 & 2.38 & 1E-41 & 2.09E-03 & 1.68 & 1E-39\\
+8 & 5.65E-06 & 5.14 & 1E-37 & 8.76E-05 & 4.03 & 1E-41 & 1.42E-03 & 2.90 & 1E-38\\
+9 & 3.90E-06 & 3.15 & 1E-36 & 6.58E-05 & 2.42 & 1E-39 & 1.16E-03 & 1.72 & 1E-36\\
+10 & 2.24E-06 & 5.27 & 1E-17 & 4.26E-05 & 4.13 & 1E-33 & 8.47E-04 & 2.96 & 1E-32\\
+11 & 1.65E-06 & 3.17 & 1E-33 & 3.37E-05 & 2.45 & 1E-32 & 7.17E-04 & 1.74 & 1E-30\\
+12 & 1.04E-06 & 5.36 & 1E-28 & 2.34E-05 & 4.19 & 1E-26 & 5.53E-04 & 3.00 & 1E-25\\
+13 & 8.03E-07 & 3.19 & 1E-26 & 1.92E-05 & 2.47 & 1E-24 & 4.80E-04 & 1.76 & 1E-22\\
+14 & 5.38E-07 & 5.42 & 1E-22 & 1.41E-05 & 4.23 & 1E-20 & 3.84E-04 & 3.03 & 1E-18\\
+15 & 4.31E-07 & 3.21 & 1E-21 & 1.18E-05 & 2.48 & 1E-19 & 3.40E-04 & 1.77 & 1E-17\\
+\hline
+    \hline
+    & \multicolumn{3}{c||}{3.93} &
+      \multicolumn{3}{c||}{3.05} &
+      \multicolumn{3}{c|}{2.18}\\
+    \hline
+    \end{tabular}
+    \label{tab:eig_b_1d}
+    \caption{Convergence rate of the Fourier-Galerkin method for one dimensional
+    biharmonic problem. For each norm we list as $e$ the magnitude of error,
+    $p$ the convergence rate while $E$ is the estimate of the quadrature error
+    in the computation of $e$ provided by SymPy's {\tt{quad}} function. The last
+    row in the table has the estimate for the rate obtained by least-squares fit.}
+  \end{table}
+
+  We have demonstrated by both theoretical estimates and the convergence studies
+  that the presented Fourier-Galerkin method can be used to solve accurately 
+  the one dimensional Poisson and biharmonic problems. We therefore have at our
+  disposal a numerical method to resolve the beam physics of cases (i) and (ii).
+  In the next sections we show how the Fourier basis can be used to solve
+  Poisson and biharmonic problems in two dimensional domain, that is to resolve
+  the physical processes on the beam considered in this note.
+
+  \subsection{Two dimensional Poisson problem}
+  We are interested in finding a solution to the Poisson problem on a bi-unit
+  square with homogeneous Dirichlet boundary conditions on the boundary of the
+  square
+  \begin{equation}
+  \label{eq:poisson_strong_2}
+  \begin{aligned}
+    -\Delta u &= f\,\text{ in }\mathcal{P},\\
+            u &= 0\,\text{ on }\mathcal{P}.
+  \end{aligned}
+  \end{equation}
+  A variational formulation of (\ref{eq:poisson_strong_2}) reads: Find $u\in
+  V\defeq H^1_0\left(\mathcal{P}\right)$ such that for all $v\in V$ it holds
+  that
+  \begin{equation}
+    \label{eq:poisson_weak_2}
+    \Inner{\Grad{u}}{\Grad{v}} = \Inner{f}{v},
+  \end{equation}
+  where $\Inner{\cdot}{\cdot}$ denotes the $L^2$ inner producut over $\mathcal{P}$.
+  We define $V_n$, a finite dimensional space in which the approximation of $u$
+  is sought as $V_n=\spn\left\{\phi_i(x)\phi_j(y)\right\}_{i, j = 0, 0}^{n-1, n-1}$.
+  Clearly, $V_n\subset V$ and $\text{dim}V_n = n^2$. Moreover, each basis function of
+  $\phi_{i, j}, \phi_{i, j}(x, y)\defeq\phi_i(x)\phi_j(y)$, is an eigenfunction
+  of the Laplace operator acting on functions in $\mathcal{P}$ with zero boundary
+  values. We have that $\lambda_{i, j}=\lambda_i + \lambda_j$, where $\lambda_i$
+  is the $i$-th eigenvalue of $\delta$. Finally we note that the basis functions
+  of $V_n$ are orthonormal in the $\Inner{\cdot}{\cdot}$ inner product.
+  Considering the problem (\ref{eq:poisson_strong_2}) we get that the expansion
+  coefficients $\mathbb{U}\in\R^{n\times n}$ of the approximation of $u$ in $V_n$
+  \[
+    u_n=\sum\limits_{i, j = 0, 0}^{n-1, n-1}\mathbb{U}_{i,
+    j}\phi_{i, j}
+  \]
+  are given as a solution of the linear system
+  \begin{equation}
+    \label{eq:p_sys}
+    \Lambda\mathbb{U} + \Lambda\mathbb{U} = \mathbb{B},
+  \end{equation}
+  where the matrix $\mathbb{B}\in\R^{n\times n}$ has $\mathbb{B}_{i,
+  j}=\Inner{v}{\phi_{i, j}}$. Further, matrix $\Lambda\in\R^{n\times n}$ is
+  a diagonal matrix with diagonal elements $\Lambda_{i, i}$ equal to the
+  eigenvalues $\lambda_i$. We note that if space $V_n$ were constructed from 
+  functions other then eigenfunctions of the Laplacian, e.g. polynomials, the
+  Galerkin method would lead to the system
+  \[
+    \tilde{\mathbb{A}}\mathbb{U}\tilde{\mathbb{M}} +
+    \tilde{\mathbb{M}}\mathbb{U}\tilde{\mathbb{A}} =
+    \tilde{\mathbb{B}},
+  \]
+  with $\tilde{\mathbb{A}}$ and $\tilde{\mathbb{M}}$ being matrices of one
+  dimensional Laplace and identity operators with respect to the chosen basis.
+  The solution would then be obtained using transformation matrices $\mathbb{Q}$
+  with columns from vectors solving a generalized matrix eigenvalue problem
+  $\tilde{\mathbb{A}}q=\alpha\tilde{\mathbb{M}}q$.
+  In this setting, the choice of the Fourier basis presents a major advantage
+  since it yields mass matrix which is identity and owing to
+  $\mathbb{Q}=\mathbb{I}$ the matrix $\Lambda$ is precisely
+  $\mathbb{Q}^{\text{T}}\tilde{\mathbb{A}}\mathbb{Q}$. In fact the solution
+  of (\ref{eq:p_sys}) is given as
+  \[
+    \mathbb{U}_{i, j} = \frac{\mathbb{B}_{i, j}}{\lambda_i + \lambda_j}.
+  \]
+  Consequently, the approximation $u_n$ takes the form
+  \[
+    u_n = \sum\limits_{i, j = 0, 0}^{n-1, n-1}\frac{\Inner{f}{\phi_{i, j}}}{\lambda_i + \lambda_j}
+    \phi_{i, j}
+  \]
+  which should be contrasted with the exact solution
+  \[
+    u = \sum\limits_{i, j = 0, 0}^{\infty, \infty}\frac{\Inner{f}{\phi_{i, j}}}{\lambda_i + \lambda_j}
+    \phi_{i, j}.
+  \]
+  As in the one dimensional case we see that the numerical solution due to
+  Fourier-Galerkin method is $u_n = -\Delta|_{n}^{-1}f$ where
+  $-\Delta|_{n}^{-1}=P_n \circ \left(-\Delta^{-1}\right)$ with $P_n$ the
+  projection operator from $V$ to $V_n$.
+
+  The convergence rate of the method in the $L^2$ and the energy norm follow
+  from the estimates which are obtained using same ideas as in the one
+  dimensional case
+  \[
+    \norm{e}^2 = \sum\limits_{i, j = n, n}^{\infty,
+    \infty}\frac{\Inner{f}{\phi_{i, j}}^2}{\left(\lambda_i + \lambda_j\right)^2}
+      \leq
+      \frac{1}{\left(2\lambda_n\right)^2}\norm{f}^2
+  \]
+  and
+\[
+    \norm{e}_1^2 = \sum\limits_{i, j = n, n}^{\infty,
+    \infty}\frac{\Inner{f}{\phi_{i, j}}^2}{\left(\lambda_i + \lambda_j\right)}
+      \leq
+      \frac{1}{\left(2\lambda_n\right)}\norm{f}^2
+  \]
+  We thus have $\norm{e}\leq\frac{1}{\left(2\pi + 2n\pi\right)^2}\norm{f}$ and
+  $\norm{e}_1\leq\frac{1}{2\pi + 2n\pi}\norm{f}$.
+  % TODO table with results and comment on them
+
+
+  % -2d poisson problem - weak, galerkin - space as span{phi_i phi_j} -
+  % tensor product strucure gives rise to  AUM + MUA = B but phi_i * phi_j
+  % is and eigenfunction of laplacian with with eigenvalues. Therefore A = lmbda
+  % and OG gives M = 1. The solution is U_ij and the solution is u. As in 1d the
+  % method uses an exact inverse on subspace or something similar. Then we need
+  % theoretical error estimates and numerical results.
+  % results as table
+  \subsection{Two dimensional biharmonic problem}
+  % Finally beharmonic operator section should follow same straucture
+  % results as plot
+  % We have method for physics of plate problems.
+  % The properties are not due to sines cosis but beacuse we have the
+  % eigenvectors!
+  \subsection{Galerkin method with the basis of Legendre polynomials for the
+  Poisson problem}
+  % Shoortly introduce Shen's method and verify our implementation for 1d adn
+  % 2d problem. 
+  % Condition numbers of A, M in both cases
+  % Can this be tied to rate?
+  % Why don't we see scaling of the differential operator in the Shen case
+  % results as plot
+
+  % If you could come up with u, u`` basis with Leg, it could go here and
+  % we'd again show plots with rates.
+ 
+\end{document}
