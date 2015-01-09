@@ -7,7 +7,7 @@ from math import log as ln, sqrt
 from eigen_basis import eigen_basis
 from itertools import product
 
-def poisson_solver_1d(f, n):
+def poisson_solver_1d(f, n, as_sym=False):
     '''
     Simple Poisson solver for -u`` = f in (-1, 1) with Dirichlet bcs. Uses
     eigenbasis.
@@ -19,18 +19,26 @@ def poisson_solver_1d(f, n):
     # Assemble right hand side b
     x = Symbol('x')
     f = lambdify(x, f)
-    basis = [lambdify(x, v) for v in list(eigen_basis(n))]
+    # Symbolic basis
+    sym_basis = list(eigen_basis(n))
+    # Lambdified
+    basis = [lambdify(x, v) for v in sym_basis]
     b = np.zeros(n)
     for i, v in enumerate(basis):
         b[i] = quad(lambda x: v(x)*f(x), [-1, 1])
 
     # Solve and return solution - assembled linear combination
     U = la.solve(A, b)
-    uh = lambda x: sum(Uk*v(x) for Uk, v in zip(U, basis))
+    # Retur either lambdified or symbolic solution. The latter is better for
+    # error computation - symbolic differentiation
+    if as_sym:
+        uh = sum(Uk*v for Uk, v in zip(U, sym_basis))
+    else:
+        uh = lambda x: sum(Uk*v(x) for Uk, v in zip(U, basis))
     return uh
 
 
-def poisson_solver_2d(f, n):
+def poisson_solver_2d(f, n, as_sym=False):
     '''
     Simple Poisson solver -laplace(u) = f in (-1, 1)^2 with Dirichlet bcs.
     Uses tensor product of eigenbasis.
@@ -44,12 +52,12 @@ def poisson_solver_2d(f, n):
 
     # Create tensor product basis
     x, y = symbols('x, y')
-    basis = [vx*(vy.subs(x, y))
-             for vx, vy in product(eigen_basis(n), eigen_basis(n))]
+    sym_basis = [vx*(vy.subs(x, y))
+                 for vx, vy in product(eigen_basis(n), eigen_basis(n))]
+    basis = [lambdify([x, y], v) for v in sym_basis]
 
     # Assemble right hand side b
     f = lambdify([x, y], f)
-    basis = [lambdify([x, y], v) for v in basis]
     b = np.zeros((n, n))
     for k, v in enumerate(basis):
         i, j = k // n, k % n
@@ -63,7 +71,10 @@ def poisson_solver_2d(f, n):
     assert len(U) == len(basis)
 
     # Assemble the solution as a linear combination
-    uh = lambda x, y: sum(Uk*v(x, y) for Uk, v in zip(U, basis))
+    if as_sym:
+        uh = sum(Uk*v for Uk, v in zip(U, sym_basis))
+    else:
+        uh = lambda x, y: sum(Uk*v(x, y) for Uk, v in zip(U, basis))
     return uh
 
 # ----------------------------------------------------------------------------

@@ -8,7 +8,7 @@ from eigen_basis import eigen_basis
 from itertools import product
 from scipy.linalg import eigh
 
-def biharmonic_solver_1d(f, n):
+def biharmonic_solver_1d(f, n, as_sym=False):
     '''
     Simple solver for u(4) = f in (-1, 1) with Dirichlet bcs on u and u(2).
     Uses eigenbasis.
@@ -20,14 +20,18 @@ def biharmonic_solver_1d(f, n):
     # Assemble right hand side b
     x = Symbol('x')
     f = lambdify(x, f)
-    basis = [lambdify(x, v) for v in list(eigen_basis(n))]
+    sym_basis = list(eigen_basis(n))
+    basis = [lambdify(x, v) for v in sym_basis]
     b = np.zeros(n)
     for i, v in enumerate(basis):
         b[i] = quad(lambda x: v(x)*f(x), [-1, 1])
 
     # Solve and return solution - assembled linear combination
     U = la.solve(A, b)
-    uh = lambda x: sum(Uk*v(x) for Uk, v in zip(U, basis))
+    if as_sym:
+        uh = sum(Uk*v for Uk, v in zip(U, sym_basis))
+    else:
+        uh = lambda x: sum(Uk*v(x) for Uk, v in zip(U, basis))
     return uh
 
 def biharmonic_solver_2d(f, n):

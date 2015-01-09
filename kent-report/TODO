@@ -19,7 +19,8 @@
 
 7. It would be nice to have basis of Leg polynomials for u, u`` bcs
 
-8. For Poisson physics consider the plate-beam coupling in FEniCS
+8a. For Poisson physics consider the plate-beam coupling in FEniCS
+8b. Could we do the trace operator in FEniCS?
 
 9. If the beam were curved what is the governing Poisson equation?
 

@@ -1,7 +1,14 @@
 This folder contains everything for the plate-beam project.
 
 -py:
-	contains python scripts
+	contains python scripts - I try to make each run of them such that
+	when executed the sript basically tests it self
 
+	-postproc:
+		these are scripts for producing tables, plots and what not for
+		
+		-results:
+			partial and finalized form of results (plots, tables)
+			are here
 -tex:
 	contains tex files for the paper
