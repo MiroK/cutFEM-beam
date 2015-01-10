@@ -3,8 +3,8 @@ from __future__ import division
 import sys
 sys.path.append('../')
 # Solvers
-from eigen_poisson import poisson_solver_1d
-from eigen_poisson import poisson_solver_2d
+import eigen_poisson as eigen
+import shen_poisson as shen
 
 # Common
 from sympy import Symbol, exp, lambdify, symbols
@@ -13,12 +13,24 @@ import numpy as np
 from numpy.linalg import lstsq
 from math import sqrt, log as ln
 from collections import defaultdict
+# Ploting
+from matplotlib import rc
+rc('text', usetex=True)
+import matplotlib.pyplot as plt
 
-def poisson_1d(norm):
+def poisson_1d(norm, method):
     '''
-    Convergence test for Fourier-Galerkin solver. Rate measure in norm.
-    # OUTPUT REDIRECTED TO FILES(TABLES) AND THESE ARE MERGED FOR REPORT.
+    Convergence test for Fourier-Galerkin or Shen's solver. Rate measured
+    in norm
+    # EIGEN: OUTPUT REDIRECTED TO FILES(TABLES) AND THESE ARE MERGED FOR REPORT
+    # SHEN: DATA IN FILES FOES TO A PLOT
     '''
+    assert method in ('eigen', 'shen')
+    if method == 'eigen':
+        solver = eigen.poisson_solver_1d
+    else:
+        solver = shen.poisson_solver_1d
+
     # We take the solution used in eigen_poisson
     x = Symbol('x')
     u = (x**2 - 1)*exp(x)
@@ -30,7 +42,7 @@ def poisson_1d(norm):
     b = []
     col0 = []
     for n in ns:
-        uh = poisson_solver_1d(f, n, as_sym=True)
+        uh = solver(f, n, as_sym=True)
         # Symbolic error
         e = u - uh
         # Norm decide derivative
@@ -51,32 +63,40 @@ def poisson_1d(norm):
         b.append(ln(error))
         col0.append(ln(n))
 
+    # Least squares fit by the line only makes sense for the eigen
     # The rate should be e = n**(-p) + shift
-    A = np.ones((len(b), 2))
-    A[:, 0] = col0
-    ans = lstsq(A, b)[0]
-    p = -ans[0]
-    print '\tLeast square rate %.2f' % p
+    if method == 'eigen':
+        A = np.ones((len(b), 2))
+        A[:, 0] = col0
+        ans = lstsq(A, b)[0]
+        p = -ans[0]
+        print '\tLeast square rate %.2f' % p
 
-
-def poisson_2d():
+def poisson_2d(method):
     '''
-    Convergence test for Fourier-Galerkin solver. Rate measure in 0, 1 norms.
-    # OUTPUT GOES TO SINGLE FILE AND IS USED TO MAKE TABLE IN THE PAPER.
+    Convergence test for Fourier-Galerkin and Shen method. Rate measure in 0, 1
+    norms
+    # EIGEN: OUTPUT GOES TO SINGLE FILE AND IS USED TO MAKE TABLE IN THE PAPER
+    # SHEN: PLOT COLUMNS OF TABLE
     '''
+    assert method in ('eigen', 'shen')
+    if method == 'eigen':
+        solver = eigen.poisson_solver_2d
+    else:
+        solver = shen.poisson_solver_2d
     # We take the solution used in eigen_poisson
     x, y = symbols('x, y')
     u = (x**2 - 1)*exp(x)*(y**2 - 1)
     # Right hand side
     f = -u.diff(x, 2) - u.diff(y, 2)
     # Numerical solution
-    ns = range(2, 6)
+    ns = range(2, 16)
     # Data for least square
     # The solution is expensive so after each solve we compute errors
     bs = defaultdict(list)
     col0 = []
     for n in ns:
-        uh = poisson_solver_2d(f, n, as_sym=True)
+        uh = solver(f, n, as_sym=True)
         # Symbolic error for L2 and H1
         e0 = u - uh
         e1 = e0.diff(x, 1)**2 + e0.diff(y, 1)**2
@@ -107,13 +127,15 @@ def poisson_2d():
         # Same matrix
         col0.append(ln(n))
 
-    # The rate should be e = n**(-p) + shift
-    A = np.ones((len(col0), 2))
-    A[:, 0] = col0
-    for norm, b in bs.items():
-        ans = lstsq(A, b)[0]
-        p = -ans[0]
-        print '\tLeast square rate in %d norm %.2f' % (norm, p)
+    # Least squares fit by the line only makes sense for the eigen
+    if method == 'eigen':
+        # The rate should be e = n**(-p) + shift
+        A = np.ones((len(col0), 2))
+        A[:, 0] = col0
+        for norm, b in bs.items():
+            ans = lstsq(A, b)[0]
+            p = -ans[0]
+            print '\tLeast square rate in %d norm %.2f' % (norm, p)
 
 # -----------------------------------------------------------------------------
 
@@ -121,9 +143,9 @@ if __name__ == '__main__':
     from common import merge_tables
 
     if False:
-        # 1d
-        # poisson_1d(norm=0)  # results/eig_p_1d_0
-        # poisson_1d(norm=1)  # results/eig_p_1d_1
+        # 1d eigen
+        # poisson_1d(norm=0, method='eigen')  # results/eig_p_1d_0
+        # poisson_1d(norm=1, method='eigen')  # results/eig_p_1d_1
         files = ['./results/eig_p_1d_0', './results/eig_p_1d_1']
         rows = [0, -1]
         columns = [[0, 1, 2, 3], [1, 2, 3]]
@@ -131,8 +153,9 @@ if __name__ == '__main__':
         header = [r'$n$', r'$e$', r'$p$', r'$E$', r'$e$', r'$p$', r'$E$']
         merge_tables(files, rows, columns, row_format, header)
     
-    if True:
-        #poisson_2d()  # results/eig_p_2d
+    if False:
+	# 2d eigen
+        #poisson_2d(method='eigen')  # results/eig_p_2d
 
         files = ['./results/eig_p_2d']
         rows = [0, -2]
@@ -140,3 +163,36 @@ if __name__ == '__main__':
         row_format = ['%d', '%.2E', '%.2f', '%1.0E', '%.2E', '%.2f', '%1.0E']
         header = [r'$n$', r'$e$', r'$p$', r'$E$', r'$e$', r'$p$', r'$E$']
         merge_tables(files, rows, columns, row_format, header)
+
+    if False:
+        # 1d shen
+        # poisson_1d(norm=0, method='shen')  # results/shen_p_1d_0
+        # poisson_1d(norm=1, method='shen')  # results/shen_p_1d_1
+
+        data0 = np.loadtxt('results/shen_p_1d_0')
+        data1 = np.loadtxt('results/shen_p_1d_1')
+
+        plt.figure()
+        plt.semilogy(data0[:, 0], data0[:, 1], label=r'$L^2$',
+                     linestyle='--', marker='o', color='r')
+        plt.semilogy(data1[:, 0], data1[:, 1], label=r'$H^1$',
+                     linestyle='--', marker='o', color='b')
+        plt.legend(loc='best')
+        plt.xlabel('$n$')
+        plt.ylabel('$\|e\|$')
+        plt.savefig('results/shen_p_1d.pdf')
+
+    if False:
+	# 2d Shen
+        # poisson_2d(method='shen')  # results/shen_p_2d
+        data = np.loadtxt('results/shen_p_2d')
+
+        plt.figure()
+        plt.semilogy(data[:, 0], data[:, 1], label=r'$L^2$',
+                     linestyle='--', marker='o', color='r')
+        plt.semilogy(data[:, 0], data[:, 4], label=r'$H^1$',
+                     linestyle='--', marker='o', color='b')
+        plt.legend(loc='best')
+        plt.xlabel('$n$')
+        plt.ylabel('$\|e\|$')
+        plt.savefig('results/shen_p_2d.pdf')

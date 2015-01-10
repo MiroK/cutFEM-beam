@@ -7,14 +7,25 @@ from math import log as ln, sqrt
 from eigen_basis import eigen_basis
 from itertools import product
 
-def poisson_solver_1d(f, n, as_sym=False):
+# Matrices in the basis have tabulized values
+def mass_matrix(m):
+    'Matrix of identity operator w.r.t to Eigen basis.'
+    return np.eye(m)
+
+
+def laplacian_matrix(m):
+    'Matrix of Laplacian operator w.r.t to Eigen basis.'
+    return np.diag([float((pi/2 + k*pi/2)**2) for k in range(m)])
+
+
+def poisson_solver_1d(f, n, as_sym=False, with_coefs=False):
     '''
     Simple Poisson solver for -u`` = f in (-1, 1) with Dirichlet bcs. Uses
     eigenbasis.
     '''
     # Assemble stiffness matrix A, we know about A-orthogonality
     eigenvalues = [float((pi/2 + k*pi/2)**2) for k in range(n)]
-    A = np.diag(eigenvalues)
+    A = laplacian_matrix(n)
 
     # Assemble right hand side b
     x = Symbol('x')
@@ -35,7 +46,11 @@ def poisson_solver_1d(f, n, as_sym=False):
         uh = sum(Uk*v for Uk, v in zip(U, sym_basis))
     else:
         uh = lambda x: sum(Uk*v(x) for Uk, v in zip(U, basis))
-    return uh
+
+    if with_coefs:
+        return uh, U
+    else:
+        return uh
 
 
 def poisson_solver_2d(f, n, as_sym=False):
@@ -46,9 +61,9 @@ def poisson_solver_2d(f, n, as_sym=False):
     # Use the tensor product method so only 1d matrices are needed
     # Stiffness matrix
     eigenvalues = [float((pi/2 + k*pi/2)**2) for k in range(n)]
-    A = np.diag(eigenvalues)
+    A = laplacian_matrix(n)
     # Mass matrix
-    M = np.eye(n)
+    M = mass_matrix(n)
 
     # Create tensor product basis
     x, y = symbols('x, y')
