@@ -164,23 +164,29 @@ if __name__ == '__main__':
         header = [r'$n$', r'$e$', r'$p$', r'$E$', r'$e$', r'$p$', r'$E$']
         merge_tables(files, rows, columns, row_format, header)
 
-    if False:
+    if True:
         # 1d shen
         # poisson_1d(norm=0, method='shen')  # results/shen_p_1d_0
         # poisson_1d(norm=1, method='shen')  # results/shen_p_1d_1
+        files = ['./results/shen_p_1d_0', './results/shen_p_1d_1']
+        rows = [0, -1]
+        columns = [[0, 1, 2, 3], [1, 2, 3]]
+        row_format = ['%d', '%.2E', '%.2f', '%1.0E', '%.2E', '%.2f', '%1.0E']
+        header = [r'$n$', r'$e$', r'$p$', r'$E$', r'$e$', r'$p$', r'$E$']
+        merge_tables(files, rows, columns, row_format, header)
 
-        data0 = np.loadtxt('results/shen_p_1d_0')
-        data1 = np.loadtxt('results/shen_p_1d_1')
+        # data0 = np.loadtxt('results/shen_p_1d_0')
+        # data1 = np.loadtxt('results/shen_p_1d_1')
 
-        plt.figure()
-        plt.semilogy(data0[:, 0], data0[:, 1], label=r'$L^2$',
-                     linestyle='--', marker='o', color='r')
-        plt.semilogy(data1[:, 0], data1[:, 1], label=r'$H^1$',
-                     linestyle='--', marker='o', color='b')
-        plt.legend(loc='best')
-        plt.xlabel('$n$')
-        plt.ylabel('$\|e\|$')
-        plt.savefig('results/shen_p_1d.pdf')
+        # plt.figure()
+        # plt.semilogy(data0[:, 0], data0[:, 1], label=r'$L^2$',
+        #              linestyle='--', marker='o', color='r')
+        # plt.semilogy(data1[:, 0], data1[:, 1], label=r'$H^1$',
+        #              linestyle='--', marker='o', color='b')
+        # plt.legend(loc='best')
+        # plt.xlabel('$n$')
+        # plt.ylabel('$\|e\|$')
+        # plt.savefig('results/shen_p_1d.pdf')
 
     if False:
 	# 2d Shen
