@@ -50,6 +50,7 @@
 \newcommand{\R}{\ensuremath{\mathbb{R}}}
 
 \newcommand{\norm}[1]{\ensuremath{\left\|#1\right\|}}
+\newcommand{\seminorm}[1]{\ensuremath{\left|#1\right|}}
 \newcommand{\dual}[2]{\ensuremath{\langle#1, #2 \rangle}}
 
 \newcommand{\inner}[2]{\ensuremath{\left(#1, #2\right)}}
@@ -135,16 +136,16 @@
 \end{abstract}
 
 \section{Introduction}
-  We consider $\mathcal{P}=\left[-1, 1\right]^2$ and reffer to this domain as
+  We consider $\mathcal{P}=\left[-1, 1\right]^2$ and refer to this domain as
   plate. To define $\mathcal{B}$ we let
-  $\vec{\chi}, \vec{\chi}:\left[-1, 1\right]\mapsto\mathcal{P}$ denote some
+  $\vec{\chi}, \vec{\chi}:\left[-1, 1\right]\mapsto\mathcal{P}$, denote some
   invertible mapping from the bi-unit interval onto the plate. Then
   $\mathcal{B}=\left\{\vec{x}\in\R^2, \vec{x}=\vec{\chi}(s), s\in\left[-1,
   1\right]\right\}$. For simplicity we shall have
   $\vec{\chi}(s)=\frac{\vec{A}}{2}(1-s) +\frac{\vec{B}}{2}(1+s)$ for some
-  disctinct points $\vec{A}, \vec{B}\in\partial\mathcal{P}$. We then reffer to
+  distinct points $\vec{A}, \vec{B}\in\partial\mathcal{P}$. We then refer to
   the set $\mathcal{B}$ as beam. Further we let $V_{\mathcal{P}}, V_{\mathcal{B}}$
-  be the spaces of functions that map plate and the beam respectivelly to real
+  be the spaces of functions that map plate and the beam respectively to real
   numbers. We postpone discussion of regularity properties of functions in these
   two spaces for later sections.
 
@@ -154,13 +155,14 @@
     \label{eq:energy}
     \begin{aligned}
       E(v, q) &= \Ep(v, v) + \Eb(q, q) - \int_{\mathcal{P}}f v d\vec{x}, \\
+      \text{subject to the constraint}&\\
       T(v) &= q\text{ on }\mathcal{B},
     \end{aligned}
   \end{equation}
-  where $\Ep, \Ep: \Vp\times\Vp\mapsto\R$ is a bilinear form that describes
+  where $\Ep, \Ep: \Vp\times\Vp\mapsto\R$, is a bilinear form that describes
   energy of the physical process on the plate and similarly the bilinear form
-  $\Eb, \Eb:\Vb\times\Vb\mapsto\R$ describes energy of the beam process. The
-  last term in the expression is a potential energy due to forcing $f$. Finaly
+  $\Eb, \Eb:\Vb\times\Vb\mapsto\R$, describes energy of the beam process. The
+  last term in the expression is a potential energy due to forcing $f$. Finally
   we denote as $T, T:\Vp\mapsto\Vb$ the trace operator.
   
   The problem (\ref{eq:energy}) can be also recast into an unconstrained
@@ -170,7 +172,7 @@
     L(v, q, \mu) = \Ep(v, v) + \Eb(q, q) - \int_{\mathcal{P}}f u d\vec{x} -
   \int_{\mathcal{B}}(T(v) - q)\mu d\vec{x}.
   \end{equation}
-  Here, the function $\mu$, $\mu\in Q$ is an unknown Lagrange multipler
+  Here, the function $\mu$, $\mu\in Q$, is an unknown Lagrange multiplier
   and the function space $Q$ has functions that map the beam to real scalars.
   Regularity of functions in $Q$ is discussed later.
 
@@ -225,9 +227,12 @@
 
   \section{Galerkin method with the Fourier basis}
   In this section we study convergence properties of the Galerkin method with 
-  finite-dimensional approximation spaces constructed using the Fourier basis.
-  The method is used to solve one and two dimensional Laplace and biharmonic 
-  problems. In all four cases we provide estimates for the convergence rates.
+  finite-dimensional approximation spaces constructed using eigenfunctions of
+  undelying differential operators. The method is used to solve one and two
+  dimensional Poisson and biharmonic problems. In all of these problems the 
+  eigenfunctions are sines and cosines, hence the name of the method. We show 
+  that the basis of eigenfunctions leads to a very efficient numerical method
+  and in all four cases we provide estimates for the convergence rates.
   The rates are then verified by numerical experiments. This should validate
   the method as a viable candidate to be used in our investigations of the
   coupled problems.
@@ -239,7 +244,7 @@
   \label{eq:eig_pos1}
     \delta(u) = \lambda u \,\text{ in }(-1, 1),
   \end{equation}
-  subjected to the homegeneous Dirichlet boundary conditions.
+  subjected to the homogeneous Dirichlet boundary conditions.
   Defining $\alpha_k = \frac{\pi}{2} + k\frac{\pi}{2}, k\geq0$, we have that the
   eigenfunctions of operator $\delta$ are
   \[
@@ -249,21 +254,21 @@
               \end{cases}
   \]
   and $\lambda_k = \alpha_k^2$ are the eigenvalues. We note that in accordance
-  with tha fact that $\delta$ is symmetric and positive definite, the eigevalues
-  are real and positive. Morover the eigenfunctions are orthogonal in the $L^2$
-  inner product over the biunit interval which we shall denote as
+  with tha fact that $\delta$ is symmetric and positive definite, the eigenvalues
+  are real and positive. Moreover the eigenfunctions are orthonormal in the $L^2$
+  inner product over the bi-unit interval which we shall denote as
   $\inner{\cdot}{\cdot}$. By the spectral decomposition theorem
   we can then write the operator as
   \[
     \delta = \sum_{k=0}^{\infty} \lambda_k \phi_k \otimes \phi_k.
   \]
-  Its inverse is given as
+  Operator $\delta^{-1}$,
   \begin{equation}
     \label{eq:delta_inv}
-    \delta^{-1} = \sum_{k=0}^{\infty} \frac{1}{\lambda_k} \phi_k \otimes \phi_k.
+    \delta^{-1} = \sum_{k=0}^{\infty} \frac{1}{\lambda_k} \phi_k \otimes \phi_k,
   \end{equation}
-  As we know the inverse we can immediately get a solution to the Poisson
-  equation
+  is the inverse of $\delta$. As we know the inverse we can immediately get a
+  solution to the Poisson equation
   \begin{equation}
   \label{eq:poisson_strong_1}
   \begin{aligned}
@@ -275,7 +280,7 @@
   eigenfunctions
   \begin{equation}
   \label{eq:poisson_1d_sol}
-  u = \sum_{k=0}^{\infty} \frac{1}{\lambda_k} \phi_k (f, \phi_k).
+  u = \sum_{k=0}^{\infty} \frac{\inner{f}{\phi_k}}{\lambda_k} \phi_k.
   \end{equation}
 
   To introduce our numerical method we consider a weak formulation of
@@ -283,8 +288,7 @@
   \[
     \inner{\deriv{u}{x}}{\deriv{v}{x}} = \inner{f}{v},\,\forall v\in V.
   \]
-  We now let $V_n=\spn\{\phi_j\}_{j=0}^{n-1}$. We shall refer to the set 
-  $\left\{\phi_i\right\}_{i=0}^{\infty}$ as the Fourier basis. The space $V_n$
+  We now let $V_n=\spn\{\phi_j\}_{j=0}^{n-1}$. The space $V_n$
   is a clearly a finite dimensional subspace of $V$. The weak formulation of
   the Poisson problem on $V_n$ reads: Find $u_n\in V_n$ such that
   \begin{equation}
@@ -301,33 +305,34 @@
   \]
   But then for the solution of (\ref{eq:poisson_weak_1}) we have
   \[
-    u = \sum_{k=0}^{n-1} \frac{1}{\lambda_k} \phi_k (f, \phi_k).
+    u_n = \sum_{k=0}^{n-1} \frac{\inner{f}{\phi_k}}{\lambda_k} \phi_k.
   \]
   Comparing with (\ref{eq:poisson_1d_sol}) we see that the error
   \[
-    e_n=u-u_n = \sum_{k=n}^{\infty} \frac{1}{\lambda_k} \phi_k (f, \phi_k)
+    e_n=u-u_n = \sum_{k=n}^{\infty} \frac{\inner{f}{\phi_k}}{\lambda_k} \phi_k
   \]
   such that $(e_n, v)=0$ for all $v\in V_n$. With the exact expression for the
   error we are in a position to establish convergence properties of the
   numerical method. The convergence rate in the $L^2$ norm follows from the
   estimate
   \[
-    \norm{e_n}^2=\inner{e_n}{e_n} = \sum_{k=n}^{\infty} \frac{1}{\lambda^2_k}(f, \phi_k)^2 \leq
-      \frac{1}{\lambda^2_n}\sum_{k=n}^{\infty} (f, \phi_k)^2 \leq
-      \frac{1}{\lambda^2_n}\norm{f}^2.
+    \norm{e_n}^2=\inner{e_n}{e_n} = \sum_{k=n}^{\infty} \frac{\inner{f}{\phi_k}^2}{\lambda^2_k} \leq
+    \frac{1}{\lambda^2_n}\sum_{k=n}^{\infty} \inner{f}{\phi_k}^2 \leq
+    \frac{\norm{f}^2}{\lambda^2_n},
   \]
-  We thus have $\norm{e_n}\leq\frac{1}{\left(\frac{\pi}{2} +
-  n\frac{\pi}{2}\right)^2}\norm{f}$ and expect the error to drop as
-  $\mathcal{O}(n^{-2})$. To get the convergance rate in the energy norm we use
-  the estimate
+  where it was assumed that $f\in L^2\left(\mathcal{P}\right)$ and used the 
+  Parseval inequality. We thus have $\norm{e_n}\leq\frac{4\norm{f}}{\left(\pi +
+  n\pi\right)^2}$ and expect the error to drop as
+  $n^{-p}, p=2$. We have by the Poincare inequality on $V$ that the $H^1$ seminorm
+  defines the so called energy norm $\norm{\cdot}_1$. The convergence rate in
+  the energy norm is based on the estimate
   \[
     \norm{e_n}^2_1=\inner{\deriv{e_n}{x}}{\deriv{e_n}{x}} =
     \sum_{k=n}^{\infty} \frac{\lambda_k}{\lambda^2_k}(f, \phi_k)^2 \leq
     \frac{1}{\sqrt{\lambda_n}}\sum_{k=n}^{\infty} (f, \phi_k)^2 \leq
-    \frac{1}{\sqrt{\lambda_n}}\norm{f}^2.
+    \frac{\norm{f}^2}{\sqrt{\lambda_n}}.
   \]
-  It follows that in the energy norm the error should behave as
-  $\mathcal{O}(n^{-1})$.
+  It follows that in the energy norm the error should behave as $n^{-1}$.
 
   To test our convergence estimates we have performed a convergence study where
   the exact solution of (\ref{eq:poisson_strong_1}) was given as as
@@ -338,9 +343,7 @@
     \centering
     \begin{tabular}{|c|c|c|c||c|c|c|}
     \hline
-    & \multicolumn{3}{ c|| }{$L^2$} & \multicolumn{3}{c|}{$H^1$}\\
-    \hline
-    $n$ & $e$ & $p$ & $E$ & $e$ & $p$ & $E$\\
+      $n$ & $\norm{e}$ & $p$ & $E$ & $\norm{e}_1$ & $p$ & $E$\\
     \hline
     3 & 7.50E-02 & 1.67 & 1E-21 & 5.48E-01 & 0.97 & 1E-19\\
     4 & 3.98E-02 & 2.20 & 1E-18 & 3.75E-01 & 1.32 & 1E-33\\
@@ -362,10 +365,11 @@
     \end{tabular}
     \label{tab:eig_p_1d}
     \caption{Convergence rate of the Fourier-Galerkin method for one dimensional
-    Poisson problem. For each norm we list as $e$ the magnitude of error,
-    $p$ the convergence rate while $E$ is the estimate of the quadrature error
-    in the computation of $e$ provided by SymPy's {\tt{quad}} function. The last
-    row in the table has the estimate for the rate obtained by least-squares fit.}
+    Poisson problem. We list the magnitude of the error and the convergence
+    exponent in both the $L^2$ and energy norms. The column $E$ is the estimate
+    of the quadrature error in the computation of the error provided by SymPy's
+    {\tt{quad}} function. The last row in the table has the estimate for the
+    convergence exponent obtained by the least-squares fit.}
   \end{table}
 
   \subsection{One dimensional biharmonic problem}
@@ -389,7 +393,7 @@
   \end{equation}
   With the given boundary conditions, the operator acting on the left hand
   side is $\delta^2$. It thus has the same eigenfunctions as $\delta$ while
-  the eigenvalues are squares of the eiqenvalues of $\delta$, that is
+  the eigenvalues are squares of the eigenvalues of $\delta$, that is
   $\lambda_k=\alpha_k^4$.
   
   Our numerical method for solving (\ref{eq:bih_strong_1}) is based on the 
@@ -402,37 +406,37 @@
   and it is therefore valid to consider a problem: Find $u_n\in V_n$ such that
   \begin{equation}
     \label{eq:bih_weak_1}
-    \inner{\deriv{^2u}{x^2}}{\deriv{^2v}{x^2}} = \inner{f}{v},\,\forall v\in V_n.
+    \inner{\deriv{^2u_n}{x^2}}{\deriv{^2v}{x^2}} = \inner{f}{v},\,\forall v\in V_n.
   \end{equation}
   We find that the corresponding linear system $\mathbb{A}\mathbf{u}=\mathbf{b}$
   is solved by vector $\mathbf{u}\in\R^n$ with components
   $\mathbf{u}_i=\frac{\mathbf{b}_i}{\alpha_i^4}$ and consequently the error of the
-  method can be axpressed as
+  method can be expressed as
   \[
-    e_n = \sum_{k=n}^{\infty} \frac{1}{\alpha_k^4} \phi_k (f, \phi_k).
+    e_n = \sum_{k=n}^{\infty} \frac{\inner{f}{\phi_K}}{\alpha_k^4} \phi_k.
   \]
 
   Convergence of the method in the $L^2$ norm follows from the estimate
   \[
-    \norm{e_n}^2=\inner{e_n}{e_n} = \sum_{k=n}^{\infty} \frac{1}{\alpha^8_k}(f, \phi_k)^2 \leq
+    \norm{e_n}^2=\inner{e_n}{e_n} = \sum_{k=n}^{\infty}\frac{\inner{f}{\phi_k}^2}{\alpha^8_k} \leq
       \frac{1}{\alpha^8_n}\sum_{k=n}^{\infty} (f, \phi_k)^2 \leq
-      \frac{1}{\alpha^8_n}\norm{f}^2
+      \frac{\norm{f}^2}{\alpha^8_n}
   \]
-  which yields $\norm{e}\leq\frac{1}{\left(\frac{\pi}{2} +
-  n\frac{\pi}{2}\right)^4}\norm{f}$. We have $\norm{e}$ decreasing as
-  $\mathcal{O}(n^{-4})$. Since each differentiation of the eigenfunction 
-  $\phi_k$ produces a factor $\alpha_k$ we get the estimates of the error in 
-  $H^1$ and $H^2$ norms as
+  which yields $\norm{e}\leq\frac{2^4}{\left(\pi + n\pi\right)^4}\norm{f}$.
+  We have $\norm{e}$ decreasing as $\mathcal{O}(n^{-4})$. Since each
+  differentiation of the eigenfunction  $\phi_k$ produces a factor $\alpha_k$
+  we get the estimates of the error in 
+  $H^1$ and $H^2$ seminorms (note that the latter defines a norm on $V$) as
   \begin{align*}
-    \norm{e_n}_1 &\leq \frac{1}{\alpha^3_n}\norm{f}, \\
-    \norm{e_n}_2 &\leq \frac{1}{\alpha^2_n}\norm{f}. \\
+    \seminorm{e_n}_1 &\leq \frac{1}{\alpha^3_n}\norm{f} = \frac{2^3}{\left(\pi + n\pi\right)^3}, \\
+    \norm{e_n}_2 &\leq \frac{1}{\alpha^2_n}\norm{f} = \frac{2^2}{\left(\pi + n\pi\right)^2}.
   \end{align*}
-  The errors in the respected norms should therefore behave as
-  $\mathcal{O}(n^{-3})$ and $\mathcal{O}(n^{-2})$.
+  The errors in the respected (semi)norms should therefore behave as
+  $n^{-3}$ and $n^{-2}$.
     
   Table \ref{tab:eig_b_1d} shows results from the convergence study we run to
   verify convergence properties of the method established in the previous
-  pragraphs. In this study, the exact solution of (\ref{eq:bih_strong_1}) was
+  paragraphs. In this study, the exact solution of (\ref{eq:bih_strong_1}) was
   computed to match the right hand side $f=x e^x$. The results show very good
   agreement with the theoretical estimates.
 
@@ -440,11 +444,7 @@
     \centering
     \begin{tabular}{|c|c|c|c||c|c|c||c|c|c|}
     \hline
-    & \multicolumn{3}{c||}{$L^2$} &
-      \multicolumn{3}{c||}{$H^1$} &
-      \multicolumn{3}{c|}{$H^2$}\\
-    \hline
-$n$ & $e$ & $p$ & $E$ & $e$ & $p$ & $E$ & $e$ & $p$ & $E$\\
+    $n$ & $\norm{e}$ & $p$ & $E$ & $\seminorm{e}_1$ & $p$ & $E$ & $\norm{e}_2$ & $p$ & $E$\\
 \hline
 3 & 3.08E-04 & 2.68 & 1E-27 & 2.00E-03 & 2.01 & 1E-25 & 1.33E-02 & 1.37 & 1E-25\\
 4 & 8.63E-05 & 4.42 & 1E-21 & 7.28E-04 & 3.50 & 1E-19 & 6.41E-03 & 2.54 & 1E-21\\
@@ -468,19 +468,21 @@ $n$ & $e$ & $p$ & $E$ & $e$ & $p$ & $E$ & $e$ & $p$ & $E$\\
     \end{tabular}
     \label{tab:eig_b_1d}
     \caption{Convergence rate of the Fourier-Galerkin method for one dimensional
-    biharmonic problem. For each norm we list as $e$ the magnitude of error,
-    $p$ the convergence rate while $E$ is the estimate of the quadrature error
-    in the computation of $e$ provided by SymPy's {\tt{quad}} function. The last
-    row in the table has the estimate for the rate obtained by least-squares fit.}
+    biharmonic problem. We list the magnitude of the error and the convergence
+    exponent in the $L^2$, and $H^2$ norms as well as $H^1$ seminorm. The column
+    $E$ is the estimate of the quadrature error in the computation of the error
+    provided by SymPy's {\tt{quad}} function. The last row in the table has the
+    estimate for the convergence exponent obtained by the least-squares fit.}
   \end{table}
 
   We have demonstrated by both theoretical estimates and the convergence studies
   that the presented Fourier-Galerkin method can be used to solve accurately 
   the one dimensional Poisson and biharmonic problems. We therefore have at our
   disposal a numerical method to resolve the beam physics of cases (i) and (ii).
-  In the next sections we show how the Fourier basis can be used to solve
-  Poisson and biharmonic problems in two dimensional domain, that is to resolve
-  the physical processes on the beam considered in this note.
+  In the next sections we show how the Fourier basis can be used to construct
+  a numerical method for solving Poisson and biharmonic problems in two dimensional
+  domain, that is to resolve the physical processes on the beam considered
+  in this note.
 
   \subsection{Two dimensional Poisson problem}
   We are interested in finding a solution to the Poisson problem on a bi-unit
@@ -490,7 +492,7 @@ $n$ & $e$ & $p$ & $E$ & $e$ & $p$ & $E$ & $e$ & $p$ & $E$\\
   \label{eq:poisson_strong_2}
   \begin{aligned}
     -\Delta u &= f\,\text{ in }\mathcal{P},\\
-            u &= 0\,\text{ on }\mathcal{P}.
+            u &= 0\,\text{ on }\partial\mathcal{P}.
   \end{aligned}
   \end{equation}
   A variational formulation of (\ref{eq:poisson_strong_2}) reads: Find $u\in
@@ -500,17 +502,18 @@ $n$ & $e$ & $p$ & $E$ & $e$ & $p$ & $E$ & $e$ & $p$ & $E$\\
     \label{eq:poisson_weak_2}
     \Inner{\Grad{u}}{\Grad{v}} = \Inner{f}{v},
   \end{equation}
-  where $\Inner{\cdot}{\cdot}$ denotes the $L^2$ inner producut over $\mathcal{P}$.
+  where $\Inner{\cdot}{\cdot}$ denotes the $L^2$ inner product over $\mathcal{P}$.
   We define $V_n$, a finite dimensional space in which the approximation of $u$
   is sought as $V_n=\spn\left\{\phi_i(x)\phi_j(y)\right\}_{i, j = 0, 0}^{n-1, n-1}$.
   Clearly, $V_n\subset V$ and $\text{dim}V_n = n^2$. Moreover, each basis function of
   $\phi_{i, j}, \phi_{i, j}(x, y)\defeq\phi_i(x)\phi_j(y)$, is an eigenfunction
   of the Laplace operator acting on functions in $\mathcal{P}$ with zero boundary
   values. We have that $\lambda_{i, j}=\lambda_i + \lambda_j$, where $\lambda_i$
-  is the $i$-th eigenvalue of $\delta$. Finally we note that the basis functions
-  of $V_n$ are orthonormal in the $\Inner{\cdot}{\cdot}$ inner product.
-  Considering the problem (\ref{eq:poisson_strong_2}) we get that the expansion
-  coefficients $\mathbb{U}\in\R^{n\times n}$ of the approximation of $u$ in $V_n$
+  is the $i$-th eigenvalue of $\delta$ is an eigenvalue for function $\phi_{i, j}$.
+  Finally we note that the basis functions of $V_n$ are orthonormal in the
+  $\Inner{\cdot}{\cdot}$ inner product. Considering the problem (\ref{eq:poisson_strong_2})
+  we get that the expansion coefficients $\mathbb{U}\in\R^{n\times n}$ of the
+  approximation of $u$ in $V_n$
   \[
     u_n=\sum\limits_{i, j = 0, 0}^{n-1, n-1}\mathbb{U}_{i,
     j}\phi_{i, j}
@@ -518,29 +521,52 @@ $n$ & $e$ & $p$ & $E$ & $e$ & $p$ & $E$ & $e$ & $p$ & $E$\\
   are given as a solution of the linear system
   \begin{equation}
     \label{eq:p_sys}
-    \Lambda\mathbb{U} + \Lambda\mathbb{U} = \mathbb{B},
+    \Lambda\mathbb{U} + \mathbb{U}\Lambda = \mathbb{B},
   \end{equation}
   where the matrix $\mathbb{B}\in\R^{n\times n}$ has $\mathbb{B}_{i,
   j}=\Inner{v}{\phi_{i, j}}$. Further, matrix $\Lambda\in\R^{n\times n}$ is
   a diagonal matrix with diagonal elements $\Lambda_{i, i}$ equal to the
-  eigenvalues $\lambda_i$. We note that if space $V_n$ were constructed from 
-  functions other then eigenfunctions of the Laplacian, e.g. polynomials, the
-  Galerkin method would lead to the system
-  \[
+  eigenvalues $\lambda_i$.
+  
+  At this point we take a step back and compare (\ref{eq:p_sys}) to the systems
+  obtained if (\ref{eq:poisson_weak_2}) were considered on subspace $V_n$
+  constructed from functions other than eigenfunction of the Laplacian, e.g.
+  polynomials. In such case, the expansion coefficients of the approximate
+  solution are given as a solution to 
+  \begin{equation}
+    \label{eq:p_tensor}
     \tilde{\mathbb{A}}\mathbb{U}\tilde{\mathbb{M}} +
     \tilde{\mathbb{M}}\mathbb{U}\tilde{\mathbb{A}} =
     \tilde{\mathbb{B}},
-  \]
-  with $\tilde{\mathbb{A}}$ and $\tilde{\mathbb{M}}$ being matrices of one
+  \end{equation} 
+  with $\tilde{\mathbb{A}}$ and $\tilde{\mathbb{M}}$ the matrices of one
   dimensional Laplace and identity operators with respect to the chosen basis.
-  The solution would then be obtained using transformation matrices $\mathbb{Q}$
+  We note that given an invertible map 
+  $\rho:\left[0, n^2-1\right]\mapsto\left[0, n-1\right]\times\left[0, n-1\right]$
+  (e.g. collapsing by row), the system (\ref{eq:p_tensor}) can be written as
+  \[
+  \mathcal{A}\mathbf{u} = \mathbf{b}.
+  \]
+  Here $\mathbf{u}_{k}=\mathbb{U}_{\rho(k)}, \mathbf{b}_{k}=\mathbb{B}_{\rho(k)}$
+  and $\mathcal{A}\in\R^{n^2\times n^2}, \mathcal{A}=\mathbb{A}\otimes\mathbb{M}
+  +\mathbb{M}\otimes\mathbb{A}$. Clearly this system requires more storage than
+  (\ref{eq:p_tensor}). Moreover, (\ref{eq:p_tensor}) can be solved efficiently
+  by the fast tensor product method using transformation matrices $\mathbb{Q}$
   with columns from vectors solving a generalized matrix eigenvalue problem
-  $\tilde{\mathbb{A}}q=\alpha\tilde{\mathbb{M}}q$.
+  $\tilde{\mathbb{A}}q=\tilde{\lambda}\tilde{\mathbb{M}}q$. Setting 
+  $\mathbb{U}^\prime = \mathbb{Q}\mathbb{U}\mathbb{Q}^{\text{T}}$ and using
+  $\mathbb{Q}^{\text{T}}\tilde{\mathbb{M}}\mathbb{Q}=\mathbb{I}$ together with
+  $\mathbb{Q}^{\text{T}}\tilde{\mathbb{A}}\mathbb{Q}=\tilde{\Lambda}$ we
+  transform the system into eigenspace
+  \[
+    \tilde{\Lambda}\mathbb{U}^{\prime} + \mathbb{U}^{\prime}\tilde{\Lambda} = 
+    \mathbb{Q}^{\text{T}}\tilde{\mathbb{B}}\mathbb{Q}.
+  \]
   In this setting, the choice of the Fourier basis presents a major advantage
-  since it yields mass matrix which is identity and owing to
-  $\mathbb{Q}=\mathbb{I}$ the matrix $\Lambda$ is precisely
-  $\mathbb{Q}^{\text{T}}\tilde{\mathbb{A}}\mathbb{Q}$. In fact the solution
-  of (\ref{eq:p_sys}) is given as
+  since we already work in an eigenspace and thus have $\mathbb{Q}=\mathbb{I}$
+  while $\Lambda = \tilde{\Lambda}$. Therefore, there is no need for the solution
+  of the generalized eigenvalue problem and we can immediately write the
+  solution of (\ref{eq:p_sys})
   \[
     \mathbb{U}_{i, j} = \frac{\mathbb{B}_{i, j}}{\lambda_i + \lambda_j}.
   \]
@@ -557,7 +583,7 @@ $n$ & $e$ & $p$ & $E$ & $e$ & $p$ & $E$ & $e$ & $p$ & $E$\\
   As in the one dimensional case we see that the numerical solution due to
   Fourier-Galerkin method is $u_n = -\Delta|_{n}^{-1}f$ where
   $-\Delta|_{n}^{-1}=P_n \circ \left(-\Delta^{-1}\right)$ is a projection by 
-  the operator $P_n, P_n:V\mapsto V_n$ of the inverse of the Laplacian on the
+  the operator $P_n, P_n:V\mapsto V_n$, of the inverse of the Laplacian on the
   subspace $V_n$.
 
   The convergence rate of the method in the $L^2$ and the energy norm follow
@@ -567,30 +593,28 @@ $n$ & $e$ & $p$ & $E$ & $e$ & $p$ & $E$ & $e$ & $p$ & $E$\\
     \norm{e}^2 = \sum\limits_{i, j = n, n}^{\infty,
     \infty}\frac{\Inner{f}{\phi_{i, j}}^2}{\left(\lambda_i + \lambda_j\right)^2}
       \leq
-      \frac{1}{\left(2\lambda_n\right)^2}\norm{f}^2
+      \frac{\norm{f}^2}{\left(2\lambda_n\right)^2}
   \]
   and
 \[
     \norm{e}_1^2 = \sum\limits_{i, j = n, n}^{\infty,
     \infty}\frac{\Inner{f}{\phi_{i, j}}^2}{\left(\lambda_i + \lambda_j\right)}
       \leq
-      \frac{1}{\left(2\lambda_n\right)}\norm{f}^2
+      \frac{\norm{f}^2}{2\lambda_n}
   \]
-  We thus have $\norm{e}\leq\frac{1}{\left(2\pi + 2n\pi\right)^2}\norm{f}$ and
-  $\norm{e}_1\leq\frac{1}{2\pi + 2n\pi}\norm{f}$.
+  We thus have $\norm{e}\leq\frac{2\norm{f}}{\left(\pi + n\pi\right)^2}$ and
+  $\norm{e}_1\leq\frac{\sqrt{2}\norm{f}}{\pi + n\pi}$.
 
   The estimates were tested by a convergence study with the exact solution
   of \ref{eq:poisson_strong_2} given as $u=(x^2 - 1)e^x(y^2 - 1)$. We note that
   as for the one dimensional Poisson problem theoretical estimates seem to
-  overestimate the numerical rates.
+  slightly overestimate the numerical rates.
 
   \begin{table}
     \centering
     \begin{tabular}{|c|c|c|c||c|c|c|}
     \hline
-    & \multicolumn{3}{ c|| }{$L^2$} & \multicolumn{3}{c|}{$H^1$}\\
-    \hline
-      $n$ & $e$ & $p$ & $E$ & $e$ & $p$ & $E$\\
+    $n$ & $\norm{e}$ & $p$ & $E$ & $\norm{e}_1$ & $p$ & $E$\\
       \hline
       3 & 7.82E-02 & 1.75 & 1E-21 & 5.87E-01 & 1.07 & 1E-19\\
       4 & 4.24E-02 & 2.12 & 1E-18 & 4.04E-01 & 1.30 & 1E-33\\
@@ -613,13 +637,116 @@ $n$ & $e$ & $p$ & $E$ & $e$ & $p$ & $E$ & $e$ & $p$ & $E$\\
     \end{tabular}
     \label{tab:eig_p_2d}
     \caption{Convergence rate of the Fourier-Galerkin method for two dimensional
-    Poisson problem. For each norm we list as $e$ the magnitude of error,
-    $p$ the convergence rate while $E$ is the estimate of the quadrature error
-    in the computation of $e$ provided by SymPy's {\tt{quad}} function. The last
-    row in the table has the estimate for the rate obtained by least-squares fit.}
+    Poisson problem. We list the magnitude of the error and the convergence
+    exponent in both the $L^2$ and energy norms. The column $E$ is the estimate
+    of the quadrature error in the computation of the error provided by SymPy's
+    {\tt{quad}} function. The last row in the table has the estimate for the
+    convergence exponent obtained by the least-squares fit.}
   \end{table}
 
   \subsection{Two dimensional biharmonic problem}
+  Finally, we would like to find a solution to the two dimensional biharmonic
+  problem
+  \begin{equation}
+  \label{eq:bih_strong_2}
+  \begin{aligned}
+    \Delta^2 u &= f\,\text{ in }\mathcal{P},\\
+            u &= 0\,\text{ on }\partial\mathcal{P},\\
+    \Delta u &= 0\,\text{ on }\partial\mathcal{P}.
+  \end{aligned}
+  \end{equation}
+  whose weak formulation reads: Find $u\in V\defeq\left\{v\in
+    H^2\left(\mathcal{P}\right), v=\Delta{v}=0\text{ on
+}\partial\mathcal{P}\right\}$ such that 
+  \begin{equation}
+  \label{eq:bih_weak_2}
+  \Inner{\Delta u}{\Delta v} = \Inner{f}{v}\,\forall v \in V.
+  \end{equation}
+  Since the biharmonic operator in (\ref{eq:bih_strong_2}) is a square of the
+  Laplace operator in (\ref{eq:poisson_strong_2}), we observe that $\phi_{i, j}$
+  is also a solution of
+  \[
+  \begin{aligned}
+    \Delta^2 u &= \lambda u \,\text{ in }\mathcal{P},\\
+            u &= 0\,\text{ on }\partial\mathcal{P},\\
+    \Delta u &= 0\,\text{ on }\partial\mathcal{P}
+  \end{aligned}
+  \]
+  with the eigenvalue $\lambda_{i, j} = \alpha_i^4 + 2\alpha_i\alpha_j +
+  \alpha_j^4$, i.e. the eigenvalues are simply the squares of the
+  eigenvalues of the Laplace operator.
+
+    Setting $V_n=\spn\left\{\phi_{i, j}\right\}_{i, j = 0, 0}^{n-1, n-1}$ we have
+  that the expansion coefficients of the approximate solution $u_n$ of (\ref{eq:bih_weak_2})
+  on $V_n$ are obtained from the system
+  \begin{equation}
+    \label{eq:b_sys}
+    \Lambda^2\mathbb{U} + 2\Lambda\mathbb{U}\Lambda + \mathbb{U}\Lambda^2 = \mathbb{B},
+  \end{equation}
+  where the diagonal matrix $\Lambda$ has $\Lambda_{i, i}=\alpha_i^2$. The
+  solution to the system is easily found to be
+  \[
+    \mathbb{U}_{i, j} = \frac{\mathbb{B}_{i, j}}{\alpha_i^4 +
+    2\alpha_i^2\alpha_j^2 + \alpha_j^4}.
+  \]
+  As in the case of two dimensional Laplacian, we shall compare system
+  (\ref{eq:b_sys}) to the system obtained with the Galerkin method and a
+  subspace $V_n$ constructed from functions which in general are not the
+  eigenfunction of the biharmonic operator. The expansion coefficients of
+  the solution $u_n$ are then coming from the system
+  \[
+    \tilde{\mathbb{C}}\mathbb{U}\tilde{\mathbb{M}} +
+    \tilde{\mathbb{A}}\mathbb{U}\tilde{\mathbb{A}} +
+    \tilde{\mathbb{M}}\mathbb{U}\tilde{\mathbb{C}} =
+    \tilde{\mathbb{B}},
+  \]
+  where we have reused $\tilde{\mathbb{M}}, \tilde{\mathbb{A}}$ to denote
+  respectively the matrix of the one-dimensional identity and Laplace operators
+  with respect to the basis, while $\tilde{\mathbb{C}}$ is the matrix of the one
+  dimension biharmonic operator. To solve the system by a fast tensor product
+  method, we first find the eigenvalues and eigenvectors of the problem 
+  $\tilde{\mathbb{C}}q=\tilde{\lambda}^2\tilde{\mathbb{M}}q$ and transform the
+  system into 
+  \begin{equation}
+    \label{eq:b_sys_2}
+    \tilde{\Lambda}^2\mathbb{U}^{\prime} +
+    \left(\mathbb{Q}^{\text{T}}\tilde{\mathbb{A}}\mathbb{Q}\right)\mathbb{U}^{\prime}
+\left(\mathbb{Q}^{\text{T}}\tilde{\mathbb{A}}\mathbb{Q}\right) + 
+    \mathbb{U}^{\prime}\tilde{\Lambda}^2 =
+    \mathbb{Q}^T\tilde{\mathbb{B}}\mathbb{Q}.
+  \end{equation} 
+  The cost of the solution of (\ref{eq:b_sys_2}) then hinges on whether
+  $\mathbb{Q}$ are also the eigenvectors of
+  $\tilde{\mathbb{A}}q=\beta\tilde{\mathbb{M}}q$.
+  If matrices $\tilde{\mathbb{A}}, \tilde{\mathbb{C}}$ share the eigenvectors,
+  then the system is cheap to solve. However this is typically not the case.
+  With $V_n$ constructed from eigenfunctions $\phi_{i, j}$ we get 
+  $\tilde{\mathbb{A}}\mathbb{Q}=\tilde{\mathbb{M}}\mathbb{Q}\tilde{\Lambda}$ while
+  $\tilde{\mathbb{C}}\mathbb{Q}=\tilde{\mathbb{M}}\mathbb{Q}\tilde{\Lambda}^2$
+  and plugging into (\ref{eq:b_sys_2}) we see that the system is in fact the
+  assembled system (\ref{eq:b_sys}).
+
+  Convergence estimates for the method are based on the expression for the error
+  $e_n=u-u_n$ which reads
+  \[
+    e_n = \sum\limits_{i, j = n, n}^{\infty, \infty} \frac{\Inner{\phi_{i,
+    j}}{f}}{\alpha_i^4 + 2\alpha_i^2\alpha_j^2 + \alpha_j^4}\phi_{i, j}.
+  \]
+  Using ideas from the previous sections we get the upper estimate for the error
+  in $L^2$ norm
+  as
+  \[
+    \norm{e} \leq \frac{4\norm{f}}{\left(\pi + n\pi \right)^4}.
+  \]
+  The error estimates in $H^1$ and $H^2$ seminorms are then given as 
+  as
+  \[
+    \norm{e}_1 \leq \frac{2\sqrt{2}\norm{f}}{\left(\pi + n\pi \right)^3}
+  \]
+  and
+  \[
+    \norm{e}_2 \leq \frac{2\norm{f}}{\left(\pi + n\pi \right)^2}.
+  \]
   % Finally beharmonic operator section should follow same straucture
   % results as plot
   % We have method for physics of plate problems.
