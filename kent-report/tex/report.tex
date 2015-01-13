@@ -57,7 +57,7 @@
 \newcommand{\Inner}[2]{\ensuremath{\left(\left(#1, #2\right)\right)}}
 
 \newcommand{\deriv}[2]{\ensuremath{\frac{\mathrm{d}#1}{\mathrm{d}#2}}}
-\newcommand{\meas}[1]{\ensuremath{\mathrm{d}\, #1}}
+\newcommand{\meas}[1]{\ensuremath{\,\mathrm{d}#1}}
 \newcommand{\Div}[1] {\ensuremath{\text{div}#1}}
 \newcommand{\Grad}[1]{\ensuremath{\text{grad}#1}}
 \newcommand{\Curl}[1]{\ensuremath{\text{curl}#1}}
@@ -136,7 +136,7 @@
 \end{abstract}
 
 \section{Introduction}
-  We consider $\mathcal{P}=\left[-1, 1\right]^2$ and refer to this domain as
+  /We consider $\mathcal{P}=\left[-1, 1\right]^2$ and refer to this domain as
   plate. To define $\mathcal{B}$ we let
   $\vec{\chi}, \vec{\chi}:\left[-1, 1\right]\mapsto\mathcal{P}$, denote some
   invertible mapping from the bi-unit interval onto the plate. Then
@@ -154,7 +154,7 @@
   \begin{equation}
     \label{eq:energy}
     \begin{aligned}
-      E(v, q) &= \Ep(v, v) + \Eb(q, q) - \int_{\mathcal{P}}f v d\vec{x}, \\
+      E(v, q) &= \Ep(v, v) + \Eb(q, q) - \int_{\mathcal{P}}f v \meas{x}\meas{y}, \\
       \text{subject to the constraint}&\\
       T(v) &= q\text{ on }\mathcal{B},
     \end{aligned}
@@ -169,8 +169,8 @@
   optimization setting, where we extremize Lagrangian
   \begin{equation}
     \label{eq:lagrangian}
-    L(v, q, \mu) = \Ep(v, v) + \Eb(q, q) - \int_{\mathcal{P}}f u d\vec{x} -
-  \int_{\mathcal{B}}(T(v) - q)\mu d\vec{x}.
+    L(v, q, \mu) = \Ep(v, v) + \Eb(q, q) - \int_{\mathcal{P}}f u \meas{x}\meas{y} -
+    \int_{\mathcal{B}}(T(v) - q)\mu \meas{x}.
   \end{equation}
   Here, the function $\mu$, $\mu\in Q$, is an unknown Lagrange multiplier
   and the function space $Q$ has functions that map the beam to real scalars.
@@ -182,9 +182,10 @@
  \begin{equation}
     \label{eq:system}
     \begin{aligned}
-      \Ep(u, v) - \int_{\mathcal{B}}T(v)\lambda d\vec{x} &= \int_{\mathcal{P}}fvd\vec{x}, \\
-      \Eb(p, q) - \int_{\mathcal{B}}q\lambda d\vec{x} &= 0, \\
-      \int_{\mathcal{B}}(T(u)-p)\mu d\vec{x} &= 0.
+      \Ep(u, v) - \int_{\mathcal{B}}T(v)\lambda\meas{x} &=
+      \int_{\mathcal{P}}fv\meas{x}\meas{y}, \\
+      \Eb(p, q) - \int_{\mathcal{B}}q\lambda\meas{x} &= 0, \\
+      \int_{\mathcal{B}}(T(u)-p)\mu\meas{x}\meas{y} &= 0.
     \end{aligned}
   \end{equation}
   System (\ref{eq:system}) has a unique solution provided that the
@@ -262,12 +263,21 @@
   \[
     \delta = \sum_{k=0}^{\infty} \lambda_k \phi_k \otimes \phi_k.
   \]
-  Operator $\delta^{-1}$,
-  \begin{equation}
-    \label{eq:delta_inv}
-    \delta^{-1} = \sum_{k=0}^{\infty} \frac{1}{\lambda_k} \phi_k \otimes \phi_k,
-  \end{equation}
-  is the inverse of $\delta$. As we know the inverse we can immediately get a
+  Next we consider operator $\gamma$
+  \[
+    \gamma = \sum_{l=0}^{\infty} \frac{1}{\lambda_l} \phi_l \otimes \phi_l
+  \]
+  and observe that for $v\in V$
+  \[
+    \gamma\left(\delta v \right) = 
+    \sum_{l=0}^{\infty} \frac{1}{\lambda_l}
+    \inner{\phi_l}{\sum_{k=0}^{\infty} \lambda_k\inner{\phi_k}{v}\phi_k}\phi_l=
+    \sum_{l=0}^{\infty}\sum_{k=0}^{\infty}\inner{v}{\phi_k}\inner{\phi_k}{\phi_l}\frac{\lambda_k}{\lambda_l}\phi_l =
+    \sum_{l=0}^{\infty}\inner{v}{\phi_l}\phi_l = 
+    v.
+  \] 
+  Similarly $\delta\left(\gamma v\right)=v$. We thus have that have $\gamma$ is
+  the inverse of $\delta$. As we know the inverse we can immediately get a 
   solution to the Poisson equation
   \begin{equation}
   \label{eq:poisson_strong_1}
@@ -426,12 +436,12 @@
   We have $\norm{e}$ decreasing as $\mathcal{O}(n^{-4})$. Since each
   differentiation of the eigenfunction  $\phi_k$ produces a factor $\alpha_k$
   we get the estimates of the error in 
-  $H^1$ and $H^2$ seminorms (note that the latter defines a norm on $V$) as
+  $H^1$ and $H^2$ seminorms as
   \begin{align*}
     \seminorm{e_n}_1 &\leq \frac{1}{\alpha^3_n}\norm{f} = \frac{2^3}{\left(\pi + n\pi\right)^3}, \\
-    \norm{e_n}_2 &\leq \frac{1}{\alpha^2_n}\norm{f} = \frac{2^2}{\left(\pi + n\pi\right)^2}.
+    \seminorm{e_n}_2 &\leq \frac{1}{\alpha^2_n}\norm{f} = \frac{2^2}{\left(\pi + n\pi\right)^2}.
   \end{align*}
-  The errors in the respected (semi)norms should therefore behave as
+  The errors in the respected seminorms should therefore behave as
   $n^{-3}$ and $n^{-2}$.
     
   Table \ref{tab:eig_b_1d} shows results from the convergence study we run to
@@ -444,7 +454,7 @@
     \centering
     \begin{tabular}{|c|c|c|c||c|c|c||c|c|c|}
     \hline
-    $n$ & $\norm{e}$ & $p$ & $E$ & $\seminorm{e}_1$ & $p$ & $E$ & $\norm{e}_2$ & $p$ & $E$\\
+    $n$ & $\norm{e}$ & $p$ & $E$ & $\seminorm{e}_1$ & $p$ & $E$ & $\seminorm{e}_2$ & $p$ & $E$\\
 \hline
 3 & 3.08E-04 & 2.68 & 1E-27 & 2.00E-03 & 2.01 & 1E-25 & 1.33E-02 & 1.37 & 1E-25\\
 4 & 8.63E-05 & 4.42 & 1E-21 & 7.28E-04 & 3.50 & 1E-19 & 6.41E-03 & 2.54 & 1E-21\\
@@ -741,11 +751,11 @@
   The error estimates in $H^1$ and $H^2$ seminorms are then given as 
   as
   \[
-    \norm{e}_1 \leq \frac{2\sqrt{2}\norm{f}}{\left(\pi + n\pi \right)^3}
+    \seminorm{e}_1 \leq \frac{2\sqrt{2}\norm{f}}{\left(\pi + n\pi \right)^3}
   \]
   and
   \[
-    \norm{e}_2 \leq \frac{2\norm{f}}{\left(\pi + n\pi \right)^2}.
+    \seminorm{e}_2 \leq \frac{2\norm{f}}{\left(\pi + n\pi \right)^2}.
   \]
   % Finally beharmonic operator section should follow same straucture
   % results as plot
