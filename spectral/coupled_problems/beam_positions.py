@@ -13,7 +13,7 @@ solvers = {'laplace': solve_laplace,
            'biharmonic': solve_biharmonic,
            'laplace_leg': solve_laplace_leg}
 
-operator = 'laplace_leg'
+operator = 'laplace'
 # Norm to consider with Schur
 fractions = np.array([0., 0.5, 1.])
 # Norm in which C*Schur has constant eigenvalues
@@ -74,7 +74,7 @@ for i, (A, B) in enumerate(product(As, Bs)):
     ax.set_yticklabels([])
 
 fig.subplots_adjust(hspace=0, wspace=0)
-fig.savefig('%s/%s_positions.pdf' % (results_dir, operator))
+# fig.savefig('%s/%s_positions.pdf' % (results_dir, operator))
 
 # Plot the eigenvalues of fixed A, that is each n_cols, into tiled plot
 # The number of rows and cols in this plots N_rows, N_cols
