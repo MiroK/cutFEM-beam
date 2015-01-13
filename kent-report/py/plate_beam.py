@@ -48,7 +48,7 @@ class Beam(object):
         for i in range(d):
             Jac += chi[i].diff(s, 1)**2
         Jac = sqrt(Jac)
-        # At least some Jac for degeneracy
+        # At least some Jac check for degeneracy
         assert all(Jac.subs(s, val) > 0 for val in np.linspace(-1, 1, 20))
         self.Jac = Jac
 
