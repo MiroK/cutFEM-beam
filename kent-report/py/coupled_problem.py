@@ -178,6 +178,31 @@ class CoupledProblem(object):
 
         return system
 
+    def preconditioner(self, blocks):
+        'Assemble preconditioner from 9 blocks in 3x3 structure'
+        # Make sure we have all blocks
+        assert len(blocks) == 3 and all(len(row) == 3 for row in blocks)
+        # Assemble the preconditioner
+        P = np.zeros((self.m + self.n + self.r, self.m + self.n + self.r))
+        # Block are expected to have sizes[i, j] - if they fail the assignment
+        # will raise. Zero block are auto expanded
+        # Loop up table for sizes
+        sizes = (self.m, self.n, self.r)
+
+        for i, row in enumerate(blocks):
+            # Where the block goes row-wise
+            block_row_start = sum(sizes[:i])
+            block_row_stop = block_row_start + sizes[i]
+            for j, block in enumerate(row):
+                # Where the block goes column-wise
+                block_col_start = sum(sizes[:j])
+                block_col_stop = block_col_start + sizes[j]
+
+                P[block_row_start:block_row_stop,
+                  block_col_start:block_col_stop] = block
+
+        return P
+
     def solve(self, f, as_sym=True):
         '''
         Solve the problem system_matrix.[[U, P, lmbda]].T = [[F, 0, 0]].T with
