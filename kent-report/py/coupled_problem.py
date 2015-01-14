@@ -1,6 +1,6 @@
 import numpy as np
 import numpy.linalg as la
-from trace import TraceOperator
+from trace_operator import TraceOperator
 from sympy import symbols, lambdify, S
 from sympy.mpmath import quad
 from itertools import product
