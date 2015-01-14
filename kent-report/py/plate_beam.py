@@ -1,5 +1,5 @@
 from __future__ import division
-from sympy import lambdify, symbols, sqrt
+from sympy import lambdify, symbols, sqrt, Number
 from sympy.mpmath import quad
 from itertools import product
 import numpy as np
@@ -55,9 +55,11 @@ class Beam(object):
     def inner_product(self, u, v):
         '''
         Inner product over beam. Functions must be symbolic functions of
-        parameter s
+        parameter s or numbers. The latter happens with restrictions sometimes.
         '''
-        assert s in u.atoms() and s in v.atoms()
+        assert isinstance(u, Number) or s in u.atoms()
+        assert isinstance(v, Number) or s in v.atoms()
+
         u = lambdify(s, u)
         v = lambdify(s, v)
         J = lambdify(s, self.Jac)
