@@ -5,6 +5,7 @@ import shen_poisson
 from sympy import symbols
 from math import pi
 import numpy as np
+import numpy.linalg as la
 
 x, y, s = symbols('x, y, s')
 
@@ -97,6 +98,33 @@ class CoupledLaplace(CoupledProblem):
             C  = CoupledProblem.C_matrix(self, norm)
 
         return C
+
+def shen_laplace_Pblocks0(problem):
+    'Something that might work as a preconditioner for CoupledLaplace problem'
+    # Put inverses of Ap, Ab, H^0 on the diagonal
+    Ap = la.inv(problem.Ap_matrix())
+    Ab = la.inv(problem.Ab_matrix())
+    D = problem.C_matrix(0)
+
+    blocks = [[Ap, 0, 0],
+              [0, Ab, 0],
+              [0, 0, D]]
+
+    return blocks
+
+
+def shen_laplace_Pblocks1(problem):
+    'Something that might work as a preconditioner for CoupledLaplace problem'
+    # Put inverses of Ap, Ab, H^1 on the diagonal
+    Ap = la.inv(problem.Ap_matrix())
+    Ab = la.inv(problem.Ab_matrix())
+    D = problem.C_matrix(1)
+
+    blocks = [[Ap, 0, 0],
+              [0, Ab, 0],
+              [0, 0, D]]
+
+    return blocks
 
 # -----------------------------------------------------------------------------
 

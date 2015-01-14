@@ -4,8 +4,9 @@ from eigen_basis import eigen_basis
 import eigen_poisson
 import eigen_biharmonic
 from sympy import symbols
-from math import pi
+from math import pi, sqrt
 import numpy as np
+import numpy.linalg as la
 
 x, y, s = symbols('x, y, s')
 
@@ -39,26 +40,27 @@ class CoupledEigen(CoupledProblem):
             Bb *= float(self.beam.Jac)
         # Otherwise use integration
         else:
-            Bp = CoupledProblem.Bb_matrix(self)
-
+            Bb = CoupledProblem.Bb_matrix(self)
         return Bb
 
     def C_matrix(self, norm):
         'H^norm matrices of Q'
         if isinstance(self.beam, LineBeam):
             # These are eigenvalues of u''
-            diag = np.array([(pi/2 + k*pi/2)**2 for k in range(self.r)])
+            diag = np.array([(pi/2 + k*pi/2)**2 for k in range(self.r)],
+                            dtype='float')
             # Matrix has their power on the diagonal
             C = np.diag(diag**norm)
             # Scale the jacobian according to norm
             J = self.beam.Jac   
             J = J**(1-2*norm)
-            C *= J
+            C *= float(J)
         else:
             C  = CoupledProblem.C_matrix(self, norm)
 
         return C
 
+# -----------------------------------------------------------------------------
 
 class CoupledLaplace(CoupledEigen):
     'Physics of both beam and plate are due to Laplacian.'
@@ -94,7 +96,7 @@ class CoupledLaplace(CoupledEigen):
             J = self.beam.Jac
             for i, p in enumerate(self.Vb):
                 Ab[i, i] = self.beam.inner_product(p/J**2, p)
-                for j, q in enumerate(self.Vb[i+1], i+1):
+                for j, q in enumerate(self.Vb[(i+1):], i+1):
                     Ab[i, j] = self.beam.inner_product(p/J**2, q)
                     Ab[j, i] = Ab[i, j]
 
@@ -103,6 +105,35 @@ class CoupledLaplace(CoupledEigen):
         Ab *= E
         return Ab
 
+
+def eigen_laplace_Pblocks01(problem):
+    'Something that might work as a preconditioner for CoupledLaplace problem'
+    # Put inverses of Ap, Ab, H^0.5 on the diagonal
+    Ap = la.inv(problem.Ap_matrix())
+    Ab = la.inv(problem.Ab_matrix())
+    D = problem.C_matrix(0.5)
+
+    blocks = [[Ap, 0, 0],
+              [0, Ab, 0],
+              [0, 0, D]]
+
+    return blocks
+
+
+def eigen_laplace_Pblocks1(problem):
+    'Something that might work as a preconditioner for CoupledLaplace problem'
+    # Put inverses of Ap, Ab, H^1 on the diagonal
+    Ap = la.inv(problem.Ap_matrix())
+    Ab = la.inv(problem.Ab_matrix())
+    D = problem.C_matrix(1)
+
+    blocks = [[Ap, 0, 0],
+              [0, Ab, 0],
+              [0, 0, D]]
+
+    return blocks
+
+# -----------------------------------------------------------------------------
 
 class CoupledBiharmonic(CoupledEigen):
     'Physics of both beam and plate are due to biharmonic operator.'
@@ -117,7 +148,7 @@ class CoupledBiharmonic(CoupledEigen):
         M = eigen_poisson.mass_matrix(m_1d)
         A = eigen_poisson.laplacian_matrix(m_1d)
         B = eigen_biharmonic.biharmonic_matrix(m_1d)
-        Ap = np.kron(B, M) + 2*np.kron(C, C) + np.kron(M, B)
+        Ap = np.kron(B, M) + 2*np.kron(A, A) + np.kron(M, B)
 
         # Don't forget mat. props
         E = self.params['plate_E']
@@ -140,7 +171,7 @@ class CoupledBiharmonic(CoupledEigen):
             J = self.beam.Jac
             for i, p in enumerate(self.Vb):
                 Ab[i, i] = self.beam.inner_product(p/J**4, p)
-                for j, q in enumerate(self.Vb[i+1], i+1):
+                for j, q in enumerate(self.Vb[(i+1):], i+1):
                     Ab[i, j] = self.beam.inner_product(p/J**4, q)
                     Ab[j, i] = Ab[i, j]
 
@@ -156,18 +187,42 @@ if __name__ == '__main__':
     from itertools import product
     from sympy.mpmath import quad
     import numpy.linalg as la
-    from sympy import S, lambdify, simplify
+    from sympy import S, lambdify, simplify, cos, pi, sin, integrate
+    from plate_beam import Beam
+
+    # This is just for fun - a curved beam
+    if False:
+        # Something more exotic
+        chi = (-1 + 2*cos(pi*(s+1)/4), -1 + 2*sin(pi*(s+1)/4))
+        beam = Beam(chi)
+        params = {'plate_E': 1.,
+                  'beam_E': 40.}
+        # Spaces and solver
+        solver = CoupledLaplace(ms=[8, 8], n=8, r=8, beam=beam, params=params)
+
+        x, y, s = symbols('x, y, s')
+        # Define problem
+        # Force
+        f = S(1)
+
+        # Solve
+        u, p, lmbda = solver.solve(f, as_sym=True)
+
+        # Plot
+        # Plate displacement
+        plot3d(u, (x, -1, 1), (y, -1, 1), xlabel='$x$', ylabel='$y$',
+            title='Plate deflection')
 
     # Beam
     A = np.array([-1., -1.])
     B = np.array([0., 1.])
     beam = LineBeam(A, B)
     # Material
-    params = {'plate_E': 1.,
+    params = {'plate_E': 2.,
               'beam_E': 10.}
 
     #---------------------------LAPLACIAN TESTS--------------------------------
-    if False:
+    if True:
         # Check the matrices, [OK]
         if False:
             solver = CoupledLaplace(ms=[2, 2], n=2, r=2, beam=beam,
@@ -295,20 +350,16 @@ if __name__ == '__main__':
                 print 'S', la.cond(S),
 
                 # Make preconditioner, just an example
-                A0 = la.inv(solver.Ap_matrix())  # Precond for A0
-                A1 = la.inv(solver.Ab_matrix())  # Precond for A1
-                D = solver.C_matrix(0.5)         # Precond for zero block
+                blocks = eigen_laplace_Pblocks(solver)
                 # These block go into the diagonal
-                P = solver.preconditioner([[A0, 0, 0], 
-                                           [0, A1, 0],
-                                           [0, 0, D]])
+                P = solver.preconditioner(blocks)
                 SP = P.dot(S)
                 print 'SP', la.cond(SP)
 
     # --------------------------- BIHARMONIC TESTS-----------------------------
 
-    if True:
-        if True:
+    if False:
+        if False:
             solver = CoupledBiharmonic(ms=[2, 2], n=2, r=2, beam=beam,
                                        params=params)
 
@@ -360,7 +411,7 @@ if __name__ == '__main__':
                     for j, mu in enumerate(Q):
                         u = lambdify(s, lmbda.diff(s, norm))
                         v = lambdify(s, mu.diff(s, norm))
-                        C[i, j] = quad(lambda s: v(s)*u(s), [-1, 1])
+                        C[i, j] = float(quad(lambda s: v(s)*u(s), [-1, 1]))
 
                 C *= (L/2.)**(1-2*norm)
                 assert np.allclose(C, solver.C_matrix(norm), 1E-13)
@@ -375,15 +426,81 @@ if __name__ == '__main__':
                                eigen_poisson.mass_matrix(len(Q))*L/2., 1E-13)
             print 'OK'
 
+            # Check if biharmonic Ap_matrix is correct
+            m = int(sqrt(solver.m))
+            C_eigenvalues = np.array([(pi/2 + k*pi/2)**2
+                                      for k in range(m)], dtype='float')
+            # Eigenvalues of biharmonic operator
+            A_eigenvalues = C_eigenvalues**2
+            # Diagonal
+            Ap = np.array([(A_eigenvalues[i] + \
+                             2*C_eigenvalues[i]*C_eigenvalues[j] + \
+                             A_eigenvalues[j])
+                             for j in range(m)
+                            for i in range(m)])
+            Ap = np.diag(Ap)*params['plate_E']
+            assert np.allclose(Ap, solver.Ap_matrix(), 1E-13)
+            print 'OK'
+
             # Plate physics
             Ap = np.zeros((4, 4))
-            for i, v in enumerate(Vp):
-                for j, u in enumerate(Vp):
+            for i, u in enumerate(Vp):
+                for j, v in enumerate(Vp):
                     ddu = u.diff(x, 2) + u.diff(y, 2)
                     ddv = v.diff(x, 2) + v.diff(y, 2)
                     term = ddu * ddv
-                    Ap[i, j] = E*quad(lambdify([x, y], term), [-1, 1], [-1, 1])
-            print Ap - solver.Ap_matrix()
-            assert np.allclose(Ap, solver.Ap_matrix(), 1E-13)
-            # TODO, the last test fails!
+                    # print simplify(term),
+                    # print float(integrate(integrate(term, (x, -1, 1)), (y, -1, 1))),
+                    val = quad(lambdify([x, y], term), [-1, 1], [-1, 1])
+                    # print val
+                    Ap[i, j] = val
+            Ap *= params['plate_E']
+            assert np.allclose(Ap, solver.Ap_matrix(), 1E-12)
             print 'OK'
+
+        # Solve the system with some f, seems [OK]
+        if False: 
+            A = np.array([0.5, -1.])
+            B = np.array([0., 1.])
+            beam = LineBeam(A, B)
+
+            params = {'plate_E': 1, 'beam_E': 100}
+
+            # Spaces and solver
+            solver = CoupledBiharmonic(ms=[8, 8], n=8, r=8,
+                                       beam=beam, params=params)
+
+            x, y, s = symbols('x, y, s')
+            # Define problem
+            # Force
+            f = S(1)
+
+            # Solve
+            u, p, lmbda = solver.solve(f, as_sym=True)
+
+            # Plot
+            # Plate displacement
+            plot3d(u, (x, -1, 1), (y, -1, 1), xlabel='$x$', ylabel='$y$',
+                title='Plate deflection')
+            # Displacement of beam and plate on the beam
+            u_beam = beam.restrict(u)
+            plot(p - u_beam, (s, -1, 1), xlabel='$s$',
+                 title='Beam deflection - plate deflection on the beam')
+            # Lagrange multiplier
+            plot(lmbda, (s, -1, 1), xlabel='$s$',
+                 title='Lagrange multiplier')
+
+        if True:
+            # For different n, let's see about the eigenvalues of Schur
+            for n in range(2, 16):
+                solver = CoupledBiharmonic(ms=[n, n], n=n, r=n,
+                                           beam=beam, params=params)
+            
+                norms = [None, 0, 0.5, 1, 1.5, 2]
+                matrices = solver.schur_complement_matrix(norms=norms)
+                print n,
+                for mat in matrices:
+                    eigenvalues = la.eigvals(mat)
+                    eigenv_min = np.min(eigenvalues[-1])
+                    print eigenv_min,
+                print

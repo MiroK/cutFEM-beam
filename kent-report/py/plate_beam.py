@@ -83,6 +83,8 @@ class Beam(object):
         points = np.array([list(chi(val))
                             for val in np.linspace(-1, 1, n_points)])
         ax.plot(points[:, 0], points[:, 1])
+        ax.set_xlim(-1, 1)
+        ax.set_ylim(-1, 1)
         ax.set_axes('equal')
         return fig
 
