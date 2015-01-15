@@ -144,6 +144,7 @@ def test_coupled_problem(params):
     pickle.dump(data, open(pickle_name, 'wb'))
 
     # Make loading easier
+    print '\n pickling', pickle_name
     return pickle_name
 
 
@@ -201,32 +202,54 @@ def as_plot(ns, beam_data, line_styles, markers, labels, colors, ylabel):
 
 if __name__ == '__main__':
     # Problem
-    import coupled_eigen 
-    import coupled_shen 
-    # Preconditioners
-    from coupled_eigen import eigen_laplace_Pblocks01, eigen_laplace_Pblocks1
-    from coupled_shen import shen_laplace_Pblocks0, shen_laplace_Pblocks1
-    import matplotlib.pyplot as plt
+    from coupled_eigen_laplace import CoupledEigenLaplace
+    from coupled_shen_laplace import CoupledShenLaplace 
     from plate_beam import LineBeam
+    # Preconditioners
+    from coupled_eigen_laplace import eigen_laplace_Pblocks01,\
+            eigen_laplace_Pblocks1
+    from coupled_shen_laplace import shen_laplace_Pblocks0,\
+            shen_laplace_Pblocks1
+    # Postproc
+    import matplotlib.pyplot as plt
 
+    # Some beam positions
     A_pos = lambda t: [-1+t, -1]
     B_pos = lambda t: [t, 1]
     ts = [0, 1]
     beams = [LineBeam(A_pos(tA), B_pos(tB)) for tA, tB in product(ts, ts)][:1]
 
-    params = {'problem': coupled_shen.CoupledLaplace,
-              'beam_list': beams,
+    # Shen and Eigen are bit different: norms, preconditioners, ...
+    # Common stuff
+    params = {'beam_list': beams,
               'materials': {'plate_E': 1, 'beam_E': 20},
               'rule': NRule('all_equal', lambda N: ([N, N], N, N)),
               'N_list': range(2, 8),
-              'norms': [None, 0, 1],
-              'Pblocks': [shen_laplace_Pblocks0,
-                          shen_laplace_Pblocks1],
               'postfix': 'test'}
+    # Unique eigen
+    params_eigen = {'problem': CoupledEigenLaplace,
+                    'norms': [None, 0, 0.5, 1],
+                    'Pblocks': [eigen_laplace_Pblocks01,
+                                eigen_laplace_Pblocks1]}
+    # Unique shen
+    params_shen = {'problem': CoupledShenLaplace,
+                    'norms': [None, 0, 1],
+                    'Pblocks': [shen_laplace_Pblocks0,
+                                shen_laplace_Pblocks1]}
+    # Combine
+    params_eigen.update(params)
+    params_shen.update(params)
 
-    #pickle_name = test_coupled_problem(params)
-    pickle_name = 'CoupledLaplace_all_equal_test.pickle'
+    pickle_name = test_coupled_problem(params_eigen)
+
+    exit()
+    #pickle_name = 'CoupledLaplace_all_equal_test.pickle'
     data = pickle.load(open(pickle_name, 'rb'))
+
+    # All markers, colors
+    all_markers = ['x', 'd', 's', 'o', 'v', '^', '+']
+    all_colors = ['b', 'g', 'r', 'k', 'c', 'm', 'y']
+
     # Plot 
     key = 'lmin_S'
     assert key in data
@@ -239,26 +262,25 @@ if __name__ == '__main__':
     # (i) ns vs lmin(PS), where P are due to norms
     # (ii) ns vs cond(PS), where P are due to norms
     # (iii) ns vs cond(A) and cond(Pa)
-    plot = '(i)'
+    plot = '(iii)'
 
-    if plot == '(i)':
-        beam_data = [data[keyl(norm)][beam] for norm in norms]
-        row_format = ['%d', '%.2E', '%.2E', '%.2E', '%.2E']
+    if plot in ('(i)', '(ii)'):
+        row_format = ['%d'] + ['%.2E'] * len(norms)
         header = ['$n$']+['$\mathbb{I}$']+['$H^{%g}$' % s for s in norms[1:]]
         line_styles = '--'
-        markers=['x', 'd', 'o', 's']
-        colors=['r', 'b', 'g', 'm']
+        markers = all_markers[:len(norms)]
+        colors = all_colors[:len(norms)]
         labels=header[1:]
-        ylabel='$\lambda_{\text{min}}$'
+        
+        if plot == '(i)':
+            beam_data = [data[keyl(norm)][beam] for norm in norms]
+            ylabel='$\lambda_{min}$'
+        else:
+            beam_data = [data[keyc(norm)][beam] for norm in norms]
+            ylabel='$\kappa$'
 
     elif plot == '(ii)':
         beam_data = [data[keyc(norm)][beam] for norm in norms]
-        row_format = ['%d', '%.2E', '%.2E', '%.2E', '%.2E']
-        header = ['$n$']+['$\mathbb{I}$']+['$H^{%g}$' % s for s in norms[1:]]
-        line_styles = '--'
-        markers=['x', 'd', 'o', 's']
-        colors=['r', 'b', 'g', 'm']
-        labels=header[1:]
         ylabel='$\kappa$'
 
     elif plot == '(iii)':
@@ -271,17 +293,16 @@ if __name__ == '__main__':
         labels=header[1:]
         ylabel='$\kappa$'
 
-        next_marker = iter(['d', 'o', 's'])
-        next_color = iter(['b', 'g', 'm'])
+        iter_markers = iter(all_markers)
+        iter_colors = iter(all_colors)
         for key in data:
             if key.startswith('cond_PA'):
                 beam_data.append(data[key][beam])
                 row_format.append('%.2E')
                 header.append(key)
-                markers.append(next_marker.next())
-                colors.append(next_color.next())
+                markers.append(iter_markers.next())
+                colors.append(iter_colors.next())
                 labels.append(key)
-
 
     as_tex_table(ns, beam_data, row_format, header)
     as_plot(ns, beam_data, line_styles, markers, labels, colors, ylabel)
