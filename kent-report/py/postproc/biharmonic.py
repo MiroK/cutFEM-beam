@@ -183,5 +183,17 @@ if __name__ == '__main__':
         merge_tables(files, rows, columns, row_format, header)
 
     if True:
-        biharmonic_2d()
+        #biharmonic_2d()
+        files = ['./results/eig_b_2d_1']
+        rows = [1, -4]
+        columns = [[0, 1, 2, 3, 4, 5, 6, 7, 8, 9]]
+        row_format = ['%d',
+                      '%.2E', '%.2f', '%1.0E',
+                      '%.2E', '%.2f', '%1.0E',
+                      '%.2E', '%.2f', '%1.0E']
+        header = [r'$n$',
+                r'$e$', r'$p$', r'$E$',
+                r'$e$', r'$p$', r'$E$',
+                r'$e$', r'$p$', r'$E$']
+        merge_tables(files, rows, columns, row_format, header)
 

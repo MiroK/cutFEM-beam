@@ -169,6 +169,7 @@ def as_tex_table(ns, beam_data, row_format, header):
         print (row_format % row) + r'\\'
     print r'\hline'
 
+
 def as_plot(ns, beam_data, line_styles, markers, labels, colors, ylabel):
     '''
     Make loglog plots ns vs. data. Each col in beam data has linestyle, marker,
@@ -198,6 +199,26 @@ def as_plot(ns, beam_data, line_styles, markers, labels, colors, ylabel):
     plt.xlabel('$n$')
     plt.show()
 
+
+def plot_beams(beams):
+    'Plots all the beams into one plot.'
+    n = int(np.sqrt(len(beams)))
+    assert n > 1
+    assert abs(n**2 - len(beams)) < 1E-14
+
+    fig, axarr = plt.subplots(n, n)
+    for i, beam in enumerate(beams):
+        row = i // n
+        col = i % n
+        ax = axarr[row, col]
+        # Beam knows how to plot itself
+        beam.plot(ax)
+        # Remove ticks
+        ax.set_xticklabels([])
+        ax.set_yticklabels([])
+
+    fig.subplots_adjust(hspace=0, wspace=0)
+
 # -----------------------------------------------------------------------------
 
 if __name__ == '__main__':
@@ -217,7 +238,9 @@ if __name__ == '__main__':
     A_pos = lambda t: [-1+t, -1]
     B_pos = lambda t: [t, 1]
     ts = [0, 1]
-    beams = [LineBeam(A_pos(tA), B_pos(tB)) for tA, tB in product(ts, ts)][:1]
+    beams = [LineBeam(A_pos(tA), B_pos(tB)) for tA, tB in product(ts, ts)]
+    # plot_beams(beams)
+    # plt.show()
 
     # Shen and Eigen are bit different: norms, preconditioners, ...
     # Common stuff
@@ -240,10 +263,8 @@ if __name__ == '__main__':
     params_eigen.update(params)
     params_shen.update(params)
 
-    pickle_name = test_coupled_problem(params_eigen)
-
-    exit()
-    #pickle_name = 'CoupledLaplace_all_equal_test.pickle'
+    #pickle_name = test_coupled_problem(params_eigen)
+    pickle_name = 'CoupledShenLaplace_all_equal_test.pickle'
     data = pickle.load(open(pickle_name, 'rb'))
 
     # All markers, colors
@@ -257,12 +278,12 @@ if __name__ == '__main__':
     norms = data['input']['norms']
 
     # Suppose a beam (beam position is given)
-    beam = 0
+    beam = 3
     # We definitely want plots showing  
     # (i) ns vs lmin(PS), where P are due to norms
     # (ii) ns vs cond(PS), where P are due to norms
     # (iii) ns vs cond(A) and cond(Pa)
-    plot = '(iii)'
+    plot = '(i)'
 
     if plot in ('(i)', '(ii)'):
         row_format = ['%d'] + ['%.2E'] * len(norms)

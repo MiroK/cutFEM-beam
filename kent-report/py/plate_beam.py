@@ -3,7 +3,6 @@ from sympy import lambdify, symbols, sqrt, Number
 from sympy.mpmath import quad
 from itertools import product
 import numpy as np
-import matplotlib.pyplot as plt
 
 '''
 Given a mapping \chi, \chi : [-1, 1] -> [-1, 1]^d we all (generalized) beam
@@ -71,22 +70,17 @@ class Beam(object):
         return u.subs({(var, self.chi[i])
                         for i, var in enumerate(xyz[:self.d])})
 
-    def plot(self, n_points=100, fig=None):
+    def plot(self, ax, n_points=100):
         'Plot beam embedded in 2d plate'
         assert self.d == 2
 
         chi = lambdify(s, self.chi)
         
-        if fig is None:
-            fig = plt.figure()
-        ax = fig.gca()
         points = np.array([list(chi(val))
                             for val in np.linspace(-1, 1, n_points)])
         ax.plot(points[:, 0], points[:, 1])
         ax.set_xlim(-1, 1)
         ax.set_ylim(-1, 1)
-        ax.set_axes('equal')
-        return fig
 
 
 class LineBeam(Beam):
@@ -117,6 +111,8 @@ class LineBeam(Beam):
 # ----------------------------------------------------------------------------- 
 
 if __name__ == '__main__':
+    import matplotlib.pyplot as plt
+
     # 1d
     pts = [[-1], [0.5], [1]]
     vals = True, False, True
@@ -155,11 +151,13 @@ if __name__ == '__main__':
     all(abs(chi(val)[0] - chi(val)[1]) < 1E-13
             for val in np.linspace(-1, 1, 100))
 
-    fig0 = beam.plot()
+    fig = plt.figure()
+    ax = fig.gca()
+    beam.plot(ax)
 
     # Something more exotic
     chi = (-1 + 2*cos(pi*(s+1)/4), -1 + 2*sin(pi*(s+1)/4))
     beam = Beam(chi)
-    fig1 = beam.plot()
+    beam.plot(ax)
 
     plt.show()
