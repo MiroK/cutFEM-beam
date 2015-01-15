@@ -9,7 +9,7 @@ import numpy.linalg as la
 
 x, y, s = symbols('x, y, s')
 
-class CoupledLaplace(CoupledProblem):
+class CoupledShenLaplace(CoupledProblem):
     '''
     Coupled problem with spaces Vp, Vb, Q are spanned by functions from
     shenp basis and physics on plate and beam given by Laplacians.
@@ -100,7 +100,9 @@ class CoupledLaplace(CoupledProblem):
         return C
 
 def shen_laplace_Pblocks0(problem):
-    'Something that might work as a preconditioner for CoupledLaplace problem'
+    '''
+    Something that might work as a preconditioner for CoupledShenLaplace problem
+    '''
     # Put inverses of Ap, Ab, H^0 on the diagonal
     Ap = la.inv(problem.Ap_matrix())
     Ab = la.inv(problem.Ab_matrix())
@@ -114,7 +116,9 @@ def shen_laplace_Pblocks0(problem):
 
 
 def shen_laplace_Pblocks1(problem):
-    'Something that might work as a preconditioner for CoupledLaplace problem'
+    '''
+    Something that might work as a preconditioner for CoupledShenLaplace problem
+    '''
     # Put inverses of Ap, Ab, H^1 on the diagonal
     Ap = la.inv(problem.Ap_matrix())
     Ab = la.inv(problem.Ab_matrix())
@@ -145,7 +149,8 @@ if __name__ == '__main__':
 
     # Check the matrices, [OK]
     if False:
-        solver = CoupledLaplace(ms=[2, 2], n=2, r=2, beam=beam, params=params)
+        solver = CoupledShenLaplace(ms=[2, 2], n=2, r=2,
+                                    beam=beam, params=params)
 
         Vp = [v0*(v1.subs(x, y))
               for v0, v1 in product(shenp_basis(2), shenp_basis(2))]
@@ -221,7 +226,8 @@ if __name__ == '__main__':
     # Solve the system with some f, seems [OK]
     if False: 
         # Spaces and solver
-        solver = CoupledLaplace(ms=[8, 8], n=8, r=8, beam=beam, params=params)
+        solver = CoupledShenLaplace(ms=[8, 8], n=8, r=8,
+                                    beam=beam, params=params)
 
         x, y, s = symbols('x, y, s')
         # Define problem
@@ -246,8 +252,8 @@ if __name__ == '__main__':
     # For different n, let's see about the eigenvalues
     if True:
         for n in range(2, 7):
-            solver = CoupledLaplace(ms=[n, n], n=n, r=n,
-                                    beam=beam, params=params)
+            solver = CoupledShenLaplace(ms=[n, n], n=n, r=n,
+                                        beam=beam, params=params)
         
             matrices = solver.schur_complement_matrix(norms=[None, 0, 1])
             print n,
