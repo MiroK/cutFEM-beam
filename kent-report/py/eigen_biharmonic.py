@@ -8,6 +8,12 @@ from eigen_basis import eigen_basis
 from itertools import product
 from scipy.linalg import eigh
 
+
+def biharmonic_matrix(m):
+    'Matrix of 1d biharmonic operator(4th derivative) w.r.t to eigen basis'
+    return np.diag([float((pi/2 + k*pi/2)**4) for k in range(m)])
+
+
 def biharmonic_solver_1d(f, n, as_sym=False):
     '''
     Simple solver for u(4) = f in (-1, 1) with Dirichlet bcs on u and u(2).

@@ -1,5 +1,5 @@
 from __future__ import division
-from sympy import lambdify, symbols, sqrt
+from sympy import lambdify, symbols, sqrt, Number
 from sympy.mpmath import quad
 from itertools import product
 import numpy as np
@@ -48,16 +48,18 @@ class Beam(object):
         for i in range(d):
             Jac += chi[i].diff(s, 1)**2
         Jac = sqrt(Jac)
-        # At least some Jac for degeneracy
+        # At least some Jac check for degeneracy
         assert all(Jac.subs(s, val) > 0 for val in np.linspace(-1, 1, 20))
         self.Jac = Jac
 
     def inner_product(self, u, v):
         '''
         Inner product over beam. Functions must be symbolic functions of
-        parameter s
+        parameter s or numbers. The latter happens with restrictions sometimes.
         '''
-        assert s in u.atoms() and s in v.atoms()
+        assert isinstance(u, Number) or s in u.atoms()
+        assert isinstance(v, Number) or s in v.atoms()
+
         u = lambdify(s, u)
         v = lambdify(s, v)
         J = lambdify(s, self.Jac)
@@ -81,6 +83,8 @@ class Beam(object):
         points = np.array([list(chi(val))
                             for val in np.linspace(-1, 1, n_points)])
         ax.plot(points[:, 0], points[:, 1])
+        ax.set_xlim(-1, 1)
+        ax.set_ylim(-1, 1)
         ax.set_axes('equal')
         return fig
 

@@ -1,5 +1,5 @@
 from __future__ import division
-from trace import TraceOperator
+from trace_operator import TraceOperator
 from shenp_basis import shenp_basis
 from plate_beam import LineBeam
 from sympy import symbols

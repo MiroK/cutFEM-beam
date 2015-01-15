@@ -1,4 +1,4 @@
-from trace import TraceOperator
+from trace_operator import TraceOperator
 from eigen_basis import eigen_basis
 from plate_beam import LineBeam
 from sympy import symbols
