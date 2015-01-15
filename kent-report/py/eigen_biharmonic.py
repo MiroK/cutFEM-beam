@@ -152,7 +152,7 @@ if __name__ == '__main__':
     # 2d
     # Does this satisfy u, u`` = 0 on the boundary
     y = symbols('y')
-    u = (x-1)**2*(x+1)**2*sin(pi*x)*(y-1)**2*(y+1)**2*sin(-pi*y)
+    u = (x-1)**2*(x+1)**2*sin(pi*x)*(y-1)**2*(y+1)**2*sin(-2*pi*y)
     # Boundary values
     assert u.subs(x, 1) == 0
     assert u.subs(x, -1) == 0

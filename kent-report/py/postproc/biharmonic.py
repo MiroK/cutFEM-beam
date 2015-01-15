@@ -7,7 +7,8 @@ from eigen_biharmonic import biharmonic_solver_1d
 from eigen_biharmonic import biharmonic_solver_2d
 
 # Common
-from sympy import Symbol, exp, lambdify, integrate, simplify, symbols, sin, pi
+from sympy import Symbol, exp, lambdify, integrate, simplify, symbols, sin, pi,\
+   cos
 from sympy.mpmath import quad
 import numpy as np
 from numpy.linalg import lstsq
@@ -88,7 +89,20 @@ def biharmonic_2d():
     '''
     # We take the solution used in eigen_biharmonic
     x, y = symbols('x, y')
-    u = (x-1)**2*(x+1)**2*sin(pi*x)*(y-1)**2*(y+1)**2*sin(-pi*y)
+    u = (x-1)**2*(x+1)**2*sin(pi*x)*(y-1)**4*(y+1)**4
+    #u = (x-1)**2*(x+1)**2*sin(pi*x)*(y-1)**2*(y+1)**2*sin(-2*pi*y)
+    print u
+        # Boundary values
+    assert u.subs(x, 1) == 0
+    assert u.subs(x, -1) == 0
+    assert u.subs(y, 1) == 0
+    assert u.subs(y, -1) == 0
+    # Combined these would make up laplacian on the boundary
+    assert u.diff(x, 2).subs(x, 1) == 0
+    assert u.diff(x, 2).subs(x, -1) == 0
+    assert u.diff(y, 2).subs(y, 1) == 0
+    assert u.diff(y, 2).subs(y, -1) == 0
+    print 'OKAY'
     # Compute f for which u is the solution
     u_xx = u.diff(x, 2)
     u_yy = u.diff(y, 2)
@@ -96,6 +110,7 @@ def biharmonic_2d():
     u_xxyy = u_xx.diff(y, 2)
     u_yyxx = u_yy.diff(x, 2)
     u_yyyy = u_yy.diff(y, 2)
+
     f = u_xxxx + u_xxyy + u_yyxx + u_yyyy
 
     # Numerical solution
@@ -117,14 +132,14 @@ def biharmonic_2d():
         error0, integral_error0 = quad(eL0, [-1, 1], [-1, 1], error=True,
                                        maxdegree=40)
         error0 = sqrt(error0)
-        
+
         # Lambdified integrand of H1 norm expression
         e1 = lambdify([x, y], e1)
         eL1 = lambda x, y: e1(x, y)
         error1, integral_error1 = quad(eL1, [-1, 1], [-1, 1], error=True,
                                        maxdegree=40)
         error1 = sqrt(error1)
-        
+
         # Lambdified integrand of H1 norm expression
         e2 = lambdify([x, y], e2)
         eL2 = lambda x, y: e2(x, y)
@@ -138,7 +153,7 @@ def biharmonic_2d():
             rate2 = ln(error2/error2_)/ln(n_/n)
             print n, error0, rate0, integral_error0,\
                      error1, rate1, integral_error1,\
-                     error2, rate2, integral_error2\
+                     error2, rate2, integral_error2
 
         error0_, error1_, error2_ = error0, error1, error2
         n_ = n
@@ -147,7 +162,7 @@ def biharmonic_2d():
         bs[0].append(ln(error0))
         bs[1].append(ln(error1))
         bs[2].append(ln(error2))
-        # Same matrix
+            # Same matrix
         col0.append(ln(n))
 
     # The rate should be e = n**(-p) + shift
