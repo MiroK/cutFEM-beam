@@ -7,6 +7,7 @@ from sympy import symbols
 from math import pi, sqrt
 import numpy as np
 import numpy.linalg as la
+import scipy.linalg as spla
 
 x, y, s = symbols('x, y, s')
 
@@ -232,23 +233,30 @@ if __name__ == '__main__':
 
     if True:
         # For different n, let's see about the eigenvalues of Schur
-        for n in range(2, 7):
+        for n in range(2, 16):
             solver = CoupledEigenLaplace(ms=[n, n], n=n, r=n,
                                          beam=beam, params=params)
-        
-            matrices = solver.schur_complement_matrix(norms=[None, 0, 0.5, 1])
-            print n,
-            for mat in matrices:
+       
+            norms = [None, 0, 0.5, 1]
+            matrices = solver.schur_complement_matrix(norms=norms)
+            for norm, mat in zip(norms[1:], matrices[1:]):
                 eigenvalues = la.eigvals(mat)
                 eigenv_min = np.min(eigenvalues[-1])
                 print eigenv_min,
+
+                eigenvalues = spla.eigvals(matrices[0],
+                        la.inv(solver.C_matrix(norm)))
+                eigenv_min = np.min(eigenvalues[-1])
+                print '[%g]' % eigenv_min,
+            
+            
             print
 
         print
 
         # For different n, let's see about condition number of the system
         # and preconditioned system
-        for n in range(2, 7):
+        for n in range(2, 1):
             solver = CoupledEigenLaplace(ms=[n, n], n=n, r=n,
                                          beam=beam, params=params)
             # No preconditioning
