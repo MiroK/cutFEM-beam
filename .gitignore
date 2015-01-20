@@ -6,6 +6,8 @@
 *.log
 *.aux
 *.pdf
+*.bbl
+*.blg
 
 .ropeproject/
 results/
