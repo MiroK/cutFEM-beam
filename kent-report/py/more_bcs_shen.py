@@ -91,6 +91,17 @@ class ShenBasisMixed(ShenBasis):
         return -(k+1)**2/(k+2)**2
 
 
+class ShenBasisDirichlet(ShenBasis):
+    'Polynomials have u(-1) = u(1) = 0'
+    def __init__(self):
+        ShenBasis.__init__(self)
+
+    def alpha(self, k):
+        return 0
+
+    def beta(self, k):
+        return -1
+
 def test_mass_matrix(cls, n):
     'Verify properties of n x n mass matrix build from class'
     # Get functions
@@ -149,6 +160,45 @@ if __name__ == '__main__':
     for f in ShenBasisMixed().functions(15):
         assert abs(f.subs(x, -1)) < 1E-8
         assert abs(f.diff(x, 1).subs(x, 1)) < 1E-8
+
+    for f in ShenBasisDirichlet().functions(15):
+        assert abs(f.subs(x, -1)) < 1E-13
+        assert abs(f.subs(x, 1)) < 1E-13
+
+    # Distances
+    def L2_distance(u, v):
+        'L2 distance of two functions.'
+        x = Symbol('x')
+        return sqrt(quad(lambdify(x, (u-v)**2), [-1, 1]))
+
+
+    def H1_distance(u, v):
+        'H1 distance of two functions.'
+        x = Symbol('x')
+        return sqrt(quad(lambdify(x, (u-v).diff(x, 1)**2), [-1, 1]))
+
+    basis = list(ShenBasisDirichlet().functions(21))
+    n = len(basis)
+    L2_mat = np.zeros((n, n))
+    for i, v in enumerate(basis):
+        for j, u in enumerate(basis[(i+1):], i+1):
+            L2_mat[i, j] = L2_distance(u, v)
+            L2_mat[j, i] = L2_mat[i, j]
+    
+
+    H1_mat = np.zeros((n, n))
+    for i, v in enumerate(basis):
+        for j, u in enumerate(basis[(i+1):], i+1):
+            H1_mat[i, j] = H1_distance(u, v)
+            H1_mat[j, i] = H1_mat[i, j]
+
+    import matplotlib.pyplot as plt
+    n = np.arange(1, 22)
+    plt.figure()
+    plt.loglog(n, H1_mat[0, :], label='H1')
+    plt.loglog(n, L2_mat[0, :], label='L2')
+    plt.legend(loc='best')
+    plt.show()
 
     exit()
 

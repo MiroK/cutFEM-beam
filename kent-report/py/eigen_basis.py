@@ -50,6 +50,18 @@ def eigen_basis_mixed(n):
             yield (-sin(alpha*x) + cos(alpha*x))/sqrt(2)
         k += 1
 
+
+def L2_distance(u, v):
+    'L2 distance of two functions.'
+    x = Symbol('x')
+    return sqrt(quad(lambdify(x, (u-v)**2), [-1, 1]))
+
+
+def H1_distance(u, v):
+    'H1 distance of two functions.'
+    x = Symbol('x')
+    return sqrt(quad(lambdify(x, (u-v).diff(x, 1)**2), [-1, 1]))
+
 # ----------------------------------------------------------------------------
 
 if __name__ == '__main__':
@@ -176,3 +188,35 @@ if __name__ == '__main__':
     assert np.allclose(A, np.diag(eigenvalues), 1E-13)
 
     print 'OK'
+
+
+    # Here's a function question
+    # How far apart are two eigenfunctions when measured in L2 norm and H1 semi
+    # which by Poincare is a norm
+    # Mutual distances
+    basis = list(eigen_basis(4))
+    n = len(basis)
+    L2_mat = np.zeros((n, n))
+    for i, v in enumerate(basis):
+        L2_mat[i, i] = L2_distance(v, v)
+        assert abs(L2_mat[i, i] - 0) < 1E-13
+        for j, u in enumerate(basis[(i+1):], i+1):
+            L2_mat[i, j] = L2_distance(u, v)
+            assert abs(L2_mat[i, j] - sqrt(2)) < 1E-13
+            L2_mat[j, i] = L2_mat[i, j]
+    print 'The L2 distance of two eigen(dirichlet) functions is always sqrt(2)!'
+    
+    eig = lambda k: (pi/2 + k*pi/2)**2
+
+    H1_mat = np.zeros((n, n))
+    for i, v in enumerate(basis):
+        H1_mat[i, i] = H1_distance(v, v)
+        assert abs(H1_mat[i, i] - 0) < 1E-13
+        for j, u in enumerate(basis[(i+1):], i+1):
+            H1_mat[i, j] = H1_distance(u, v)
+            assert abs(H1_mat[i, j] - sqrt(eig(i) + eig(j))) < 1E-13
+            H1_mat[j, i] = H1_mat[i, j]
+    print 'The H1 distance of eigen(dirichlet) functions i, j is sqrt(eig(i) + eig(j))!'
+
+    # Maybe this is related to projections, let's see how this is for shen!
+

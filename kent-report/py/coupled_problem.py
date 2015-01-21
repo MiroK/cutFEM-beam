@@ -252,10 +252,3 @@ class CoupledProblem(object):
             lmbda = lambdify(s, lmbda)
 
         return (u, p, lmbda)
-
-# TODO: handle here assembly and schur
-# TODO: PoissonEigen class
-# TODO: BiharmonicEigen class
-# TODO: iff okay, 1) Check that we have match with theory
-#                 2) Sensitivity study with the beam position - data
-#                 3)                                          \ postprooc
