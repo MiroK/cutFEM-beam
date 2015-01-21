@@ -89,12 +89,16 @@
 \newcommand{\Abij}[2]{\ensuremath{\left(\mathbb{A}_{\mathcal{B}}\right)_{#1, #2}}}
 \newcommand{\Bpij}[2]{\ensuremath{\left(\mathbb{B}_{\mathcal{P}}\right)_{#1, #2}}}
 \newcommand{\Bbij}[2]{\ensuremath{\left(\mathbb{B}_{\mathcal{B}}\right)_{#1, #2}}}
+%vectors
+\newcommand{\Uvec}{\ensuremath{\mathbf{U}}}
+\newcommand{\bvec}{\ensuremath{\mathbf{b}}}
+\newcommand{\Pvec}{\ensuremath{\mathbf{P}}}
 
 \newcommand{\up}{\ensuremath{u_{\mathcal{P}}}}
 \newcommand{\ub}{\ensuremath{u_{\mathcal{B}}}}
 \newcommand{\vp}{\ensuremath{v_{\mathcal{P}}}}
 \newcommand{\vb}{\ensuremath{v_{\mathcal{B}}}}
-\newcommand{\TODO}[1]{\textcolor{red}{\MakeUppercase{#1}}}
+\newcommand{\TODO}[1]{\textcolor{red}{#1}}
 \newcommand{\ASK}[1]{\textcolor{blue}{#1}}
 
 \newcommand{\W}[1]{\ensuremath{w\!\left[#1\right]\!}}
@@ -109,6 +113,9 @@
 \usepackage{lipsum}
 \usepackage{authblk}
 \usepackage{fancyhdr}
+\usepackage[colorlinks=true,
+            linkcolor=cyan,
+            citecolor=gray]{hyperref}
 
 \usepackage{chngcntr}
 \counterwithin{table}{subsection}
@@ -254,8 +261,8 @@
     \frac{a(u, v) + b(u, q) + b(v, p)}
     {\norm{(u, p)}_{V\times Q}  \norm{(v, q)}_{V\times Q}}.
   \end{equation}
-  Condition (\ref{eq:babuska}) is due to Babuska(\cite{babuska_error,
-  babuska_lag}). Babuska condition is equivalent(\cite{equiv}) to two Brezzi
+  Condition (\ref{eq:babuska}) is due to Babu\v ska(\cite{babuska_error,
+  babuska_lag}). Babu\v ska condition is equivalent(\cite{equiv}) to two Brezzi
   conditions(\cite{brezzi}) which
   state that (\ref{eq:abstract_saddle}) has unique solution if (i) the
   bilinear form $a$ is coercive on $Z=\left\{z\in V; b(z, q)=0\,\forall\,q\in Q\right\}$:
@@ -295,15 +302,17 @@
   Each of the conditions (\ref{eq:babuska}, \ref{eq:brezzi_coer},
   \ref{eq:brezzi_infsup}) can be associated with
   an eigenvalue problem. It is not difficult to verify that the constant $\gamma$
-  from the Babuska condition satisfies $\gamma=\left|\lambda_{\text{min}}\right|$, where
+  from the Babu\v ska condition satisfies $\gamma=\left|\lambda_{\text{min}}\right|$, where
   $\lambda_\text{min}$ is the smallest eigenvalue of the eigenproblem: Find
   $\lambda\in\R, (u, p) \in V\times Q$ such that
   \begin{equation}
     a(u, v) + b(u, q) + b(v, p) = \lambda\left(m(u, v) + n(p, q)\right)\,\forall
     (v, q) \in V\times Q.
   \end{equation}
-  \TODO{exaplain $m, n$}. Further, \cite{qin} gives that the Brezzi coercivity
-  constant satisfies $\beta=\sqrt{\lambda_{\text{min}}}$, where 
+  Here, $m, m:V\times V\mapsto\R$ and $n, n:Q\times Q\mapsto\R$ are symmetric
+  bilinear positive definite forms (\ASK{is this correct}) that induce
+  respectively the norm on $V$ and $Q$. Further, \cite{qin} gives that the Brezzi
+  coercivity constant satisfies $\beta=\sqrt{\lambda_{\text{min}}}$, where 
   $\lambda_\text{min}$ is the smallest eigenvalue of the eigenproblem: Find
   $\lambda\in\R, (u, p) \in V\times Q$ such that
   \begin{equation}
@@ -336,12 +345,12 @@ to solution of (\ref{eq:abstract_saddle}) satisfies
     a(u, v) + b(u, q) + b(v, p) = L((v, q))\,\forall (v, q) \in V_{\mm}\times Q_r.
   \end{equation}
   For fixed values of $\mm$ and $r$ we have that the problem
-  (\ref{eq:abstract_saddle_h}) is well posed if the discrete Babuska condition
+  (\ref{eq:abstract_saddle_h}) is well posed if the discrete Babu\v ska condition
   is satisfied:
   \begin{equation}
     \label{eq:babuska_h}
-    \gamma_{\mm, r}=\inf_{0\neq(u, p)\in \left(V_{\mm}\times Q_r\right)}
-    \sup_{0\neq(u, p)\in \left(V_{\mm}\times Q_r\right)}
+    \gamma_{\mm, r}=\inf_{(u, p)\in \left(V_{\mm}\times Q_r\right)}
+    \sup_{(u, p)\in \left(V_{\mm}\times Q_r\right)}
     \frac{a(u, v) + b(u, q) + b(v, p)}
     {\norm{(u, p)}_{V\times Q}  \norm{(v, q)}_{V\times Q}}.
   \end{equation}
@@ -434,54 +443,216 @@ to solution of (\ref{eq:abstract_saddle}) satisfies
     &\Apij{i}{j} = \Ep(\phi_i,
     \phi_j),\quad&\Abij{i}{j}=\Eb(\varphi_i,\varphi_j),\\
     &\Bpij{i}{j} =
-    -\int_\mathcal{B}T(\phi_i)\psi_j,\quad&\Bbij{i}{j}=\int_\mathcal{B}\varphi_i\psi_j.\\
+    -\int_\mathcal{B}T(\phi_i)\psi_j\meas{x},
+    \quad&\Bbij{i}{j}=\int_\mathcal{B}\varphi_i\psi_j\meas{x}.\\
   \end{aligned}
   \]
-  Vector $\mathbb{b}\in\R^{m}$ has the first $m_0$ components given by
-  $b_i=\int_\mathcal{P}f\phi_i$ while the remenaing $m_1$ components is zero.
+  Vector $\bvec\in\R^{m}$ has the first $m_0$ components given by
+  $\bvec_i=\int_\mathcal{P}f\phi_i\meas{x}\meas{y}$ while the remaining $m_1$
+  components are zero. Finally for the future reference we define symmetric
+  positive definite matrices $\Mmat\in\R^{m\times m}, \Nmat\in\R^{n\times n}$
+  with components
+  \[
+    \left(\Mmat\right)_{i, j} = m(\phi_i, \phi_j)
+    \quad\text{and}\quad
+    \left(\Nmat\right)_{i, j} = n(\psi_i, \psi_j).
+  \]
 
   \subsection{Eigenvalue problems related to discrete solvability conditions}
-  Before discussing eigenvalue problems through which the discrete Babuska
-  and Brezzi constants can be computed we shall first motivate their imporance.
+  Before discussing eigenvalue problems through which the discrete Babu\v ska
+  and Brezzi constants can be computed we shall first motivate their importance.
   As in the continuous case we do this by considering a two step algorithm
-  for solving the linear system (\ref{eq:system}).
+  for solving the linear system (\ref{system}). Suppose the $\Amat$ is
+  invertible and vector $\Pvec$ is known, then from the first equation in the
+  system we get that 
+  \begin{equation}
+    \label{eq:sys_step1}
+    \Uvec = \Amat^{-1}\left(\bvec - \Bmat\Pvec\right),
+  \end{equation}
+  which can be substituted into the second equation of (\ref{system})
+  yielding
+  \begin{equation}
+    \label{eq:sys_step2}
+    \Bmatt\Amat^{-1}\left(\Bmat\Pvec-\bvec\right) = 0.
+  \end{equation}
+  The latter linear system is solvable iff $\Bmat\Pvec=0\Leftrightarrow\Pvec=0$,
+  which is guaranteed by the Brezzi infsup condition (\ref{eq:brezzi_infsup_h}).
+  Coming back to the first linear system, its well-posedness requires
+  $\Amat\Uvec=0\Leftrightarrow\Uvec=0$ but the condition does not need to hold
+  on entire $\R^m$. By the second equation of (\ref{system}) we have
+  $\Bmatt\Uvec=0$ and thus we only need $\Amat\Uvec=0\Leftrightarrow\Uvec=0$ for
+  $\Bmatt\Uvec=0$. Recalling definition of the space $Z_{\mm, r}$ and matrix
+  $\Bmat$ we see that the kernel can be identified with $Z_{m,
+  r}=\left\{\Uvec\in\R^m, \Bmatt\Uvec=0\right\}$ allowing us to write the
+  invertibility condition as $\Amat\Uvec=0\Leftrightarrow\Uvec=0$ for
+  $\Uvec\in Z_{m, r}$. But this is clearly equivalent to asking for the matrix
+  $\Amat$ to be positive definite on $Z_{m, r}$ which is the statement of the
+  discrete Brezzi coercivity condition (\ref{eq:brezzi_infsup_h}).
+
+  Similar to their continuous counterparts, constants from discrete Babu\v ska
+  and Brezzi conditions can be computed from suitable matrix eigenvalue
+  problems. The Babuska constant $\gamma_{\mm, r}$ is the smallest in magnitude
+  eigenvalue of the following problem: Find $\lambda\in\R, \Uvec\in\R^m,
+  \Pvec\in\R^r$ that solve
+  \begin{equation}
+    \label{eq:babuska_sys}
+    \begin{bmatrix}
+      \mathbb{A} & \mathbb{B} \\
+      \mathbb{B}^{\text{T}} & 0
+    \end{bmatrix}
+    \,
+    \begin{bmatrix}
+      \mathbf{U} \\
+      \mathbf{P}
+    \end{bmatrix}
+    =
+    \lambda
+    \begin{bmatrix}
+      \Mmat & 0\\
+      0 & \Nmat
+    \end{bmatrix}.
+  \end{equation}
+  Several observations can be made about the eigenvectors of the problem. (i)
+  Consider the solution of the form $\lambda, \Uvec, 0$. We get that the
+  triplet is admissible iff $\lambda, \Uvec$ solve
+  \[
+    \begin{aligned}
+      &\Amat\Uvec = \lambda\Mmat\Uvec,\\
+      &\Bmat\Uvec = 0.
+    \end{aligned}
+  \]
+  Consequently if $\lambda=0$ is in the spectrum, the first subproblem
+  (\ref{eq:sys_step1}) is not solvable. (ii) Consider the solution of the form
+  $\lambda, 0, \Pvec$. It follows that the triplet is admissible iff
+  \[
+    \begin{aligned}
+      &\Bmat\Pvec = 0,\\
+      &\lambda = 0. 
+    \end{aligned}
+  \]
+  The spurious modes are therefore associated with $\lambda=0$ meaning that
+  the subproblem (\ref{eq:sys_step2}) is not well-posed.
+  (iii) Assume $\Amat$ is invertible (note that this equivalent to problem (i)
+  having only nonzero eigenvalues) and set $\Mmat=\Amat$ transforming
+  (\ref{eq:babuska_sys}) into: Find $\lambda\in\R, \Uvec\in\R^m, \Pvec\in\R^r$
+  that solve
+  \[
+    \begin{bmatrix}
+      \mathbb{A} & \mathbb{B} \\
+      \mathbb{B}^{\text{T}} & 0
+    \end{bmatrix}
+    \,
+    \begin{bmatrix}
+      \mathbf{U} \\
+      \mathbf{P}
+    \end{bmatrix}
+    =
+    \lambda
+    \begin{bmatrix}
+      \Amat & 0\\
+      0 & \Nmat
+    \end{bmatrix}.
+  \]
+  The above can be also stated as: Find $\lambda\in\R, \Pvec\in\R^r$ that solves
+  \[
+    \Bmatt\Amat^{-1}\Bmat\Pvec=\lambda\left(1-\lambda\right)\Nmat\Pvec.
+  \]
+  We observe that the well-posedness of (\ref{system}) then hinges only on the
+  properties of the Schur complement $\Bmatt\Amat^{-1}\Bmat$. This is an
+  advantage from the computational point of view since the matrix involved in 
+  the eigenvalue problem in only $r\times r$. Further, for well-posedness we
+  must have $\lambda\notin\left\{0, 1\right\}$.
+
+  In order to compute the discrete Brezzi constants $\alpha_{\mm, r}$ and
+  $\beta_{\mm, r}$ we consider the following eigenvalue problems: Find
+  $\lambda, \Uvec\in\R^m, \Pvec\in\R^n$ such that
+  \begin{equation}
+    \label{eq:brezzi_coer_sys}
+    \begin{bmatrix}
+      \mathbb{A} & \mathbb{B} \\
+      \mathbb{B}^{\text{T}} & 0
+    \end{bmatrix}
+    \,
+    \begin{bmatrix}
+      \mathbf{U} \\
+      \mathbf{P}
+    \end{bmatrix}
+    =
+    \lambda
+    \begin{bmatrix}
+      \Mmat & 0\\
+      0 & 0
+    \end{bmatrix},
+  \end{equation}
+  Find $\lambda, \Uvec\in\R^m, \Pvec\in\R^n$ such that
+  \begin{equation}
+    \label{eq:brezzi_infsup_sys}
+    \begin{bmatrix}
+      \Mmat & \mathbb{B} \\
+      \mathbb{B}^{\text{T}} & 0
+    \end{bmatrix}
+    \,
+    \begin{bmatrix}
+      \mathbf{U} \\
+      \mathbf{P}
+    \end{bmatrix}
+    =
+    -\lambda
+    \begin{bmatrix}
+      0 & 0\\
+      0 & \Nmat
+    \end{bmatrix}.
+  \end{equation}
+  Using result from \cite{rognes} we have that the triplet $\lambda, \Uvec,
+  \Pvec$ solving (\ref{eq:brezzi_coer_sys}) is such that $\lambda, \Uvec$ solves
+  \[
+    \begin{aligned}
+      &\Amat\Uvec = \lambda\Mmat\Uvec,\\
+      &\Bmat\Uvec = 0.
+    \end{aligned}
+  \]
+  For the latter eigenvalue problem we clearly have 
+  $\left|\lambda_{\text{min}}\right|=\alpha_{\mm, r}$ and by the equivalence
+  the discrete Brezzi coercivity constant can be computed as the smallest
+  eigenvalue of (\ref{eq:brezzi_infsup_sys}). Finally \cite{qin} gives that
+  discrete Brezzi infsup constant $\beta_{\mm, r}$ can be computed as
+  $\beta_{\mm, r}=\sqrt{\lambda_\text{min}}$ where the eigenvalues of
+  (\ref{eq:brezzi_infsup_sys}) are to be considered.
+
+  \section{Poisson problem}
+  In this section we consider a special case of (\ref{eq:abstract_saddle}) where
+  the bilinear forms $\Ep, \Eb$ take the form
+  \[\Ep(\vp,\vp)=\int_\mathcal{P}\Grad{\vp}\cdot\Grad{\vp}\meas{x}\meas{y}
+    \quad\text{and}\quad
+  \Eb(\vb,\vb)=\int_\mathcal{B}\deriv{\vb}{\vec{x}}\cdot\deriv{\vb}{\vec{x}}\meas{x}.
+  \]
+  It is more practical to use the mapping $\chi$ and instead of using functions
+  that map the beam $\mathcal{B}$ to scalars consider function defined over the
+bi-unit interval. We then define the spaces for the plate unknown,
+beam unknown and the Lagrange multiplier as 
+$\Vp=H^1_0\left(\mathcal{P}\right), \Vb=H^1_0\left(\left(-1, 1\right)\right),
+Q=L^2\left(\left(-1, 1\right)\right)$ and the bilinear forms as
+\[
+  \begin{aligned}
+  &a(u, v) = \Ep(\up, \vp) + \Eb(\ub, \vb) = \int_\mathcal{P}\Grad{\vp}\cdot\Grad{\vp}\meas{x}\meas{y}
+  + \frac{2}{L}\int_{-1}^{1}\deriv{\ub}{s}\deriv{\vb}{s}\meas{s},\\
+  &b(u, q) = -\frac{L}{2}\int_{-1}^{1}T(\up)q\meas{s} +
+  \frac{L}{2}\int_{-1}^{1}\ub q\meas{s},\\
+  \end{aligned}
+\]
+where $L$ denotes the length of the beam. \\
+\TODO{
+\% Need existence and uniqueness in this case for (\ref{eq:system})\\
+\% Need discrete conditions, whatever they say (maybe compatibility) needs to
+be reflected in numerical experiments\\
+}
+\subsection{Spectral Galerkin method}
+We consider Galerkin method for (\ref{eq:system}) with the basis functions
+given by (i) the eigenfunctions of two dimensional and one dimensional Laplace
+operators (ii) polynomials due to \cite{shen_leg}.
+\subsection{Finite element methods}
 
 
-
-  \% matrices \\
-  \% conditions and matrices \\
-  \% continuous conditions and matrices \\
-  \% discrete conditions and matrices \\
-  \% Question: where does $\lambda$ live?, in general what we want to do \\
-  \% as new section: Poisson\\
-  \% remember to show in appendix that the code works for uncoupled. Compare
-  with eigen!\\
-  \% as new section: Biharmonic (Shen and Eigen are two different problems!)
-  
-  %\section{Plansu}
-  %Problems (i), (ii) are solved by the Galekin method with Fourier basis and
-  %the basis due to Shen. In the first case, the Fourier and Shen basis have
-  %same bcs. In the latter one the Fourier bases gives conditions on the function
-  %value and the value of the second derivative while the Shen basis constrains
-  %the function value and the first derivative. \textbf{So it would be nice to 
-  %get Shen like basis so that the boundary conditions are the same}.
-
-  %For both (i), (ii) we have numerical experiments with the Fourier basis which
-  %investigate preconditionear for the Schur complement. The preconditioner is
-  %related to the norm of $\lambda$ in the LBB condition. As part of the
-  %preconditioner investigations we can show that the scaling of the preconditioned
-  %system is independent of the beam position. What seems to change
-  %with the beam position is the condition number of the preconditioned system.
-  %A fun question for me is whether stiffer systems mean stiffer plate-beam. 
-  %\textbf{Similar experiments must be made with Shen basis}. It is possible that
-  %there the scalling of the differential operator might be more difficult to see.
-  %Finally at least \textbf{for (i), the above should be possible with FEniCS}.
-
-  %Problems (i), (ii) share the constraint and the trace operator is part of the
-  %LBB condition for both. We can construct a matrix that is related to the trace
-  %operator with Fourier basis, both Shen basis and perhaps FEniCS. \textbf{We
-  %could then ask what the properties are of this matrix for different discretization
-  %parameters, $N, h$ and what are their paralles in case of the trace operator.}
 
   \bibliographystyle{plain}
   \bibliography{plate_beam}
