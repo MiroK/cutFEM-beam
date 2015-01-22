@@ -9,6 +9,8 @@
 *.bbl
 *.blg
 *.out
+*.geo
+*.msh
 
 .ropeproject/
 results/

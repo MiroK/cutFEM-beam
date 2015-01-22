@@ -4,6 +4,7 @@ sys.path.append('../')
 from collections import defaultdict
 import pickle
 from coupled_problem import CoupledProblem
+import coupled_tests
 from plate_beam import Beam
 import numpy as np
 import numpy.linalg as la
@@ -18,10 +19,12 @@ class NRule(object):
     def __call__(self, N):
         return self.rule(N)
 
-# Auxiliary functions to buid keys for cond. number of Schur complement
-keyc = lambda norm: 'cond_S' if norm is None else 'cond' + str(norm) + '_S'
-# and smallest eigenvalue of Schur complement
-keyl = lambda norm: 'lmin_S' if norm is None else 'lmin' + str(norm) + '_S'
+# Auxiliary functions to buid keys for lmin of Schur complement and
+# Schur compement of plate and beam
+keyS = lambda norm: 'lmin_S' if norm is None else 'lmin' + str(norm) + '_S'
+keySp = lambda norm: 'lmin_Sp' if norm is None else 'lmin' + str(norm) + '_Sp'
+keySb = lambda norm: 'lmin_Sb' if norm is None else 'lmin' + str(norm) + '_Sb'
+keyBab = lambda norm: 'gamma' if norm is None else 'gamma_' + str(norm)
 
 def test_coupled_problem(params):
     '''
@@ -45,12 +48,16 @@ def test_coupled_problem(params):
 
     Computed quantities
         for each beam:
-            lists 
-            cond(S), lmin(S),
-            cond(H^s S), lmin(H^s S) for s in norms
-            cond(A), 
-            cond(PA) if P
-            are computed for each N 
+            lists of 
+
+            B.T*inv(A)*B P = lambda Nmat P and the two partial problems for Nmat
+            given by norms.
+
+            babuska constant with Nmat given by norms
+
+            cond(A) condition of system
+
+            for each N
 
     To decode the datastrucure you need to remember beam_list, N_list, norms and
     order of preconditioners.!
@@ -81,15 +88,18 @@ def test_coupled_problem(params):
     # Build the data structure to hold results
     # Always have cond number of entire system
     data = {'cond_A': defaultdict(list)}
-    # We have cond number and smallest eigenvalue of not precondit.
-    # S - Schur, norms=[None] and possibly other precondioned Schur
+    # We have smallest eigenvalue of S, Sp, Sb for each norm
     for norm in norms:
-        data[keyc(norm)] = defaultdict(list)
-        data[keyl(norm)] = defaultdict(list)
+        data[keyS(norm)] = defaultdict(list)
+        data[keySp(norm)] = defaultdict(list)
+        data[keySb(norm)] = defaultdict(list)
+    # We have babuska for each norm:
+    for norm in norms:
+        data[keyBab(norm)] = defaultdict(list)
     # Finally if there is a preconditioner we will get its cond. number
-    if Pblocks is not None:
-        for blocks_index in range(len(Pblocks)):
-            data['cond_PA' + str(blocks_index)] = defaultdict(list)
+    #if Pblocks is not None:
+    #    for blocks_index in range(len(Pblocks)):
+    #        data['cond_PA' + str(blocks_index)] = defaultdict(list)
 
     # For each beam
     for beam_index, beam in enumerate(beams):
@@ -100,30 +110,47 @@ def test_coupled_problem(params):
             # Construct the problem
             problem = Problem(ms, n, r, beam, materials)
 
-            # Schur
-            matrices = problem.schur_complement_matrix(norms)
-            for norm, mat in zip(norms, matrices):
-                cond = la.cond(mat)
-                lmin = np.min(la.eigvals(mat))
-                data[keyc(norm)][beam_index].append(cond)
-                data[keyl(norm)][beam_index].append(lmin)
+            # Schur     
+            # Get all the norm matrices
+            Nmats = [problem.C_matrix(norm) for norm in norms]
+            # Get all S eigs
+            lminS = coupled_tests.schur(problem, Nmats)
+            # Get all Sp eigs and Sb eigs
+            lminSp, lminSb = coupled_tests.schur_components(problem, Nmats)
+    
+            # Record
+            [data[keyS(norm)][beam_index].append(val)
+             for norm, val in zip(norms, lminS)]
 
-            # System
+            [data[keySp(norm)][beam_index].append(val)
+             for norm, val in zip(norms, lminSp)]
+
+            [data[keySb(norm)][beam_index].append(val)
+             for norm, val in zip(norms, lminSb)]
+
+            # Babuska
+            M = la.inv(problem.A_matrix())
+            babuska = coupled_tests.babuska(problem, M, Nmats)
+            # Record
+            [data[keyBab(norm)][beam_index].append(val)
+             for norm, val in zip(norms, babuska)]
+
+            # System conditioning
             A = problem.system_matrix()
             cond = la.cond(A)
             data['cond_A'][beam_index].append(cond)
 
             # Preconditioned system
-            if Pblocks is not None:
-                # Use given preconditioners
-                for block_index, blocks in enumerate(Pblocks):
-                    # Make blocks of preconditioner for the problem
-                    blocks_ = blocks(problem) 
-                    # Make the preconditioner
-                    P = problem.preconditioner(blocks_)
-                    PA = P.dot(A)
-                    cond = la.cond(PA)
-                    data['cond_PA' + str(block_index)][beam_index].append(cond)
+            # if Pblocks is not None:
+            #     # Use given preconditioners
+            #     for block_index, blocks in enumerate(Pblocks):
+            #         # Make blocks of preconditioner for the problem
+            #         blocks_ = blocks(problem) 
+            #         # Make the preconditioner
+            #         P = problem.preconditioner(blocks_)
+            #         PA = P.dot(A)
+            #         cond = la.cond(PA)
+            #         data['cond_PA' + str(block_index)][beam_index].append(cond)
 
             # Data for current N as row
             print N,
@@ -224,13 +251,7 @@ def plot_beams(beams):
 if __name__ == '__main__':
     # Problem
     from coupled_eigen_laplace import CoupledEigenLaplace
-    from coupled_shen_laplace import CoupledShenLaplace 
     from plate_beam import LineBeam
-    # Preconditioners
-    from coupled_eigen_laplace import eigen_laplace_Pblocks01,\
-            eigen_laplace_Pblocks1
-    from coupled_shen_laplace import shen_laplace_Pblocks0,\
-            shen_laplace_Pblocks1
     # Postproc
     import matplotlib.pyplot as plt
 
@@ -238,11 +259,10 @@ if __name__ == '__main__':
     A_pos = lambda t: [-1+t, -1]
     B_pos = lambda t: [t, 1]
     ts = [0, 1]
-    beams = [LineBeam(A_pos(tA), B_pos(tB)) for tA, tB in product(ts, ts)]
+    beams = [LineBeam(A_pos(tA), B_pos(tB)) for tA, tB in product(ts, ts)][:1]
     # plot_beams(beams)
     # plt.show()
 
-    # Shen and Eigen are bit different: norms, preconditioners, ...
     # Common stuff
     params = {'beam_list': beams,
               'materials': {'plate_E': 1, 'beam_E': 20},
@@ -251,20 +271,12 @@ if __name__ == '__main__':
               'postfix': 'test'}
     # Unique eigen
     params_eigen = {'problem': CoupledEigenLaplace,
-                    'norms': [None, 0, 0.5, 1],
-                    'Pblocks': [eigen_laplace_Pblocks01,
-                                eigen_laplace_Pblocks1]}
-    # Unique shen
-    params_shen = {'problem': CoupledShenLaplace,
-                    'norms': [None, 0, 1],
-                    'Pblocks': [shen_laplace_Pblocks0,
-                                shen_laplace_Pblocks1]}
+                    'norms': [None, 0, -0.5, -1]}
     # Combine
     params_eigen.update(params)
-    params_shen.update(params)
 
-    #pickle_name = test_coupled_problem(params_eigen)
-    pickle_name = 'CoupledShenLaplace_all_equal_test.pickle'
+    pickle_name = test_coupled_problem(params_eigen)
+    pickle_name = 'CoupledEigenLaplace_all_equal_test.pickle'
     data = pickle.load(open(pickle_name, 'rb'))
 
     # All markers, colors
@@ -278,14 +290,16 @@ if __name__ == '__main__':
     norms = data['input']['norms']
 
     # Suppose a beam (beam position is given)
-    beam = 3
+    beam = 0
     # We definitely want plots showing  
-    # (i) ns vs lmin(PS), where P are due to norms
-    # (ii) ns vs cond(PS), where P are due to norms
-    # (iii) ns vs cond(A) and cond(Pa)
-    plot = '(i)'
+    # (i) ns vs lmin(S), in the norms
+    # (ii) ns vs lmin(Sp), in the norms
+    # (iii) ns vs lmin(Sb), in the norms
+    # (iv) ns vs gamma, in the norms
+    # (v) ns vs cond(A) and cond(Pa)
+    plot = '(iv)'
 
-    if plot in ('(i)', '(ii)'):
+    if plot in ('(i)', '(ii)', '(iii)', '(iv)'):
         row_format = ['%d'] + ['%.2E'] * len(norms)
         header = ['$n$']+['$\mathbb{I}$']+['$H^{%g}$' % s for s in norms[1:]]
         line_styles = '--'
@@ -294,17 +308,22 @@ if __name__ == '__main__':
         labels=header[1:]
         
         if plot == '(i)':
-            beam_data = [data[keyl(norm)][beam] for norm in norms]
-            ylabel='$\lambda_{min}$'
-        else:
-            beam_data = [data[keyc(norm)][beam] for norm in norms]
-            ylabel='$\kappa$'
+            beam_data = [data[keyS(norm)][beam] for norm in norms]
+            ylabel='$S\lambda_{min}$'
 
-    elif plot == '(ii)':
-        beam_data = [data[keyc(norm)][beam] for norm in norms]
-        ylabel='$\kappa$'
+        if plot == '(ii)':
+            beam_data = [data[keySp(norm)][beam] for norm in norms]
+            ylabel='$S_p\lambda_{min}$'
 
-    elif plot == '(iii)':
+        if plot == '(iii)':
+            beam_data = [data[keySb(norm)][beam] for norm in norms]
+            ylabel='$S_b\lambda_{min}$'
+
+        if plot == '(iv)':
+            beam_data = [data[keyBab(norm)][beam] for norm in norms]
+            ylabel='$\gamma$'
+
+    elif plot == '(v)':
         beam_data = [data['cond_A'][beam]]
         row_format = ['%d', '%.2E']
         header = ['$n$']+['$A$']
@@ -318,6 +337,7 @@ if __name__ == '__main__':
         iter_colors = iter(all_colors)
         for key in data:
             if key.startswith('cond_PA'):
+                print '?'
                 beam_data.append(data[key][beam])
                 row_format.append('%.2E')
                 header.append(key)

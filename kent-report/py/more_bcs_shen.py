@@ -177,13 +177,19 @@ if __name__ == '__main__':
         x = Symbol('x')
         return sqrt(quad(lambdify(x, (u-v).diff(x, 1)**2), [-1, 1]))
 
-    basis = list(ShenBasisDirichlet().functions(21))
+    basis = list(ShenBasisDirichlet().functions(11))
     n = len(basis)
     L2_mat = np.zeros((n, n))
     for i, v in enumerate(basis):
         for j, u in enumerate(basis[(i+1):], i+1):
             L2_mat[i, j] = L2_distance(u, v)
             L2_mat[j, i] = L2_mat[i, j]
+            # This sold be the analytical result
+            ans = 2/(2*i + 1) + 2/(2*j + 1) + 2/(2*(i+2)+1) + 2/(2*(j+2)+1)
+            if j == i+2:
+                ans += 4/(2*(i+2)+1)
+            ans = sqrt(ans)
+            assert abs(L2_mat[i, j] - ans) < 1E-15
     
 
     H1_mat = np.zeros((n, n))
@@ -192,13 +198,8 @@ if __name__ == '__main__':
             H1_mat[i, j] = H1_distance(u, v)
             H1_mat[j, i] = H1_mat[i, j]
 
-    import matplotlib.pyplot as plt
-    n = np.arange(1, 22)
-    plt.figure()
-    plt.loglog(n, H1_mat[0, :], label='H1')
-    plt.loglog(n, L2_mat[0, :], label='L2')
-    plt.legend(loc='best')
-    plt.show()
+            ans = sqrt(4*(i+j)+12)
+            assert abs(H1_mat[i, j] - ans) < 1E-15
 
     exit()
 

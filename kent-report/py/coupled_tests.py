@@ -1,54 +1,73 @@
 '''
-In all functions below A is [[Ap, 0],  B is [[Bp],
-                             [0, Ab]]        [Bb]]
-Ap, Ab, Bp, Bb is what the problem can compute. It can also assemble the
-system_matrix [[A, B],      and the Schur complement B.T*inv(A)*B.
-               [B.T, 0]]
+In all functions below A is a block matrix [[Ap, 0], [0, Ab]] and likewise B is
+a block matrix [[Bp], [Bb]]. Submatrices Ap, Ab, Bp, Bb is what the problem can
+compute. It can also assemble the system_matrix [[A, B], [B.T, 0]] and the Schur
+complement B.T*inv(A)*B. The functions below involve eigenvalues of the
+matrices.
 '''
 
 import numpy as np
 import numpy.linalg as nla
 import scipy.linalg as la
-
-
-def brezzi_coercivity_arnold(problem, M):
-    '''
-    Compute the smallest eigenvalue of the problem
-    
-    [[A, B]   [[U], = [[M, 0], [[U],
-     [B.T, 0]] [P]]    [0, 0]]   [P]]
-    '''
-    # Make sure we have M with correct size
-    m, n = problem.m, problem.n
-    size = m+n
-    assert M.shape == (size, size)        
-    # System
-    S = problem.system_matrix()
-    # Build the rhs
-    T = np.zeros_like(S)
-    T[:size, :size] = M
-    # TODO
-    eigenvalues = la.eigvals(S, T)
-    eigenvalues = np.sqrt(eigenvalues**2).real
-    print eigenvalues
-    return np.min(eigenvalues)
+import scipy.sparse.linalg as sla
 
 
 def brezzi_infsup_qin(problem, M, N):
-    pass
+    '''
+    Compute the smallest eigenvalue of the problem
+        
+        [[M, B], [B.T, 0]]*[[U], [P]] = -lamnda * [[0, 0], [0, N]][[U], [P]]
+
+    This becomes B.T*inv(M)*B*P = lmbda N*P.
+    '''
+    B = problem.B_matrix()
+    S = B.T.dot(nla.inv(M).dot(B))
+    # Make sure shapes are okay
+    assert S.shape == N.shape
+
+    # Solve
+    eigenvalues = la.eigvals(S, N)
+    eigenvalues = np.sqrt(eigenvalues**2).real
+    return np.min(eigenvalues)
+
+
+def brezzi_infsup_qins_components(problem, Mp, Mb, N):
+    '''
+    Matrix M is block [[Mp, 0], [0, Mb]] and B has also block structure. We 
+    break the problem B.T*inv(M)*B*P = lmbda N*P into two problems, one for
+    p-block, the other for b-block. Specifically
+
+        Bp.T*inv(Mp)*Bp*P = lmbda N*P
+
+        Bb.T*inv(Mb)*Bb*P = lmbda N*P
+
+    The idea is that perhaps the bad scaling is more due to one guy than the
+    other. 
+    '''
+    Bs = [problem.Bp_matrix(), problem.Bb_matrix()]
+    Ms = [Mp, Mb]
+    eigs = []
+    for B, M in zip(Bs, Ms):
+        S = B.T.dot(nla.inv(M).dot(B))
+        assert S.shape == N.shape
+
+        # Solve
+        eigenvalues = la.eigvals(S, N)
+        eigenvalues = np.sqrt(eigenvalues**2).real
+        eigs.append = np.min(eigenvalues)
+
+    return tuple(eigs)
 
 
 def babuska(problem, M, N):
     '''
     Compute the smallest eigenvalue of the problem
-    
-    [[A, B]   [[U], = [[M, 0], [[U],
-     [B.T, 0]] [P]]    [0, N]]  [P]]
+
+        [[A, B], [B.T, 0]]*[[U], [P]] = lambda [[M, 0], [0, N]]*[[U], [P]]
     '''
     # Make sure we have M, N with correct size
     m, n, r = problem.m, problem.n, problem.r
     assert M.shape == (m+n, m+n)
-    assert N.shape == (r, r)
 
     # System
     S = problem.system_matrix()
@@ -56,53 +75,75 @@ def babuska(problem, M, N):
     T = np.zeros_like(S)
     size = m + n
     T[:size, :size] = M
-    T[size:, size:] = N
+
+    if not isinstance(N, list):
+        N = [N]
+
+    eigs = []
+    for Nmat in N:
+        assert Nmat.shape == (r, r)
+        T[size:, size:] = Nmat
   
-    # Solve
-    eigenvalues = la.eigvals(S, T)
-    eigenvalues = np.sqrt(eigenvalues**2).real
-    return np.min(eigenvalues)
+        # Solve
+        eigenvalues = la.eigvals(S, T)
+        eigenvalues = np.sqrt(eigenvalues**2).real
+        lmin = np.min(eigenvalues)
+        eigs.append(lmin)
+    return eigs
 
 
 def schur(problem, N):
-    'Compute smallest eigenvalues of (B.T*inv(A)*B)*P = \lambda N*P'
-    # Make sure dimension are okay
+    'Compute smallest eigenvalues of (B.T*inv(A)*B)*P = lambda N*P'
     S = problem.schur_complement_matrix(norms=[None])[0]
-    assert S.shape == N.shape
+    # Single matrix
+    if not isinstance(N, list):
+        N = [N]
+    # Now loop
+    eigs = []
+    for Nmat in N:
+        # Make sure dimension are okay
+        assert S.shape == Nmat.shape
 
-    # Solve
-    eigenvalues = la.eigvals(S, N)
-    eigenvalues = np.sqrt(eigenvalues**2).real
-    return np.min(eigenvalues)
+        # Solve
+        eigenvalues = la.eigvals(S, Nmat)
+        eigenvalues = np.sqrt(eigenvalues**2).real
+        lmin = np.min(eigenvalues)
+        eigs.append(lmin)
+    return eigs
 
 
-def common_kernel(problem):
-    pass
-
-def qin_separately(problem, Mp, Nb, N):
-    pass
-
-
-def schur_separately(problem, N, what):
+def schur_components(problem, N):
     '''
-    Compute smallest eigenvalues of (Bx.T*inv(Ax)*Bx)*P = \lambda N*P, x is 
-    specified by what (plate or beam)
+    Due to block structure of A and B we brake the Schur problem into problems
+    for plate and beam blocks to perhaps isolate the scaling.
+
+        (Bp.T*inv(Ap)*Bp)*P = lambda N*P and
+
+        (Bb.T*inv(Ab)*Bb)*P = lambda N*P and
     '''
-    if what == 'plate':
-        A, B = problem.Ap_matrix(), problem.Bp_matrix()
-    elif what == 'beam':
-        A, B = problem.Ab_matrix(), problem.Bb_matrix()
-    else:
-        raise ValueError('plate or beam')
+    As = [problem.Ap_matrix(), problem.Ab_matrix()]
+    Bs = [problem.Bp_matrix(), problem.Bb_matrix()]
+    # These are all eigs of Sp and Sb
+    eigs = []
+    # Always make sure that we can iterate
+    if not isinstance(N, list):
+        N = [N]
+    for A, B in zip(As, Bs):
+        # Assemble S only once per compoenent
+        S = B.T.dot(nla.inv(A).dot(B))
+        # Get the comp eigs
+        component_eigs = []
+        for Nmat in N:
+            assert S.shape == Nmat.shape
 
-    # Make sure dimension are okay
-    S = B.T.dot(nla.inv(A).dot(B))
-    assert S.shape == N.shape
+            # Solve
+            eigenvalues = la.eigvals(S, Nmat)
+            eigenvalues = np.sqrt(eigenvalues**2).real
+            component_eigs.append(np.min(eigenvalues))
+        # Append to all
+        eigs.append(component_eigs)
 
-    # Solve
-    eigenvalues = la.eigvals(S, N)
-    eigenvalues = np.sqrt(eigenvalues**2).real
-    return np.min(eigenvalues)
+    return eigs
 
 
 def preconditioned_problem(problem, blocks):
@@ -111,6 +152,46 @@ def preconditioned_problem(problem, blocks):
     S = problem.system_matrix()
     P = P.dot(S)
     return nla.cond(P), nla.cond(S)
+
+
+def brezzi_coercivity_arnold(problem, M):
+    '''
+    Get smallest eigenvalues of 
+        [[A, B], [B.T, 0]][[U], [P]] = lambda*[[M, 0], [0, 0]][[U], [P]]
+    '''
+    raise NotImplementedError('!')
+    # Make sure we have M, N with correct size
+    # m, n = problem.m, problem.n
+    # assert M.shape == (m+n, m+n)
+
+    # System
+    # S = problem.system_matrix()
+    # Build the rhs
+    # T = np.zeros_like(S)
+    # size = m + n
+    # T[:size, :size] = M
+
+    # U, sigma, V = nla.svd(problem.B_matrix().T)
+    # print sigma
+  
+    # Solve
+    # eigenvalues = sla.eigs(S, k=3, M=T, which='SM', sigma=0.01)
+    # eigenvalues = np.sqrt(eigenvalues**2).real
+    # return np.min(eigenvalues)
+    # return 'xxx'
+
+def ker_tests(problem):
+    m, n, r = problem.ms[0], problem.n, problem.r
+
+    #Bp = problem.Bp_matrix()
+    Bb = problem.Bb_matrix()
+
+    U, sigmas, V = nla.svd(Bb)
+    s = len(np.where(sigmas > 1E-12)[0])
+    print sigmas
+    print np.where(sigmas > 1E-12), Bb.shape[1]
+    print Bb
+    print Bb.shape[1] - s
 
 # -----------------------------------------------------------------------------
 
@@ -127,59 +208,5 @@ if __name__ == '__main__':
     params = {'plate_E': 2.,
               'beam_E': 10.}
     
-    # Different discretizations with eigen functions
-    # Check schur
-    for n in range(2, -11):
-        problem = CoupledEigenLaplace(ms=[n, n], n=n, r=n, beam=beam,
-                                      params=params)
-       
-        # This does not decrease so fast only for -1, -0.5
-        Nmat = problem.C_matrix(norm=-1)
-        lmin = schur_separately(problem, Nmat, what='plate')
-        print n, lmin
-    
-    # Check Babuska
-    for size in range(2, -11):
-        problem = CoupledEigenLaplace(ms=[size, size], n=size, r=size,
-                                      beam=beam, params=params)
-        
-        # Build the norm matrices
-        ms = problem.ms
-        m, n = problem.m, problem.n
-        size = m + n 
-        Mmat = np.zeros((size, size))
-        
-        # H1 seminorm
-        # Top left block is tensor product of laplacians
-        # Bottom right ...
-        Mmat[:m, :m] = np.kron(laplacian_matrix(ms[0]), mass_matrix(ms[1])) +\
-                       np.kron(mass_matrix(ms[0]), laplacian_matrix(ms[1]))
-        # Bottom right is over beam
-        Mmat[m:,m:] = laplacian_matrix(n)/float(beam.Jac)
-
-        # Have learned before that Nmat is okay as C_matrix for norm -1, -0.5
-        Nmat = problem.C_matrix(norm=-1)
-        
-        lmin = babuska(problem, Mmat, Nmat)
-        print n, lmin
-
-
-    for n in range(2, 11):
-        problem = CoupledEigenLaplace(ms=[n, n], n=n, r=n, beam=beam,
-                                      params=params)
-
-        # Build the blocks of preconditioner
-        ms = problem.ms
-        m, n = problem.m, problem.n
-        P0 = np.kron(laplacian_matrix(ms[0]), mass_matrix(ms[1])) +\
-             np.kron(mass_matrix(ms[0]), laplacian_matrix(ms[1]))
-        P0 = nla.inv(P0)
-
-        P1 = laplacian_matrix(n)/float(beam.Jac)
-        P1 = nla.inv(P1)
-       
-        P2 = la.inv(problem.C_matrix(norm=-1))
-
-        blocks = [[P0, 0, 0], [0, P1, 0], [0, 0, P2]]
-        cond_p, cond_nop = preconditioned_problem(problem, blocks)
-        print n, cond_p, cond_nop
+    problem = CoupledEigenLaplace([4, 4], 5, 7, beam, params)
+    print ker_tests(problem)
