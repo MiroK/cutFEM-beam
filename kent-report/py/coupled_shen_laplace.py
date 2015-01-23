@@ -93,6 +93,8 @@ class CoupledShenLaplace(CoupledProblem):
             J = self.beam.Jac   
             J = J**(1-2*norm)
             C *= J
+        elif isinstance(self.beam, LineBeam) and norm == -1:
+            return la.inv(self.C_matrix(1))
         # Really only know how to do this for ints
         else:
             C  = CoupledProblem.C_matrix(self, norm)

@@ -50,12 +50,14 @@ def test_coupled_problem(params):
         for each beam:
             lists of 
 
-            B.T*inv(A)*B P = lambda Nmat P and the two partial problems for Nmat
-            given by norms.
+            B.T*inv(A)*B*P=lambda*Nmat*P and the two partial problems for Nmat
+                given by norms.
 
             babuska constant with Nmat given by norms
 
             cond(A) condition of system
+            cond(PA) condition number of the preconditioned system with P build
+                     from Pblocks
 
             for each N
 
@@ -81,7 +83,7 @@ def test_coupled_problem(params):
     # If there are no norms indicate by [None] that we want not preconditioned
     norms = params.get('norms', [None])
     # Indicate no preconditioner of system
-    Pblocks = params.get('Pblocks', None)
+    Pblocks = params.get('Pblocks', [])
     # Set default postifx to ''
     postfix = params.get('postfix', '')
 
@@ -97,9 +99,8 @@ def test_coupled_problem(params):
     for norm in norms:
         data[keyBab(norm)] = defaultdict(list)
     # Finally if there is a preconditioner we will get its cond. number
-    #if Pblocks is not None:
-    #    for blocks_index in range(len(Pblocks)):
-    #        data['cond_PA' + str(blocks_index)] = defaultdict(list)
+    for blocks_index in range(len(Pblocks)):
+        data['cond_PA' + str(blocks_index)] = defaultdict(list)
 
     # For each beam
     for beam_index, beam in enumerate(beams):
@@ -141,16 +142,13 @@ def test_coupled_problem(params):
             data['cond_A'][beam_index].append(cond)
 
             # Preconditioned system
-            # if Pblocks is not None:
-            #     # Use given preconditioners
-            #     for block_index, blocks in enumerate(Pblocks):
-            #         # Make blocks of preconditioner for the problem
-            #         blocks_ = blocks(problem) 
-            #         # Make the preconditioner
-            #         P = problem.preconditioner(blocks_)
-            #         PA = P.dot(A)
-            #         cond = la.cond(PA)
-            #         data['cond_PA' + str(block_index)][beam_index].append(cond)
+            # Get the blocks
+            blocks = [blocks(problem) for blocks in Pblocks]
+            # Get the condition number
+            Pconds = coupled_tests.preconditioned_problem(problem, blocks)
+            # Recond
+            for block_index, cond in enumerate(Pconds):
+                data['cond_PA' + str(block_index)][beam_index].append(cond)
 
             # Data for current N as row
             print N,
@@ -251,7 +249,14 @@ def plot_beams(beams):
 if __name__ == '__main__':
     # Problem
     from coupled_eigen_laplace import CoupledEigenLaplace
+    from coupled_shen_laplace import CoupledShenLaplace
     from plate_beam import LineBeam
+    # Preconditioner
+    from coupled_eigen_laplace import eigen_laplace_Pblocks01,\
+            eigen_laplace_Pblocks1
+    from coupled_shen_laplace import shen_laplace_Pblocks0,\
+            shen_laplace_Pblocks1
+
     # Postproc
     import matplotlib.pyplot as plt
 
@@ -271,12 +276,20 @@ if __name__ == '__main__':
               'postfix': 'test'}
     # Unique eigen
     params_eigen = {'problem': CoupledEigenLaplace,
-                    'norms': [None, 0, -0.5, -1]}
+                    'norms': [None, 0, -0.5, -1],
+                    'Pblocks': [eigen_laplace_Pblocks01,
+                                eigen_laplace_Pblocks1]}
+    # Unique eigen
+    params_shen = {'problem': CoupledShenLaplace,
+                   'norms': [None, 0, -1],
+                   'Pblocks': [shen_laplace_Pblocks0,
+                               shen_laplace_Pblocks1]}
     # Combine
     params_eigen.update(params)
+    params_shen.update(params)
 
-    pickle_name = test_coupled_problem(params_eigen)
-    pickle_name = 'CoupledEigenLaplace_all_equal_test.pickle'
+    pickle_name = test_coupled_problem(params_shen)
+    pickle_name = 'CoupledShenLaplace_all_equal_test.pickle'
     data = pickle.load(open(pickle_name, 'rb'))
 
     # All markers, colors
@@ -297,7 +310,7 @@ if __name__ == '__main__':
     # (iii) ns vs lmin(Sb), in the norms
     # (iv) ns vs gamma, in the norms
     # (v) ns vs cond(A) and cond(Pa)
-    plot = '(iv)'
+    plot = '(v)'
 
     if plot in ('(i)', '(ii)', '(iii)', '(iv)'):
         row_format = ['%d'] + ['%.2E'] * len(norms)
@@ -337,7 +350,6 @@ if __name__ == '__main__':
         iter_colors = iter(all_colors)
         for key in data:
             if key.startswith('cond_PA'):
-                print '?'
                 beam_data.append(data[key][beam])
                 row_format.append('%.2E')
                 header.append(key)

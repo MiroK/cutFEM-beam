@@ -112,6 +112,9 @@ class CoupledProblem(object):
     def C_matrix(self, norm):
         'Return Q x Q matrix that is H^norm matrix in the Q basis.'
         # We can do it for positive ints
+        if norm is None:
+            return np.eye(self.r)
+
         assert isinstance(norm, int) and norm >= 0
         r = self.r
         C = np.zeros((r, r))

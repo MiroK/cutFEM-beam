@@ -146,12 +146,15 @@ def schur_components(problem, N):
     return eigs
 
 
-def preconditioned_problem(problem, blocks):
-    'Check condition number of the preconditioned and not preconditioned system'
-    P = problem.preconditioner(blocks)
+def preconditioned_problem(problem, Pblocks=[]):
+    'Check condition number of preconditioned and not preconditioned systems'
+    # Make all the preconditioners from blocks
+    Ps = [problem.preconditioner(blocks) for blocks in Pblocks]
+    # Assemblel system once
     S = problem.system_matrix()
-    P = P.dot(S)
-    return nla.cond(P), nla.cond(S)
+    # Loop the preconditioners
+    conds = [nla.cond(P.dot(S)) for P in Ps]
+    return conds
 
 
 def brezzi_coercivity_arnold(problem, M):
