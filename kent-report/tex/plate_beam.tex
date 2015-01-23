@@ -1,0 +1,659 @@
+\documentclass[a4paper,10pt]{article}
+\pdfoptionpdfminorversion=5
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{amsfonts}
+\usepackage{multicol}
+\usepackage{xcolor,colortbl}
+\usepackage{datetime}
+\usepackage{xfrac}
+
+\newcommand{\mc}[2]{\multicolumn{#1}{c}{#2}}
+\definecolor{Gray}{gray}{0.85}
+\newcolumntype{a}{>{\columncolor{Gray}}c}
+\newcolumntype{b}{>{\columncolor{white}}c}
+\newcolumntype{R}{>{\columncolor{lime}}c}
+\newcolumntype{B}{>{\columncolor{pink}}c}
+\usepackage{diagbox}
+
+\usepackage[numbers]{natbib}
+
+\usepackage[utf8]{inputenc}
+\usepackage{array,multirow,graphicx}
+\usepackage{graphics}
+\usepackage{color}
+\usepackage{ifpdf}
+\ifpdf
+\DeclareGraphicsRule{*}{mps}{*}{}
+\fi
+\usepackage[utf8]{inputenc}
+
+\hoffset = 0pt
+\voffset = 0pt
+\oddsidemargin = 0pt
+\headheight = 15pt
+\footskip = 30pt
+\topmargin = 0pt
+\marginparsep = 5pt
+\headsep =25pt
+\marginparwidth = 54pt
+\marginparpush = 7pt
+\textheight = 621pt %621/
+\textwidth = 500pt
+
+% Default fixed font does not support bold face
+\DeclareFixedFont{\ttb}{T1}{txtt}{bx}{n}{12} % for bold
+\DeclareFixedFont{\ttm}{T1}{txtt}{m}{n}{12}  % for normal
+
+\newcommand{\I}{\ensuremath{\mathbb{I}}}
+\newcommand{\R}{\ensuremath{\mathbb{R}}}
+
+\newcommand{\norm}[1]{\ensuremath{\left\|#1\right\|}}
+\newcommand{\seminorm}[1]{\ensuremath{\left|#1\right|}}
+\newcommand{\dual}[2]{\ensuremath{\langle#1, #2 \rangle}}
+
+\newcommand{\inner}[2]{\ensuremath{\left(#1, #2\right)}}
+\newcommand{\Inner}[2]{\ensuremath{\left(\left(#1, #2\right)\right)}}
+
+\newcommand{\deriv}[2]{\ensuremath{\frac{\mathrm{d}#1}{\mathrm{d}#2}}}
+\newcommand{\meas}[1]{\ensuremath{\,\mathrm{d}#1}}
+\newcommand{\Div}[1] {\ensuremath{\text{div}#1}}
+\newcommand{\Grad}[1]{\ensuremath{\text{grad}#1}}
+\newcommand{\Curl}[1]{\ensuremath{\text{curl}#1}}
+\newcommand{\jump}[1]{\ensuremath{[\![#1]\!]} }
+
+\newcommand{\citeneed}{\ensuremath{^\text{\textcolor{blue}{cite?}}}}
+
+\usepackage{mathtools}
+\newcommand{\eqdef}{\mathrel{\mathop=}:} 
+
+\newcommand{\mm}{\ensuremath{\mathbf{m}}}
+\newcommand{\Vp}{\ensuremath{V_{\mathcal{P}}}}
+\newcommand{\Vb}{\ensuremath{V_{\mathcal{B}}}}
+\newcommand{\Ep}{\ensuremath{E_{\mathcal{P}}}}
+\newcommand{\Eb}{\ensuremath{E_{\mathcal{B}}}}
+
+%matrices
+\newcommand{\Ap}{\ensuremath{\mathbb{A}_{\mathcal{P}}}}
+\newcommand{\Ab}{\ensuremath{\mathbb{A}_{\mathcal{B}}}}
+\newcommand{\Bp}{\ensuremath{\mathbb{B}_{\mathcal{P}}}}
+\newcommand{\Bb}{\ensuremath{\mathbb{B}_{\mathcal{B}}}}
+\newcommand{\Amat}{\ensuremath{\mathbb{A}}}
+\newcommand{\Bmat}{\ensuremath{\mathbb{B}}}
+\newcommand{\Bmatt}{\ensuremath{\mathbb{B}^{\text{T}}}}
+\newcommand{\Mmat}{\ensuremath{\mathbb{M}}}
+\newcommand{\Nmat}{\ensuremath{\mathbb{N}}}
+%components
+\newcommand{\Apij}[2]{\ensuremath{\left(\mathbb{A}_{\mathcal{P}}\right)_{#1, #2}}}
+\newcommand{\Abij}[2]{\ensuremath{\left(\mathbb{A}_{\mathcal{B}}\right)_{#1, #2}}}
+\newcommand{\Bpij}[2]{\ensuremath{\left(\mathbb{B}_{\mathcal{P}}\right)_{#1, #2}}}
+\newcommand{\Bbij}[2]{\ensuremath{\left(\mathbb{B}_{\mathcal{B}}\right)_{#1, #2}}}
+%vectors
+\newcommand{\Uvec}{\ensuremath{\mathbf{U}}}
+\newcommand{\bvec}{\ensuremath{\mathbf{b}}}
+\newcommand{\Pvec}{\ensuremath{\mathbf{P}}}
+
+\newcommand{\up}{\ensuremath{u_{\mathcal{P}}}}
+\newcommand{\ub}{\ensuremath{u_{\mathcal{B}}}}
+\newcommand{\vp}{\ensuremath{v_{\mathcal{P}}}}
+\newcommand{\vb}{\ensuremath{v_{\mathcal{B}}}}
+\newcommand{\TODO}[1]{\textcolor{red}{#1}}
+\newcommand{\ASK}[1]{\textcolor{blue}{#1}}
+
+\newcommand{\W}[1]{\ensuremath{w\!\left[#1\right]\!}}
+\newcommand{\E}[1]{\ensuremath{\epsilon \!\left[#1\right]\!}}
+\newcommand{\T}[1]{\ensuremath{\sigma \! \left[#1\right]\!}}
+
+\newcommand{\Tr}[1]{\ensuremath{\text{tr}#1}}
+\newcommand*{\defeq}{\mathrel{\vcenter{\baselineskip0.5ex \lineskiplimit0pt
+                     \hbox{\scriptsize.}\hbox{\scriptsize.}}}%
+                     =}
+
+\usepackage{lipsum}
+\usepackage{authblk}
+\usepackage{fancyhdr}
+\usepackage[colorlinks=true,
+            linkcolor=cyan,
+            citecolor=gray]{hyperref}
+
+\usepackage{chngcntr}
+\counterwithin{table}{subsection}
+
+\DeclareMathOperator{\spn}{span}
+
+% DEBUGGING
+\usepackage{lineno}
+\linenumbers
+%\usepackage{setspace}
+%\doublespacing
+%
+%\pagestyle{fancy}
+%
+\renewenvironment{abstract}{%
+\hfill\begin{minipage}{0.95\textwidth}
+\rule{\textwidth}{1pt}}
+{\par\noindent\rule{\textwidth}{1pt}\end{minipage}}
+%
+\makeatletter
+\renewcommand\@maketitle{%
+\hfill
+\begin{minipage}{0.95\textwidth}
+\vskip 2em
+\let\footnote\thanks 
+{\LARGE \@title \par }
+\vskip 1.5em
+{\large \@author \par}
+\end{minipage}
+\vskip 1em \par
+}
+\makeatother
+%
+\begin{document}
+%
+%title and author details
+\title{\begin{center}
+        Note on plate-beam-like problems
+       \end{center}}
+\author[1]{MK}
+%\author[2]{Name2}
+%\affil[1]{Address of author} 
+%\affil[2]{Address of second author}
+%
+\maketitle
+%
+\begin{abstract}
+  This report is a summary of observations made on the properties of saddle
+  point systems that arise when a physical process in a domain
+  $\mathcal{P}\subset\R^2$ is coupled to another physical process in a domain
+  $\mathcal{B}\subset\mathcal{P}$ with topological dimension equal to one and
+  the coupling constraint does not involve a differential operator. We discuss
+  two cases (i) the governing equations of both processes are given by the
+  Laplace operator, (ii) the governing equations of both processes are given by
+  the biharmonic operator.
+\end{abstract}
+
+\section{Introduction}
+  We consider $\mathcal{P}=\left[-1, 1\right]^2$ and refer to this domain as
+  plate. To define $\mathcal{B}$ we let
+  $\vec{\chi}, \vec{\chi}:\left[-1, 1\right]\mapsto\mathcal{P}$, denote some
+  invertible mapping from the bi-unit interval onto the plate. Then
+  $\mathcal{B}=\left\{\vec{x}\in\R^2, \vec{x}=\vec{\chi}(s), s\in\left[-1,
+  1\right]\right\}$. For simplicity we shall have
+  $\vec{\chi}(s)=\frac{\vec{A}}{2}(1-s) +\frac{\vec{B}}{2}(1+s)$ for some
+  distinct points $\vec{A}, \vec{B}\in\partial\mathcal{P}$. We then refer to
+  the set $\mathcal{B}$ as beam. Further we let $V_{\mathcal{P}}, V_{\mathcal{B}}$
+  be the spaces of functions that map plate and the beam respectively to real
+  numbers. We postpone discussion of regularity properties of functions in these
+  two spaces for later sections.
+
+  The cases considered in this report are instances of the following
+  problem: Find $\up\in\Vp, \ub\in\Vb$ that minimize a functional
+  \begin{equation}
+    \label{eq:energy}
+    \begin{aligned}
+      E(\vp, \vb) &= \Ep(\vp, \vp) + \Eb(\vb, \vb) - \int_{\mathcal{P}}f \vp \meas{x}\meas{y}, \\
+      \text{subject to the constraint}&\\
+      T(\vp) &= \vb\text{ on }\mathcal{B},
+    \end{aligned}
+  \end{equation}
+  where $\Ep, \Ep: \Vp\times\Vp\mapsto\R$, is a bilinear form that describes
+  energy of the physical process on the plate and similarly the bilinear form
+  $\Eb, \Eb:\Vb\times\Vb\mapsto\R$, describes energy of the beam process. The
+  last term in the expression is a potential energy due to forcing $f$. Finally
+  we denote as $T, T:\Vp\mapsto\Vb$, the trace operator.
+  
+  The problem (\ref{eq:energy}) can be also recast into an unconstrained
+  optimization setting, where we search for extrema of the Lagrangian
+  \begin{equation}
+    \label{eq:lagrangian}
+    L(\vp, \vb, q) = \Ep(\vp, \vp) + \Eb(\vb, \vb) - \int_{\mathcal{P}}f \vb \meas{x}\meas{y} -
+    \int_{\mathcal{B}}(T(\vp) - \vb)q \meas{x}.
+  \end{equation}
+  Here, the function $q$, $q\in Q$, is an unknown Lagrange multiplier
+  and the function space $Q$ has functions that map the beam to real scalars.
+  Regularity of functions in $Q$ is discussed later.
+  An extreme point of the Lagrangian (\ref{eq:lagrangian}) is given as a
+  solution of the problem: Find $\up\in\Vp, \ub\in\Vb, p\in Q$ such that
+  for all $\vp\in\Vp, \vb\in\Vb, q\in Q$ it holds that
+ \begin{equation}
+    \label{eq:system}
+    \begin{aligned}
+      \Ep(\up, \vp) - \int_{\mathcal{B}}T(\vp)p\meas{x} &=
+      \int_{\mathcal{P}}f\vp\meas{x}\meas{y}, \\
+      \Eb(\ub, \vb) + \int_{\mathcal{B}}\vb p\meas{x} &= 0, \\
+      \int_{\mathcal{B}}(T(\up)-\ub)q\meas{x}\meas{y} &= 0.
+    \end{aligned}
+  \end{equation}
+
+  \subsection{Abstract saddle point problem}
+  To put problem (\ref{eq:system}) into the framework of abstract saddle point
+  problems we define a space $V=\Vp \times \Vb$ and bilinear forms
+  $a, a:V\times V\mapsto\R$ such that for $V\ni v=(\vp, \vb)$ we let
+  $a(v, v)=\Ep(\vp, \vp) + \Eb(\vb, \vb)$ and $b, b:V\times Q\mapsto\R$ such
+  that $b(v, q)= - \int_{\mathcal{B}}T(\vp)q\meas{x} +
+  \int_{\mathcal{B}}\vb q\meas{x}$. Finally we shall define a
+  linear form over $V\times Q$ such that $L((v, q))=\int_\mathcal{P}f \vp$. With
+  these definitions (\ref{eq:system}) can be written as: Find $(u, p)\in
+  V\times Q$ such that for all $(v, q)\in V\times Q$ it holds that 
+  \begin{equation}
+    \label{eq:abstract_saddle}
+    a(u, v) + b(u, q) + b(v, p) = L((v, q)). 
+  \end{equation}
+  
+  Before discussing existence and uniqueness of the solution of
+  (\ref{eq:abstract_saddle}) we equip the spaces $V, Q, V\times Q$ with norms.
+  If $\norm{\cdot}_{\Vp}$ and $\norm{\cdot}_{\Vb}$ are norms on the spaces $\Vp$
+  and $\Vb$ we define the norm on $V$ as 
+  \[
+    \norm{v}_V=\sqrt{\norm{\vp}^2_{\Vp} + \norm{\vb}^2_{\Vb}}.
+  \] Further, we let $\norm{\cdot}_{Q}$
+  denote the norm on space $Q$ and finally define the norm on space $V\times Q$
+  as 
+  \[
+    \norm{(v, q)}_{V\times Q}=\sqrt{\norm{v}^2_V +\norm{q}^2_Q}.
+  \]
+  Problem (\ref{eq:abstract_saddle}) has a unique solution iff there exists
+  positove a $\gamma$ defined as
+  \begin{equation}
+    \label{eq:babuska}
+    \gamma=\inf_{(u, p)\neq 0}\sup_{(v, q) \neq 0}
+    \frac{a(u, v) + b(u, q) + b(v, p)}
+    {\norm{(u, p)}_{V\times Q}  \norm{(v, q)}_{V\times Q}}.
+  \end{equation}
+  Condition (\ref{eq:babuska}) is due to Babu\v ska(\cite{babuska_error,
+  babuska_lag}). Babu\v ska condition is equivalent(\cite{equiv}) to two Brezzi
+  conditions(\cite{brezzi}) which
+  state that (\ref{eq:abstract_saddle}) has unique solution if (i) the
+  bilinear form $a$ is coercive on $Z=\left\{z\in V; b(z, q)=0\,\forall\,q\in Q\right\}$:
+  \begin{equation}
+    \label{eq:brezzi_coer}
+    \inf_{u\in Z}\sup_{v\in Z} \frac{a(u, v)}{\norm{u}_V\norm{v}_V} = \alpha > 0
+  \end{equation}
+  and (ii) the bilinear form $b$ satisfies the inf sup condition
+  \begin{equation}
+    \label{eq:brezzi_infsup}
+    \inf_{q\in Q}\sup_{u \in V} \frac{b(u, q)}{\norm{u}_V\norm{q}_Q}
+    = \beta > 0.
+  \end{equation}
+  
+  The Brezzi conditions can be easily understood in the light of the following
+  two step algorithm(\cite{scott}) which solves the problem (\ref{eq:abstract_saddle}). First
+  we observe that the solution $(u, p)\in V\times Q$ is clearly such that
+  $u\in Z$. Moreover, using test functions in $Z\subset V$ we have that $u$
+  is a solution to
+  \[
+    a(u, v) = \int_{\mathcal{P}} f v\meas{x}\meas{y}\,\forall v\in Z.
+  \]
+  Once $u$ is found, the multiplier $p$ is obtained from
+  \[
+    b(v, p) = \int_{\mathcal{P}} f v\meas{x}\meas{y} - a(u, v)\,\forall v\in V.
+  \]
+  The Brezzi conditions are necessary conditions for existence of unique
+  $u\in Z$ and $p\in Q$ as solutions to the respected subproblems. Further
+  we note that the Brezzi inf-sup condition prohibits existence functions
+  $0\neq p^{\star}\in Q$ for which $b(v, p^{\star})=0\,\forall v\in V$.
+  Such functions are referred to as the spurious modes and their existence
+  implies that the solution to the saddle point is not unique. Indeed, given
+  $(u, p)$ a solution to (\ref{eq:abstract_saddle}) a tuple $(u, p+p^{\star})$
+  is also a solution of the saddle point problem. Finally we note that if
+  the spurious modes exist we have $\beta=0$.
+
+  Each of the conditions (\ref{eq:babuska}, \ref{eq:brezzi_coer},
+  \ref{eq:brezzi_infsup}) can be associated with
+  an eigenvalue problem. It is not difficult to verify that the constant $\gamma$
+  from the Babu\v ska condition satisfies $\gamma=\left|\lambda_{\text{min}}\right|$, where
+  $\lambda_\text{min}$ is the smallest eigenvalue of the eigenproblem: Find
+  $\lambda\in\R, (u, p) \in V\times Q$ such that
+  \begin{equation}
+    a(u, v) + b(u, q) + b(v, p) = \lambda\left(m(u, v) + n(p, q)\right)\,\forall
+    (v, q) \in V\times Q.
+  \end{equation}
+  Here, $m, m:V\times V\mapsto\R$ and $n, n:Q\times Q\mapsto\R$ are symmetric
+  bilinear positive definite forms (\ASK{is this correct}) that induce
+  respectively the norm on $V$ and $Q$. Further, \cite{qin} gives that the Brezzi
+  coercivity constant satisfies $\beta=\sqrt{\lambda_{\text{min}}}$, where 
+  $\lambda_\text{min}$ is the smallest eigenvalue of the eigenproblem: Find
+  $\lambda\in\R, (u, p) \in V\times Q$ such that
+  \begin{equation}
+    a(u, v) + b(u, q) + b(v, p) = -\lambda n(p, q)\,\forall(v, q) \in V\times Q.
+  \end{equation}
+  Finally, the inf-sup constant $\beta$ can be computed as the smallest eigen
+  vaue of the problem: Find $\lambda\in\R, u, \in Z$ such that
+  \begin{equation}
+    a(u, v) = \lambda m(u, v)\,\forall v \in Z.
+  \end{equation}
+  or equivalently (\cite{rognes}) from a problem: Find
+  $\lambda\in\R, (u, p) \in V\times Q$ such that
+  \begin{equation}
+    a(u, v) + b(u, q) + b(v, p) = \lambda m(p, q)\,\forall(v, q) \in V\times Q.
+  \end{equation}
+  The latter problem is computationally more feasible since it does not involve
+  construction of the kernel space $Z$.
+
+  \subsection{Discrete setting}
+  To solve (\ref{eq:abstract_saddle}) numerically we choose $\mm\in\mathbb{N}^2, 
+r\in\mathbb{N}$ and define $V_\mm, Q_r$ the finite dimensional subspaces
+of $V, Q$. Note the subscripts represent dimension of the discrete spaces,
+$m=\text{dim}{V}=m_0+m_1, \text{dim}{Q}=r$, which in this study are constructed
+by the finite element method(\cite{scott}) and the spectral Galerkin
+method(\cite{shen_book}). In both cases
+the approximation $(u, p)\in V_{\mm}\times Q_e$ 
+to solution of (\ref{eq:abstract_saddle}) satisfies
+  \begin{equation}
+    \label{eq:abstract_saddle_h}
+    a(u, v) + b(u, q) + b(v, p) = L((v, q))\,\forall (v, q) \in V_{\mm}\times Q_r.
+  \end{equation}
+  For fixed values of $\mm$ and $r$ we have that the problem
+  (\ref{eq:abstract_saddle_h}) is well posed if the discrete Babu\v ska condition
+  is satisfied:
+  \begin{equation}
+    \label{eq:babuska_h}
+    \gamma_{\mm, r}=\inf_{(u, p)\in \left(V_{\mm}\times Q_r\right)}
+    \sup_{(u, p)\in \left(V_{\mm}\times Q_r\right)}
+    \frac{a(u, v) + b(u, q) + b(v, p)}
+    {\norm{(u, p)}_{V\times Q}  \norm{(v, q)}_{V\times Q}}.
+  \end{equation}
+  or equivalently if the two discrete Brezzi conditions hold:
+  \begin{equation}
+    \label{eq:brezzi_coer_h}
+    \begin{aligned}
+      &\inf_{u\in Z_{\mm, r}}
+    \sup_{v\in Z_{\mm, r}}
+    \frac{a(u,v)}{\norm{u}_V\norm{v}_V} = \alpha_{\mm, r} > 0,\\
+    &\quad\text{where}\\
+    & Z_{\mm, r} = \left\{z\in V_{\mm}; b(z, q)=0\,\forall\,q\in Q_r\right\}
+    \end{aligned}
+  \end{equation}
+  and 
+  \begin{equation}
+    \label{eq:brezzi_infsup_h}
+    \inf_{q\in Q_r}\sup_{u \in V_\mm} \frac{b(u, q)}{\norm{u}_V\norm{q}_Q}
+    = \beta _{\mm, r}> 0.
+  \end{equation}
+  To compute the approximate solution with the given accuracy the values of
+  parameters $\mm, r$ are changed and it is therefore important that
+  the above conditions do not seize to hold. We shall therefore require that
+  there exists positive constants $\gamma_0$ or $\alpha_0, \beta_0$ such that
+  for all parameters $\mm, r$ it holds that $\gamma_0<\gamma_{\mm, r}$ or
+  $\alpha_0<\alpha_{\mm, r}, \beta_0<\beta_{\mm, r}$.
+ 
+  At this point it should be noted that even if the condition (\ref{eq:babuska})
+  or (\ref{eq:brezzi_coer}, \ref{eq:brezzi_infsup}) hold for the tuple of spaces
+  $(V, Q)$ this property does not imply that the discrete conditions
+  (\ref{eq:babuska_h}) or (\ref{eq:brezzi_coer_h}, \ref{eq:brezzi_infsup_h})
+  hold on the approximate spaces $(V_{\mm}, Q_{r})$. A famous example of
+  this phenomenom is the Stokes problem for which the continous conditions are
+  verified easily but the approximate spaces for the discrete conditions must
+  be constructed with care; the finite element method uses specialized element
+  (e.g. \cite{th_mini}) for the velocity and pressure, while spectral Galerkin
+  method requires degree of polynomials for the velocity and degree of
+  polynomilas for pressure to differ by two (e.g. \cite{canuto}).
+
+  Let as define basis functions $\phi_i, \varphi_i, \psi_i$ such that
+  $V_{\mm}=\spn\left\{\phi_i\right\}_{i=0}^{m_0-1} \times
+  \spn\left\{\varphi_i\right\}_{i=0}^{m_1-1}$ and $Q_r=\spn\left\{\psi_i\right\}_{i=0}^{r-1}$.
+  To simplify the notation we shall let $\phi_i=\varphi_{i-m_0}$ for $i\geq
+  m_0$. With an ansatz 
+  \[ u=\displaystyle\sum\limits_{i=0}^{m-1}\phi_i U_i
+    \quad\text{and}\quad
+  p=\displaystyle\sum\limits_{i=0}^{r-1}\psi_i P_i,
+  \]
+  the system (\ref{eq:abstract_saddle_h}) can be written as: Find
+  $\mathbf{U}\in\R^m, \mathbf{P}\in\R^r$ such that
+  \begin{equation}
+    \label{system}
+    \begin{bmatrix}
+      \mathbb{A} & \mathbb{B} \\
+      \mathbb{B}^{\text{T}} & 0
+    \end{bmatrix}
+    \,
+    \begin{bmatrix}
+      \mathbf{U} \\
+      \mathbf{P}
+    \end{bmatrix}
+    =
+    \begin{bmatrix}
+      \mathbf{b}\\
+      0
+    \end{bmatrix}.
+  \end{equation}
+  Here the matrices $\mathbb{A}\in\R^{m\times m}$ and $\mathbb{B}\in\R^{m\times
+  r}$ consist of blocks
+  \[
+    \Amat = 
+    \begin{bmatrix}
+      \Ap & 0\\
+      0 & \Ab
+    \end{bmatrix}
+    ,\Ap\in\R^{m_0\times m_0}, \Ab\in\R^{m_1\times m_1}
+    \quad
+    \text{and}
+    \quad
+    \Bmat = 
+    \begin{bmatrix}
+      \Bp \\
+      \Bb
+    \end{bmatrix}
+    ,\Bp\in\R^{m_0\times r}, \Bb\in\R^{m_1\times r}
+  \]
+  whose components are given as
+  \[
+  \begin{aligned}
+    &\Apij{i}{j} = \Ep(\phi_i,
+    \phi_j),\quad&\Abij{i}{j}=\Eb(\varphi_i,\varphi_j),\\
+    &\Bpij{i}{j} =
+    -\int_\mathcal{B}T(\phi_i)\psi_j\meas{x},
+    \quad&\Bbij{i}{j}=\int_\mathcal{B}\varphi_i\psi_j\meas{x}.\\
+  \end{aligned}
+  \]
+  Vector $\bvec\in\R^{m}$ has the first $m_0$ components given by
+  $\bvec_i=\int_\mathcal{P}f\phi_i\meas{x}\meas{y}$ while the remaining $m_1$
+  components are zero. Finally for the future reference we define symmetric
+  positive definite matrices $\Mmat\in\R^{m\times m}, \Nmat\in\R^{n\times n}$
+  with components
+  \[
+    \left(\Mmat\right)_{i, j} = m(\phi_i, \phi_j)
+    \quad\text{and}\quad
+    \left(\Nmat\right)_{i, j} = n(\psi_i, \psi_j).
+  \]
+
+  \subsection{Eigenvalue problems related to discrete solvability conditions}
+  Before discussing eigenvalue problems through which the discrete Babu\v ska
+  and Brezzi constants can be computed we shall first motivate their importance.
+  As in the continuous case we do this by considering a two step algorithm
+  for solving the linear system (\ref{system}). Suppose the $\Amat$ is
+  invertible and vector $\Pvec$ is known, then from the first equation in the
+  system we get that 
+  \begin{equation}
+    \label{eq:sys_step1}
+    \Uvec = \Amat^{-1}\left(\bvec - \Bmat\Pvec\right),
+  \end{equation}
+  which can be substituted into the second equation of (\ref{system})
+  yielding
+  \begin{equation}
+    \label{eq:sys_step2}
+    \Bmatt\Amat^{-1}\left(\Bmat\Pvec-\bvec\right) = 0.
+  \end{equation}
+  The latter linear system is solvable iff $\Bmat\Pvec=0\Leftrightarrow\Pvec=0$,
+  which is guaranteed by the Brezzi infsup condition (\ref{eq:brezzi_infsup_h}).
+  Coming back to the first linear system, its well-posedness requires
+  $\Amat\Uvec=0\Leftrightarrow\Uvec=0$ but the condition does not need to hold
+  on entire $\R^m$. By the second equation of (\ref{system}) we have
+  $\Bmatt\Uvec=0$ and thus we only need $\Amat\Uvec=0\Leftrightarrow\Uvec=0$ for
+  $\Bmatt\Uvec=0$. Recalling definition of the space $Z_{\mm, r}$ and matrix
+  $\Bmat$ we see that the kernel can be identified with $Z_{m,
+  r}=\left\{\Uvec\in\R^m, \Bmatt\Uvec=0\right\}$ allowing us to write the
+  invertibility condition as $\Amat\Uvec=0\Leftrightarrow\Uvec=0$ for
+  $\Uvec\in Z_{m, r}$. But this is clearly equivalent to asking for the matrix
+  $\Amat$ to be positive definite on $Z_{m, r}$ which is the statement of the
+  discrete Brezzi coercivity condition (\ref{eq:brezzi_infsup_h}).
+
+  Similar to their continuous counterparts, constants from discrete Babu\v ska
+  and Brezzi conditions can be computed from suitable matrix eigenvalue
+  problems. The Babuska constant $\gamma_{\mm, r}$ is the smallest in magnitude
+  eigenvalue of the following problem: Find $\lambda\in\R, \Uvec\in\R^m,
+  \Pvec\in\R^r$ that solve
+  \begin{equation}
+    \label{eq:babuska_sys}
+    \begin{bmatrix}
+      \mathbb{A} & \mathbb{B} \\
+      \mathbb{B}^{\text{T}} & 0
+    \end{bmatrix}
+    \,
+    \begin{bmatrix}
+      \mathbf{U} \\
+      \mathbf{P}
+    \end{bmatrix}
+    =
+    \lambda
+    \begin{bmatrix}
+      \Mmat & 0\\
+      0 & \Nmat
+    \end{bmatrix}.
+  \end{equation}
+  Several observations can be made about the eigenvectors of the problem. (i)
+  Consider the solution of the form $\lambda, \Uvec, 0$. We get that the
+  triplet is admissible iff $\lambda, \Uvec$ solve
+  \[
+    \begin{aligned}
+      &\Amat\Uvec = \lambda\Mmat\Uvec,\\
+      &\Bmat\Uvec = 0.
+    \end{aligned}
+  \]
+  Consequently if $\lambda=0$ is in the spectrum, the first subproblem
+  (\ref{eq:sys_step1}) is not solvable. (ii) Consider the solution of the form
+  $\lambda, 0, \Pvec$. It follows that the triplet is admissible iff
+  \[
+    \begin{aligned}
+      &\Bmat\Pvec = 0,\\
+      &\lambda = 0. 
+    \end{aligned}
+  \]
+  The spurious modes are therefore associated with $\lambda=0$ meaning that
+  the subproblem (\ref{eq:sys_step2}) is not well-posed.
+  (iii) Assume $\Amat$ is invertible (note that this equivalent to problem (i)
+  having only nonzero eigenvalues) and set $\Mmat=\Amat$ transforming
+  (\ref{eq:babuska_sys}) into: Find $\lambda\in\R, \Uvec\in\R^m, \Pvec\in\R^r$
+  that solve
+  \[
+    \begin{bmatrix}
+      \mathbb{A} & \mathbb{B} \\
+      \mathbb{B}^{\text{T}} & 0
+    \end{bmatrix}
+    \,
+    \begin{bmatrix}
+      \mathbf{U} \\
+      \mathbf{P}
+    \end{bmatrix}
+    =
+    \lambda
+    \begin{bmatrix}
+      \Amat & 0\\
+      0 & \Nmat
+    \end{bmatrix}.
+  \]
+  The above can be also stated as: Find $\lambda\in\R, \Pvec\in\R^r$ that solves
+  \[
+    \Bmatt\Amat^{-1}\Bmat\Pvec=\lambda\left(1-\lambda\right)\Nmat\Pvec.
+  \]
+  We observe that the well-posedness of (\ref{system}) then hinges only on the
+  properties of the Schur complement $\Bmatt\Amat^{-1}\Bmat$. This is an
+  advantage from the computational point of view since the matrix involved in 
+  the eigenvalue problem in only $r\times r$. Further, for well-posedness we
+  must have $\lambda\notin\left\{0, 1\right\}$.
+
+  In order to compute the discrete Brezzi constants $\alpha_{\mm, r}$ and
+  $\beta_{\mm, r}$ we consider the following eigenvalue problems: Find
+  $\lambda, \Uvec\in\R^m, \Pvec\in\R^n$ such that
+  \begin{equation}
+    \label{eq:brezzi_coer_sys}
+    \begin{bmatrix}
+      \mathbb{A} & \mathbb{B} \\
+      \mathbb{B}^{\text{T}} & 0
+    \end{bmatrix}
+    \,
+    \begin{bmatrix}
+      \mathbf{U} \\
+      \mathbf{P}
+    \end{bmatrix}
+    =
+    \lambda
+    \begin{bmatrix}
+      \Mmat & 0\\
+      0 & 0
+    \end{bmatrix},
+  \end{equation}
+  Find $\lambda, \Uvec\in\R^m, \Pvec\in\R^n$ such that
+  \begin{equation}
+    \label{eq:brezzi_infsup_sys}
+    \begin{bmatrix}
+      \Mmat & \mathbb{B} \\
+      \mathbb{B}^{\text{T}} & 0
+    \end{bmatrix}
+    \,
+    \begin{bmatrix}
+      \mathbf{U} \\
+      \mathbf{P}
+    \end{bmatrix}
+    =
+    -\lambda
+    \begin{bmatrix}
+      0 & 0\\
+      0 & \Nmat
+    \end{bmatrix}.
+  \end{equation}
+  Using result from \cite{rognes} we have that the triplet $\lambda, \Uvec,
+  \Pvec$ solving (\ref{eq:brezzi_coer_sys}) is such that $\lambda, \Uvec$ solves
+  \[
+    \begin{aligned}
+      &\Amat\Uvec = \lambda\Mmat\Uvec,\\
+      &\Bmat\Uvec = 0.
+    \end{aligned}
+  \]
+  For the latter eigenvalue problem we clearly have 
+  $\left|\lambda_{\text{min}}\right|=\alpha_{\mm, r}$ and by the equivalence
+  the discrete Brezzi coercivity constant can be computed as the smallest
+  eigenvalue of (\ref{eq:brezzi_infsup_sys}). Finally \cite{qin} gives that
+  discrete Brezzi infsup constant $\beta_{\mm, r}$ can be computed as
+  $\beta_{\mm, r}=\sqrt{\lambda_\text{min}}$ where the eigenvalues of
+  (\ref{eq:brezzi_infsup_sys}) are to be considered.
+
+  \section{Poisson problem}
+  In this section we consider a special case of (\ref{eq:abstract_saddle}) where
+  the bilinear forms $\Ep, \Eb$ take the form
+  \[\Ep(\vp,\vp)=\int_\mathcal{P}\Grad{\vp}\cdot\Grad{\vp}\meas{x}\meas{y}
+    \quad\text{and}\quad
+  \Eb(\vb,\vb)=\int_\mathcal{B}\deriv{\vb}{\vec{x}}\cdot\deriv{\vb}{\vec{x}}\meas{x}.
+  \]
+  It is more practical to use the mapping $\chi$ and instead of using functions
+  that map the beam $\mathcal{B}$ to scalars consider function defined over the
+bi-unit interval. We then define the spaces for the plate unknown,
+beam unknown and the Lagrange multiplier as 
+$\Vp=H^1_0\left(\mathcal{P}\right), \Vb=H^1_0\left(\left(-1, 1\right)\right),
+Q=L^2\left(\left(-1, 1\right)\right)$ and the bilinear forms as
+\[
+  \begin{aligned}
+  &a(u, v) = \Ep(\up, \vp) + \Eb(\ub, \vb) = \int_\mathcal{P}\Grad{\vp}\cdot\Grad{\vp}\meas{x}\meas{y}
+  + \frac{2}{L}\int_{-1}^{1}\deriv{\ub}{s}\deriv{\vb}{s}\meas{s},\\
+  &b(u, q) = -\frac{L}{2}\int_{-1}^{1}T(\up)q\meas{s} +
+  \frac{L}{2}\int_{-1}^{1}\ub q\meas{s},\\
+  \end{aligned}
+\]
+where $L$ denotes the length of the beam. \\
+\TODO{
+\% Need existence and uniqueness in this case for (\ref{eq:system})\\
+\% Need discrete conditions, whatever they say (maybe compatibility) needs to
+be reflected in numerical experiments\\
+}
+\subsection{Spectral Galerkin method}
+We consider Galerkin method for (\ref{eq:system}) with the basis functions
+given by (i) the eigenfunctions of two dimensional and one dimensional Laplace
+operators (ii) polynomials due to \cite{shen_leg}.
+\subsection{Finite element methods}
+
+
+
+  \bibliographystyle{plain}
+  \bibliography{plate_beam}
+\end{document}

@@ -112,6 +112,9 @@ class CoupledProblem(object):
     def C_matrix(self, norm):
         'Return Q x Q matrix that is H^norm matrix in the Q basis.'
         # We can do it for positive ints
+        if norm is None:
+            return np.eye(self.r)
+
         assert isinstance(norm, int) and norm >= 0
         r = self.r
         C = np.zeros((r, r))
@@ -252,10 +255,3 @@ class CoupledProblem(object):
             lmbda = lambdify(s, lmbda)
 
         return (u, p, lmbda)
-
-# TODO: handle here assembly and schur
-# TODO: PoissonEigen class
-# TODO: BiharmonicEigen class
-# TODO: iff okay, 1) Check that we have match with theory
-#                 2) Sensitivity study with the beam position - data
-#                 3)                                          \ postprooc

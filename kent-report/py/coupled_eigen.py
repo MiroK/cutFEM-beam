@@ -45,6 +45,9 @@ class CoupledEigen(CoupledProblem):
 
     def C_matrix(self, norm):
         'H^norm matrices of Q'
+        if norm is None:
+            return np.eye(self.r)
+
         if isinstance(self.beam, LineBeam):
             # These are eigenvalues of u''
             diag = np.array([(pi/2 + k*pi/2)**2 for k in range(self.r)],
