@@ -37,18 +37,18 @@ def test_coupled_problem(params):
         params['materials'] ... dict with 'plate_E', 'beam_E' as stiffness of
                                 plate and beam
         params['rule'] ... class that has a name and __cal__(N) produces tuple
-                           (ms=list, n, r) that determined sizes of spaces in 
+                           (ms=list, n, r) that determined sizes of spaces in
                            beam problem
         params['N_list'] ... list of N values passed to rule to produce spaces
         params['norms'] ... norms to be used for Schur complement precondition
         params['Pblocks'] ... this is a list of functions that know how to build
-                              blocks for preconditioner to entire system. If 
+                              blocks for preconditioner to entire system. If
                               defined we compute (PA) properties
         params['postfix'] ... something to add to name of data file
 
     Computed quantities
         for each beam:
-            lists of 
+            lists of
 
             B.T*inv(A)*B*P=lambda*Nmat*P and the two partial problems for Nmat
                 given by norms.
@@ -111,14 +111,14 @@ def test_coupled_problem(params):
             # Construct the problem
             problem = Problem(ms, n, r, beam, materials)
 
-            # Schur     
+            # Schur
             # Get all the norm matrices
             Nmats = [problem.C_matrix(norm) for norm in norms]
             # Get all S eigs
             lminS = coupled_tests.schur(problem, Nmats)
             # Get all Sp eigs and Sb eigs
             lminSp, lminSb = coupled_tests.schur_components(problem, Nmats)
-    
+
             # Record
             [data[keyS(norm)][beam_index].append(val)
              for norm, val in zip(norms, lminS)]
@@ -162,7 +162,7 @@ def test_coupled_problem(params):
                      'plate_E': params['materials']['plate_E'],
                      'beam_E': params['materials']['beam_E'],
                      'norms': params['norms']}
-        
+
     # Pickle!
     pickle_name = '_'.join((Problem.__name__, rule.name, postfix))
     pickle_name = '.'.join((pickle_name, 'pickle'))
@@ -214,7 +214,7 @@ def as_plot(ns, beam_data, line_styles, markers, labels, colors, ylabel):
     assert len(markers) == n_cols
     assert len(labels) == n_cols
     assert len(colors) == n_cols
-    
+
     # Now plot
     plt.figure()
     for (ls, mk, lb, c, col) in zip(line_styles, markers, labels, colors, cols):
@@ -261,19 +261,32 @@ if __name__ == '__main__':
     import matplotlib.pyplot as plt
 
     # Some beam positions
-    A_pos = lambda t: [-1+t, -1]
-    B_pos = lambda t: [t, 1]
-    ts = [0, 1]
-    beams = [LineBeam(A_pos(tA), B_pos(tB)) for tA, tB in product(ts, ts)][:1]
-    # plot_beams(beams)
-    # plt.show()
+    #  A_pos = lambda t: [-1+t, -1]
+    # B_pos = lambda t: [t, 1]
+    # ts = [0, 1]
+    # beams = [LineBeam(A_pos(tA), B_pos(tB)) for tA, tB in product(ts, ts)]
+    As = [[-1, 0],
+          [-1, -0.5],
+          [-1, -1],
+          [0.5, -1],
+          [0, -1]]
+
+    Bs = [[1, 0],
+          [1, 0.5],
+          [1, 1],
+          [0.5, 1],
+          [0, 1]]
+
+    beams = [LineBeam(A, B) for A, B in product(As, Bs)]
+    plot_beams(beams)
+    plt.show()
 
     # Common stuff
     params = {'beam_list': beams,
               'materials': {'plate_E': 1, 'beam_E': 20},
               'rule': NRule('all_equal', lambda N: ([N, N], N, N)),
-              'N_list': range(2, 8),
-              'postfix': 'test'}
+              'N_list': range(2, 16),
+              'postfix': 'test1'}
     # Unique eigen
     params_eigen = {'problem': CoupledEigenLaplace,
                     'norms': [None, 0, -0.5, -1],
@@ -289,14 +302,14 @@ if __name__ == '__main__':
     params_shen.update(params)
 
     pickle_name = test_coupled_problem(params_shen)
-    pickle_name = 'CoupledShenLaplace_all_equal_test.pickle'
+    pickle_name = 'CoupledShenLaplace_all_equal_test1.pickle'
     data = pickle.load(open(pickle_name, 'rb'))
 
     # All markers, colors
     all_markers = ['x', 'd', 's', 'o', 'v', '^', '+']
     all_colors = ['b', 'g', 'r', 'k', 'c', 'm', 'y']
 
-    # Plot 
+    # Plot
     key = 'lmin_S'
     assert key in data
     ns = data['input']['N_list']
@@ -304,13 +317,13 @@ if __name__ == '__main__':
 
     # Suppose a beam (beam position is given)
     beam = 0
-    # We definitely want plots showing  
+    # We definitely want plots showing
     # (i) ns vs lmin(S), in the norms
     # (ii) ns vs lmin(Sp), in the norms
     # (iii) ns vs lmin(Sb), in the norms
     # (iv) ns vs gamma, in the norms
     # (v) ns vs cond(A) and cond(Pa)
-    plot = '(v)'
+    plot = '(iv)'
 
     if plot in ('(i)', '(ii)', '(iii)', '(iv)'):
         row_format = ['%d'] + ['%.2E'] * len(norms)
@@ -319,7 +332,7 @@ if __name__ == '__main__':
         markers = all_markers[:len(norms)]
         colors = all_colors[:len(norms)]
         labels=header[1:]
-        
+
         if plot == '(i)':
             beam_data = [data[keyS(norm)][beam] for norm in norms]
             ylabel='$S\lambda_{min}$'
