@@ -195,7 +195,7 @@ def as_tex_table(ns, beam_data, row_format, header):
     print r'\hline'
 
 
-def as_plot(ns, beam_data, line_styles, markers, labels, colors, ylabel):
+def as_plot(ns, beam_data, line_styles, markers, labels, colors, ylabel, ax=None):
     '''
     Make loglog plots ns vs. data. Each col in beam data has linestyle, marker,
     label, color. Figure need ylabel.
@@ -216,14 +216,18 @@ def as_plot(ns, beam_data, line_styles, markers, labels, colors, ylabel):
     assert len(colors) == n_cols
     
     # Now plot
-    plt.figure()
+    if ax is None:
+        ax = plt.figure().gca()
+    
+    lines = []
     for (ls, mk, lb, c, col) in zip(line_styles, markers, labels, colors, cols):
-        plt.loglog(ns, col, linestyle=ls, marker=mk, label=lb, color=c)
-    plt.legend(loc='best')
-    plt.ylabel(ylabel)
-    plt.xlabel('$n$')
-    plt.show()
+        line, = ax.loglog(ns, col, linestyle=ls, marker=mk, label=lb, color=c)
+        lines.append(line)
 
+    ax.set_ylabel(ylabel)
+    ax.set_xlabel('$n$')
+    return lines
+    
 
 def plot_beams(beams):
     'Plots all the beams into one plot.'
@@ -266,7 +270,7 @@ if __name__ == '__main__':
     ts = [0, 1]
     beams = [LineBeam(A_pos(tA), B_pos(tB)) for tA, tB in product(ts, ts)][:1]
     # plot_beams(beams)
-    # plt.show()
+    plt.show()
 
     # Common stuff
     params = {'beam_list': beams,
@@ -288,8 +292,8 @@ if __name__ == '__main__':
     params_eigen.update(params)
     params_shen.update(params)
 
-    pickle_name = test_coupled_problem(params_shen)
-    pickle_name = 'CoupledShenLaplace_all_equal_test.pickle'
+    # pickle_name = test_coupled_problem(params_shen)
+    pickle_name = 'CoupledEigenLaplace_all_equal_test1.pickle'
     data = pickle.load(open(pickle_name, 'rb'))
 
     # All markers, colors
@@ -303,7 +307,7 @@ if __name__ == '__main__':
     norms = data['input']['norms']
 
     # Suppose a beam (beam position is given)
-    beam = 0
+    beams_to_plot = [8, 9, 10, 11]
     # We definitely want plots showing  
     # (i) ns vs lmin(S), in the norms
     # (ii) ns vs lmin(Sp), in the norms
@@ -311,51 +315,72 @@ if __name__ == '__main__':
     # (iv) ns vs gamma, in the norms
     # (v) ns vs cond(A) and cond(Pa)
     plot = '(v)'
+    # Setup the parent figure
+    n_plots = len(beams_to_plot)
+    if n_plots == 1:
+        fig = plt.figure()
+    else:
+        assert n_plots < 5, 'Only up to 4 plots can be made at the same time'
+        if n_plots == 2:
+            fig, axarr = plt.subplots(1, n_plots, sharex=True, sharey=True)
+        else:
+            fig, axarr = plt.subplots(2, 2, sharex=True, sharey=True)
+            axarr = [axarr[0, 0], axarr[0, 1], axarr[1, 0], axarr[1, 1]]
 
-    if plot in ('(i)', '(ii)', '(iii)', '(iv)'):
-        row_format = ['%d'] + ['%.2E'] * len(norms)
-        header = ['$n$']+['$\mathbb{I}$']+['$H^{%g}$' % s for s in norms[1:]]
-        line_styles = '--'
-        markers = all_markers[:len(norms)]
-        colors = all_colors[:len(norms)]
-        labels=header[1:]
-        
-        if plot == '(i)':
-            beam_data = [data[keyS(norm)][beam] for norm in norms]
-            ylabel='$S\lambda_{min}$'
+    # Make subplots
+    for plot_index, beam in enumerate(beams_to_plot):
+        # Pick axis
+        ax = fig.gca() if n_plots == 1 else axarr[plot_index]    
+        # Fill in the data for single plot 
+        if plot in ('(i)', '(ii)', '(iii)', '(iv)'):
+            row_format = ['%d'] + ['%.2E'] * len(norms)
+            header = ['$n$']+['$\mathbb{I}$']+['$H^{%g}$' % s for s in norms[1:]]
+            line_styles = '--'
+            markers = all_markers[:len(norms)]
+            colors = all_colors[:len(norms)]
+            labels=header[1:]
+            
+            if plot == '(i)':
+                beam_data = [data[keyS(norm)][beam] for norm in norms]
+                ylabel='$S\lambda_{min}$'
 
-        if plot == '(ii)':
-            beam_data = [data[keySp(norm)][beam] for norm in norms]
-            ylabel='$S_p\lambda_{min}$'
+            if plot == '(ii)':
+                beam_data = [data[keySp(norm)][beam] for norm in norms]
+                ylabel='$S_p\lambda_{min}$'
 
-        if plot == '(iii)':
-            beam_data = [data[keySb(norm)][beam] for norm in norms]
-            ylabel='$S_b\lambda_{min}$'
+            if plot == '(iii)':
+                beam_data = [data[keySb(norm)][beam] for norm in norms]
+                ylabel='$S_b\lambda_{min}$'
 
-        if plot == '(iv)':
-            beam_data = [data[keyBab(norm)][beam] for norm in norms]
-            ylabel='$\gamma$'
+            if plot == '(iv)':
+                beam_data = [data[keyBab(norm)][beam] for norm in norms]
+                ylabel='$\gamma$'
 
-    elif plot == '(v)':
-        beam_data = [data['cond_A'][beam]]
-        row_format = ['%d', '%.2E']
-        header = ['$n$']+['$A$']
-        line_styles = '--'
-        markers=['x']
-        colors=['r']
-        labels=header[1:]
-        ylabel='$\kappa$'
+        elif plot == '(v)':
+            beam_data = [data['cond_A'][beam]]
+            row_format = ['%d', '%.2E']
+            header = ['$n$']+['$A$']
+            line_styles = '--'
+            markers=['x']
+            colors=['r']
+            labels=header[1:]
+            ylabel='$\kappa$'
 
-        iter_markers = iter(all_markers)
-        iter_colors = iter(all_colors)
-        for key in data:
-            if key.startswith('cond_PA'):
-                beam_data.append(data[key][beam])
-                row_format.append('%.2E')
-                header.append(key)
-                markers.append(iter_markers.next())
-                colors.append(iter_colors.next())
-                labels.append(key)
+            iter_markers = iter(all_markers)
+            iter_colors = iter(all_colors)
+            for key in data:
+                if key.startswith('cond_PA'):
+                    beam_data.append(data[key][beam])
+                    row_format.append('%.2E')
+                    header.append(key)
+                    markers.append(iter_markers.next())
+                    colors.append(iter_colors.next())
+                    labels.append(key)
 
-    as_tex_table(ns, beam_data, row_format, header)
-    as_plot(ns, beam_data, line_styles, markers, labels, colors, ylabel)
+        as_tex_table(ns, beam_data, row_format, header)
+        lines = as_plot(ns, beam_data, line_styles, markers, labels, colors,
+                        ylabel, ax)
+
+    # Finalize the plot
+    fig.legend(lines, labels, loc='lower right')
+    plt.show()
