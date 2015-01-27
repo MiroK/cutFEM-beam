@@ -89,7 +89,7 @@ temp = 'm=%d, |A-A_|=%.2E, A_rate=%.2f, |M-M_|=%.2E, M_rate=%.2f'
 import matplotlib.pyplot as plt
 plt.figure()
 
-for m in [2, 16, 32, 64, 128]:
+for m in [2, 16, 32, 64]:
     # Compute shen matrices and transformation
     Ashen = Ashen_matrix(m)
     Mshen = Mshen_matrix(m)

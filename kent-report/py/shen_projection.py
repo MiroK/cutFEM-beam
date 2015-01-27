@@ -156,7 +156,7 @@ if False:
 # Finally I am interested in power spectrum of a hat function
 #
 # Use m
-m = 80
+m = 81
 basis = list(shenp_basis(m))
 dbasis = [v.diff(x, 1) for v in basis]
 row = np.zeros(m)
@@ -167,7 +167,8 @@ hat_right = -2
 s = Symbol('s')
 h = 0.5
 error_max = -1
-for i, (b, db) in enumerate(zip(basis, dbasis)):
+# Note only even modes, we know odd are 0
+for i, (b, db) in enumerate(zip(basis[:], dbasis[:])):
     left, integral_error = quad(lambdify(x, db*hat_left), (-0.5, 0), error=True)
     right, integra_error = quad(lambdify(x, db*hat_right), (0, 0.5), error=True)
     row[i] = left+right
@@ -177,24 +178,42 @@ for i, (b, db) in enumerate(zip(basis, dbasis)):
 
     # Some properties of the integral
 
-    value = 2*b_unit.evalf(subs={s:0})/h\
-           -b_unit.evalf(subs={s:-1})/h\
-           -b_unit.evalf(subs={s:1})/h
+    #value = 2*b_unit.evalf(subs={s:0})/h\
+    #       -b_unit.evalf(subs={s:-1})/h\
+    #       -b_unit.evalf(subs={s:1})/h
 
-    error = abs(row[i] - value)
+    if i % 2 == 0:
+        print b_unit.evalf(subs={s:-1}) - b_unit.evalf(subs={s: 1})
+
+    # error = abs(row[i] - value)
     # print row[i], value, '--', integral_error
-    if error > error_max:
-        error_max = error
+    
+    if integral_error > error_max:
+        error_max = integral_error
 
-    print '>> i=%d, mid_val=%g' % (i, b_unit.evalf(subs={s:0})/h), value
-    if i % 2 == 1:
-        assert abs(b_unit.evalf(subs={s:0})/h) < 1E-15
+    #print '>> i=%d, mid_val=%g' % (i, b_unit.evalf(subs={s:0})/h), value
+    #if i % 2 == 1:
+    #    assert abs(b_unit.evalf(subs={s:0})/h) < 1E-15
 
 print 'Max formula error', error_max
 # Let's plot the power spectrum
 plt.figure()
 power = np.sqrt(row**2) + 0.01   # Shift the whole spectrum
-plt.loglog(power, marker='x')
+plt.loglog(power, marker='x')  # Only plot nonzeros (even) modes
+plt.loglog(range(len(power))[::2], power[::2],
+           linestyle='--')  # Only plot nonzeros (even) modes
+maxima = [4, 16, 28, 40, 52, 64, 76]
+plt.loglog(maxima, power[maxima], 'r')
+
+# Fit for maxima
+
+b = np.log(maxima)
+col = -np.log(power[maxima])
+A = np.ones((len(b), 2))
+A[:, 0] = col
+ans = np.linalg.lstsq(A, b)[0]
+p = ans[0]
+print '\tLeast square rate %.2f' % p
 
 print 'power', power
 # sorted_indices = np.argsort(power)[-10:]
