@@ -52,10 +52,12 @@ def P_matrix(n, m):
 
 # -----------------------------------------------------------------------------
 
-n = 5
+n = 4
+order = 2
+
 mesh = IntervalMesh(n, -1, 1)
 
-V = FunctionSpace(mesh, 'CG', 1)
+V = FunctionSpace(mesh, 'CG', order)
 u = TrialFunction(V)
 v = TestFunction(V)
 
@@ -85,7 +87,7 @@ for m in [16, 32, 64, 128, 256]:
     # degree of expression for eig_j should yield higher order quadrature so
     # that the resulting integral is sufficiently accurate
     mesh_fine = IntervalMesh(10000, -1, 1)
-    V_fine = FunctionSpace(mesh_fine, 'CG', 1)
+    V_fine = FunctionSpace(mesh_fine, 'CG', order)
     v = Function(V)
 
     P = np.zeros((n, m))
@@ -95,6 +97,7 @@ for m in [16, 32, 64, 128, 256]:
         cg_values[i+1] = 1
         v.vector()[:] = cg_values
         cg = Function(V, v)
+
 
         # Now represent it in finer space
         cg = interpolate(cg, V_fine)
@@ -122,9 +125,5 @@ for m in [16, 32, 64, 128, 256]:
     lmbda_ = lmbda
     m_ = m
 
-print la.norm(P - P_matrix(n, m))
+# print la.norm(P - P_matrix(n, m))
 
-# print 'Final A-A_'
-# print A-A_
-# print 'Final M-M_'
-# print M-M_
