@@ -182,8 +182,8 @@ for i, (b, db) in enumerate(zip(basis[:], dbasis[:])):
     #       -b_unit.evalf(subs={s:-1})/h\
     #       -b_unit.evalf(subs={s:1})/h
 
-    if i % 2 == 0:
-        print b_unit.evalf(subs={s:-1}) - b_unit.evalf(subs={s: 1})
+    # if i % 2 == 0:
+    #    print b_unit.evalf(subs={s:-1}) - b_unit.evalf(subs={s: 1})
 
     # error = abs(row[i] - value)
     # print row[i], value, '--', integral_error
@@ -198,7 +198,7 @@ for i, (b, db) in enumerate(zip(basis[:], dbasis[:])):
 print 'Max formula error', error_max
 # Let's plot the power spectrum
 plt.figure()
-power = np.sqrt(row**2) + 0.01   # Shift the whole spectrum
+power = np.sqrt(row**2)
 plt.loglog(power, marker='x')  # Only plot nonzeros (even) modes
 plt.loglog(range(len(power))[::2], power[::2],
            linestyle='--')  # Only plot nonzeros (even) modes

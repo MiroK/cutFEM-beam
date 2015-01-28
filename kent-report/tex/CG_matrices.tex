@@ -153,7 +153,7 @@
 %
 %title and author details
 \title{\begin{center}
-        Note on plate-beam-like problems
+        Connecting FEM and spectral methods
        \end{center}}
 \author[1]{MK}
 %\author[2]{Name2}
@@ -164,34 +164,279 @@
 %
 \begin{abstract}
   For one-dimensional Poisson problem we study a connection between the
-  stiffness and mass matrices obtained by a discretization with the finite
-  element method using continuous Lagrange elements and a discretization with
-  the Galerkin method where the eigenfunctions of the Laplacian are employed
-  as the test functions. We show that if the transformation of basis is realized
-  by:bd
-  :q
+  stiffness and mass matrices obtained from a discretization with the finite
+  element method using continuous linear Lagrange elements and two discretizations
+  with the Galerkin method where the eigenfunctions of the Laplacian and
+  combinations of Legendre polynomials are used respectively as the test
+  functions. We show that the matrices due to finite element method can be viewed
+  as the limit of transformations describing the change of basis. Further, we
+  study the limiting behaviour and it is shown that the eigenfunctions lead to
+  faster convergence.
 \end{abstract}
+
 \section{Introduction}
-  We consider domain $\Omega=\left[-1, 1 \right]$
-  
-\subsection{Finite element method}
-For given $n\in\mathbb{N}, n>1$, we shall partition a bi-unit interval into
-$n+1$ elements $e_i=\left[x_i, x_{i+1}\right], i=0, 1, \dots, n$ where the
-vertices $x_i$ are such that $-1\leq x_i\leq-1$ for $i=0, 1, \dots, n+1$. Using
-vertices $x_i$ we define for $i=1,2\dots,n-1$ the hat-functions $\phi_i$,
-\[
-  \phi_i(x)=\begin{cases}
-    \frac{x-x_{i-1}}{x_i-x_{i-1}}&\quad x\in e_{i-1},\\
-    \frac{x-x_{i+1}}{x_i-x_{i+1}}&\quad x\in e_{i},\\
-    0&\quad\text{otherwise}.
-             \end{cases}
-\]
-Clearly $\phi_i\in H^1$
+  % explaing that the methods start from variational formulation, solve that
+  % problem by Galerkin method, subspace and lead to matrices. The differences
+  % are in how the subspace is constraucted naturally leads to different
+  % matrices
+  For given data $f$ we consider a problem of finding sufficiently regular
+  function $u$ that has zero boundary values and satisfies
+  \begin{equation}
+    \label{eq:strong}
+    u^{\prime\prime} = f
+  \end{equation}
+  inside the domain $\Omega=\left[-1, 1\right]$. Numerical methods studied here
+  are based on a variational formulation of (\ref{eq:strong}) which reads: Find
+  $u\in V=H^1_0(\Omega)$ such that
+  \begin{equation}
+    \label{eq:weak}
+    \inner{u^{\prime}}{v^{\prime}} = \inner{f}{v}\quad\forall v\in V.
+  \end{equation}
+  The methods then solve (\ref{eq:weak}) approximately by the Galerkin method,
+  that is, by considering the problem on a finite dimensional subspace
+  $V_h\subset V$. If $V_h=\spn\left\{\phi_i\right\}_{i=0}^{n-1}$ the Galerkin
+  method leads to a linear system
+  \[
+    \Amat\Uvec = \bvec
+  \]
+  for the unknown expansion coefficients of the solution
+  $u_h=\sum_{i=0}^{n-1}\Uvec_i \phi_i$. The matrix $\Amat\in\R^{n\times n}$ is
+  called the stiffness matrix and has the entries given by
+  \[
+    \Amat_{i, j} = \inner{\phi_j^{\prime}}{\phi_i^{\prime}}.
+  \]
+  Components of the vector $\bvec\in\R^n$ are $\bvec_i=\inner{f}{\phi_i}$. We
+  note that if $V_h\ni f=\sum_{i=0}^{n-1}\mathbf{F}_i \phi_i$, then
+  $\bvec=\Mmat\mathbf{F}$. Here we have introduced the mass matrix $\Mmat$ whose
+  components are given by
+  \[
+    \Mmat_{i, j} = \inner{\phi_j}{\phi_i}.
+  \]
+  It is clear that properties of mass and stiffness matrices depend on the
+  choice of basis functions of $V_h$. We shall briefly summarize how the finite
+  dimensional subspace is constructed in each of the methods.
+  % For each.  V_h, A, M, convergence properties of the solution! 
+  \subsection{Finite element method}
+  For given $n\in\mathbb{N}, n>1$, we shall partition a bi-unit interval into
+  $n+1$ elements $e_i=\left[x_i, x_{i+1}\right], i=0, 1, \dots, n$ where the
+  vertices $x_i$ are such that $-1\leq x_i\leq-1$ for $i=0, 1, \dots, n+1$. Using
+  vertices $x_i$ we define for $i=1,2\dots,n$ the hat-functions $\phi_i$,
+  \begin{equation}
+    \label{eq:hat}
+    \phi_i(x)=\begin{cases}
+      \frac{x-x_{i-1}}{x_i-x_{i-1}}&\quad x\in e_{i-1},\\
+      \frac{x-x_{i+1}}{x_i-x_{i+1}}&\quad x\in e_{i},\\
+      0&\quad\text{otherwise}.
+               \end{cases}
+  \end{equation}
+  For notational simplicity we shift the counting index $i\leftarrow i-1$ and
+  define $V_n=\spn\left\{\phi_i\right\}_{i=0}^{n-1}$. Clearly we have
+  $\text{dim}V_n=n$ and $V_n\subset V$. If the vertices $x_i$ are equidistant
+  with spacing $h=\tfrac{2}{n+1}$ the stiffness matrices can be immediately
+  written down. Indeed we have
+  \[
+    \Amat = \frac{1}{h}\begin{bmatrix}
+      2 & -1 & 0 & 0 & 0 &\dots & 0 \\
+      -1 & 2 & -1 & 0 & 0 &\dots & 0 \\
+      0  & -1 & 2 & -1 & 0&\dots & 0 \\
+      0  & 0 & \ddots & \ddots & \ddots &\dots & 0\\
+      0 & \dots & 0 & -1 & 2 & -1 & 0 \\
+      0 & \dots & 0 & 0 & -1 & 2 & -1 \\
+      0 & \dots & 0 & 0 & 0 & -1 & 2 \\
+          \end{bmatrix}
+  \]
+  and
+  \[
+    \Mmat = \frac{h}{6}\begin{bmatrix}
+      4 & 1 & 0 & 0 & 0 &\dots & 0 \\
+      1 & 4 & 1 & 0 & 0 &\dots & 0 \\
+      0  & 1 & 4 & 1 & 0&\dots & 0 \\
+      0  & 0 & \ddots & \ddots & \ddots &\dots & 0\\
+      0 & \dots & 0 & 1 & 4 & 1 & 0 \\
+      0 & \dots & 0 & 0 & 1 & 4 & 1 \\
+      0 & \dots & 0 & 0 & 0 & 1 & 4 \\
+          \end{bmatrix}
+  \]
+  Finally we note that the following error estimate holds for the method 
+  $\norm{u^{\prime}-u_h^{\prime}}\leq h\norm{u^{\prime}}_2$. The error therefore
+  decreases linearly if the mesh size is decreased (or equivalently $n$ is
+  increased).
 
+  \subsection{Galerkin method with eigenfunctions}
+  We let $\alpha_k=\frac{\pi}{2}+k\frac{\pi}{2}$ for $k=0, 1, \dots$ and
+  consider functions $\varphi_k$,
+  \[
+    \varphi_k(x) = \begin{cases}
+                \cos{\alpha_k x} &\quad k \text{ is even },\\
+                \sin{\alpha_k x} &\quad k \text{ is odd }.\\
+              \end{cases}
+  \]
+  Clearly $\varphi_k\in V$. Moreover with $\lambda_j=\alpha_j^2$, the functions
+  $\varphi_j$ are solutions to the eigenvalue problem: Find $\lambda\in\R, u\in V$
+  such that
+  \[
+    \inner{u^{\prime}}{v^{\prime}} = \lambda \inner{u}{v}\quad\forall v \in V.
+  \]
+  Finally we note that $\inner{\varphi_i}{\varphi_j}=\delta_{ij}$ and 
+  $\inner{\varphi_i^{\prime}}{\varphi_j^{\prime}}=\lambda_j\delta_{ij}$. The
+  functions are thus orthonormal in the $L^2$-inner product and orthogonal in
+  the $H^1$ inner product. The set $\left\{\varphi_k\right\}_{k=0}^{\infty}$
+  forms an orthogonal basis of $V$. In the Galerkin method we shall define the
+  finite dimensional space as $V_m=\spn\left\{\varphi_i\right\}_{i=0}^{m-1}$.
+  Owing to the orthogonality properties the stiffness and mass matrices
+  assembled on $V_m$ take a particularly simple form. We have
+  \[
+    \Amat_{ij} = \lambda_j\delta_{ij}
+    \quad\text{ and }\quad
+    \Mmat_{ij} = \delta_{ij}.
+  \]
+  Finally we note that the following error estimate holds for the method 
+  $\norm{u^{\prime}-u_m^{\prime}}\leq \frac{1}{\alpha_m}\norm{f}$ and thus
+  we expect the error in the energy norm to decrease linearly with increasing
+  $m$.
 
-\subsection{Galerkin method with eigenfunctions}
+  \subsection{Galerkin method with Legendre polynomials}
+  Let us denote $l_k$ the $k-th$ Legendre polynomial. It is known
+  (e.g. \cite{shen_book}) that the boundary values of Legendre polynomials are
+  \[
+    l_k(1) = 1\quad\text{ and }\quad l_k(-1) = (-1)^k
+  \]
+  and consequently $l_k\notin V$. However special combinations of Legendre
+  polynomials can be taken to yield polynomials that have zero boundary values.
+  If $\varphi_k=\beta_k\left(l_{k+2} - l_k\right), k=0, 1,\dots$ with constants
+  $\beta_k$ given as $\beta_k = \frac{1}{\sqrt{4k + 6}}$ then
+  \cite{shen_leg} showed that the functions are zero on the boundary and
+  consequently $\varphi_k\in V$. The functions $\varphi_j$ have desirable
+  orthogonality properties, namely
+  $\inner{\varphi_i^{\prime}}{\varphi_j^{\prime}}=\delta_{ij}$ and
+  $\inner{\varphi_i}{\varphi_j}=0$ for $j\notin\left\{i-2, i, i+2\right\}$.
+  For the Galerkin method we set $V_m=\spn\left\{\varphi_i\right\}_{i=0}^{m-1}$
+  so that $\text{dim}V_m=m$. As with the eigenfunctions, the matrices assembled
+  on $V_m$ have a simple form. The stiffness matrix is in fact an identity
+  while the mass matrix is sparse tridiagonal matrix with nonzero entries
+  \[
+    \Mmat_{ii} = \beta_i^2\left(\frac{2}{2i+1}+\frac{2}{2i+5}\right)
+    \quad{\text{ and }}\quad
+    \Mmat_{i(i+2)} = -\beta_i\beta_{i+2}\frac{2}{2(i+2)+1}.
+  \]
+  Finally, owing to the error estimate (\cite{shen_leg})
+  \[
+    \norm{u-u_m} + (m+1)\norm{u-u_m}_1 \leq C(s)(m+1)^{-s}\norm{u}_s
+  \]
+  the method converges exponentially for $u\in H^s\left({\Omega}\right)$.
 
-\section{Matrix connection}
+  With the stiffness and mass matrices of all methods in place we shall now
+  try to answer a question whether there exists a connections between the
+  matrices of the finite element method and the matrices of the other two
+  methods. Broadly speaking we are asking for existence of the transformation
+  (and possibly its properties) of the global method (in a sense that the
+  support of neither eigenfunctions nor the polynomials due to Shen is localized)
+  and the local (finite element) method.
 
+  % Now we are interested in connection between FEM(local) and other global
+  % matrices/methods
+  \section{Eigen connection}
+  Consider the finite dimensional space of eigenfunctions $V_m$ and function $f$
+  which has zeros on the boundary and is at least $C^0$. We then define $\pi_m f$
+  as
+  \[
+    \pi_m f = \displaystyle\sum\limits_{k=0}^{m-1}c_k \varphi_k,
+  \]
+  where the coefficients $c_k$ are $c_k=\inner{f}{\phi_k}$. Function $\pi_m$ is
+  the usual $L^2$ projection of $f$ onto $V_m$. To test the approximation
+  properties of the projection, we have considered functions
+  $f_0=e^{2x}(x^4-1)$ and $f_1=e^{2x}(x^4-1)\sin{4\pi x}$ and measured
+  convergence rate of $\norm{f_i - \pi_{f_i}}$. The results are shown in
+  Figure \ref{fig:eig_smooth_projection}. We see that for the function $f_0$
+  which does not oscillate inside the interval, the rate is constant (we
+  obtained $k^{-2.15}$ by the least squares fit). On the other hand the rate
+  for function $f_1$ behaves as $m^{-2}$ only for $k>10$. The key to this behavior
+  is in the right pane of the figure which shows the spectrum of function $f_0,
+  f_1$. The first function has a smooth spectrum which decays for all $k$
+  ($k^{-2.78}$ by the least squares fit) while the second spectrum decays
+  monotonically only for $k>10$.
+  \begin{figure}
+  \begin{center}
+    \includegraphics[width=0.45\textwidth]{img/eigen_smooth_rate.pdf}
+    \includegraphics[width=0.45\textwidth]{img/eigen_smooth_power.pdf}
+  \end{center}
+  \label{fig:eig_smooth_projection}
+  \caption{Convergence rate of $\pi f$ for smooth functions. (left) The
+  convergence rate in the $L^2$ norm. (right) Magnitude of coefficients $c_k$.}
+  \end{figure}
 
+  Since our main interest lies in transformation to finite element method we
+  now consider properties of the projection $\pi_m$ for the hat functions
+  $\phi_i$( cf. eq (\ref{eq:hat})). In general, for hat function $\phi_i$ we
+  have the expansion coefficients of projection $c_k$ given by
+  \[
+    c_k = \inner{\phi_i}{\varphi_k} =
+    \displaystyle\int_{x_{i-1}}^{x_{i}}\frac{x-x_{i-1}}{x_i-x_{i-1}}\varphi_k(x)\meas{x}+
+    \displaystyle\int_{x_{i}}^{x_{i+1}}\frac{x-x_{i+1}}{x_i-x_{i+1}}\varphi_k(x)\meas{x}.
+  \]
+  The above integral can be carried by the integration by parts with the result
+  \begin{equation}
+    \label{eq:eigen_hat_ck}
+    c_k =
+    \frac{1}{\alpha_k^2}
+    \left(
+    \frac{\varphi_k(x_i) - \varphi_k(x_{i-1})}{x_i - x_{i-1}} +
+    \frac{\varphi_k(x_{i+1}) - \varphi_k(x_{i})}{x_i - x_{i+1}}
+    \right)
+  \end{equation}
+  To analyze the asymptotic behaviour of $c_k$ we shall consider homogeneous
+  mesh with elements of size $h$ and consider special hat functions centered
+  at the origin. We shall refer to these as $(-h, 0, h)$. This choice greatly
+  simplifies the calculations but it is by no means unreasonable as for the mesh
+  with even number of elements such function is always present in $V_n$.
+
+  Since functions $(-h, 0, h)$ are even we have $c_k=0$ for $k$ odd (recall that
+  odd wavenumbers belong to sines). For $k$ even expression
+  (\ref{eq:eigen_hat_ck}) simplifies to
+  \[
+    c_k = \frac{4}{\alpha_k^2 h}\sin^2\left(\frac{h}{2}\alpha_k\right).
+  \]
+  Finally by considering the term
+  $\frac{\sin^2\left(\frac{h}{2}\alpha_k\right)}{h}$
+  we obtain for $\frac{h}{2}\alpha_k > \frac{\pi}{2}$ or equivalently 
+  $k>\tfrac{2}{h}$ the bound on the coefficients
+  \[
+    c_k \leq \frac{1}{\alpha_k^2}.
+  \]
+  This implies that for each $h$ there exists a critical wavenumber $k_0=2/h$
+  such that for all wavenumbers $k>k_0$ the coefficients should always be 
+  smaller the $k^{-2}$.
+
+  The estimate of the critical wavenumber as well as the asymptotic behaviour
+  agree well with the numerical experiments whose results are shown in Figure
+  \ref{fig:eig_hat_spectrum}. Note that the right pane of the figure showing
+  the spectrum of shifted hat functions $(-h+0.1, 0, h)$ also shows the
+  asymptotic decay $k^{-2}$.
+  \TODO{Maybe add the error plots?}
+  \TODO{General estimates for homogeneous mesh.}
+
+  \begin{figure}
+  \begin{center}
+    \includegraphics[width=0.45\textwidth]{img/eigen_hat_spectrum_centered.pdf}
+    \includegraphics[width=0.45\textwidth]{img/eigen_hat_spectrum_off.pdf}
+  \end{center}
+  \label{fig:eig_hat_spectrum}
+  \caption{Spectrum of has function. (left) Dependence of $\inner{f}{\varphi_k}$
+    on the wave number for the hat function $(-h, 0, h)$. Vertical lines denote
+    the computed wave number $k0$. (right) Dependence of coefficients $c_k$ on
+    the wave number for hat function $(-h+0.1, 0.1, h+0.1)$. Note that $c_k=0$
+    were excluded from the plot. Both plots confirm the $k^{-2}$ decay.}
+  \end{figure}
+  % projection -> smooth
+  % even mode
+  % any mode
+  % the rates for 4, 8, 16, 32
+  \section{CG1 vs Legendre}
+  % projection -> smooth
+  % even mode
+  % any mode
+  % the rates for 4, 8, 16, 32
+
+  \bibliographystyle{plain}
+  \bibliography{CG_matrices}
 \end{document}
