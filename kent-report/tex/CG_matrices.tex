@@ -296,7 +296,7 @@
   $m$.
 
   \subsection{Galerkin method with Legendre polynomials}
-  Let us denote $l_k$ the $k-th$ Legendre polynomial. It is known
+  Let us denote $l_k$ the $k$-th Legendre polynomial. It is known
   (e.g. \cite{shen_book}) that the boundary values of Legendre polynomials are
   \[
     l_k(1) = 1\quad\text{ and }\quad l_k(-1) = (-1)^k
@@ -349,12 +349,12 @@
   convergence rate of $\norm{f_i - \pi_{f_i}}$. The results are shown in
   Figure \ref{fig:eig_smooth_projection}. We see that for the function $f_0$
   which does not oscillate inside the interval, the rate is constant (we
-  obtained $k^{-2.15}$ by the least squares fit). On the other hand the rate
-  for function $f_1$ behaves as $m^{-2}$ only for $k>10$. The key to this behavior
+  obtained $m^{-2.15}$ by the least squares fit). On the other hand the rate
+  for function $f_1$ behaves as $m^{-2}$ only for $m>10$. The key to this behavior
   is in the right pane of the figure which shows the spectrum of function $f_0,
-  f_1$. The first function has a smooth spectrum which decays for all $k$
-  ($k^{-2.78}$ by the least squares fit) while the second spectrum decays
-  monotonically only for $k>10$.
+  f_1$. The first function has a smooth spectrum where the the megnitude of 
+  coefficinets decays for all $k$ ($k^{-2.78}$ by the least squares fit) while
+  the second spectrum decays monotonically only for $k>10$.
   \begin{figure}
   \begin{center}
     \includegraphics[width=0.45\textwidth]{img/eigen_smooth_rate.pdf}
@@ -404,7 +404,7 @@
     c_k \leq \frac{1}{\alpha_k^2}.
   \]
   This implies that for each $h$ there exists a critical wavenumber $k_0=2/h$
-  such that for all wavenumbers $k>k_0$ the coefficients should always be 
+  such that for all wavenumbers $k>k_0$ the coefficients $c_k$ always be 
   smaller the $k^{-2}$.
 
   The estimate of the critical wavenumber as well as the asymptotic behaviour
@@ -423,9 +423,9 @@
   \label{fig:eig_hat_spectrum}
   \caption{Spectrum of has function. (left) Dependence of $\inner{f}{\varphi_k}$
     on the wave number for the hat function $(-h, 0, h)$. Vertical lines denote
-    the computed wave number $k0$. (right) Dependence of coefficients $c_k$ on
-    the wave number for hat function $(-h+0.1, 0.1, h+0.1)$. Note that $c_k=0$
-    were excluded from the plot. Both plots confirm the $k^{-2}$ decay.}
+    the computed critical wave number $k0$. (right) Dependence of coefficients
+    $c_k$ on the wave number for hat function $(-h+0.1, 0.1, h+0.1)$. Note that
+    $c_k=0$ were excluded from the plot. Both plots confirm the $k^{-2}$ decay.}
   \end{figure}
   % projection -> smooth
   % even mode
