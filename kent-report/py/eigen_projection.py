@@ -28,12 +28,13 @@ def eigen_basis(n):
             yield sin(alpha*x)
         k += 1
 
-if False:
+if True:
     # We check properties of the generalied Fourier series for Eigen
     # Number of eigen functions to use
-    f = exp(2*x)*(x**4 - 1)*sin(4*pi*x)
+    f = exp(2*x)*(x**4 - 1)
     n_list = np.arange(2, 33)
-    errors = []
+    errors0 = []
+    errors1 = []
     for n in n_list:
         basis = list(eigen_basis(n))
         # Function you want to expand, we shall conder only such function taht have
@@ -47,19 +48,29 @@ if False:
         f_ = sum(coef*v for (coef, v) in zip(row, basis))
 
         # Compute the L2 error of aproximation
-        e = lambdify(x, (f-f_)**2)
-        error = sqrt(quad(e, (-1, 1)))
+        e0 = lambdify(x, (f-f_)**2)
+        error0 = sqrt(quad(e0, (-1, 1)))
+        # Compute the H1 error of aproximation
+        e1 = lambdify(x, ((f-f_).diff(x, 1))**2)
+        error1 = sqrt(quad(e1, (-1, 1)))
 
         if n != 2:
-            print n, error, ln(error/error_)/ln(n_/n)
+            print n, error0, ln(error0/error0_)/ln(n_/n), \
+                error1, ln(error1/error1_)/ln(n_/n)
         
         n_ = n
-        error_ = error
-        errors.append(float(error))
+        error0_ = error0
+        errors0.append(float(error0))
+        error1_ = error1
+        errors1.append(float(error1))
 
-    data = {'n_list': n_list, 'errors': errors, 'power': row, 'f': sp.latex(f)}
+    data = {'n_list': n_list,
+            'errors0': errors0,
+            'errors1': errors1,
+            'power': row,
+            'f': sp.latex(f)}
     import pickle
-    pickle.dump(data, open('eigen_smooth_1.pickle', 'wb'))
+    pickle.dump(data, open('eigen_smooth_0.pickle', 'wb'))
 
 
 if False:
@@ -160,90 +171,90 @@ if False:
 # Finally I am interested in power spectrum of a hat function
 # (x_prev, xi, x_next) where xi will be zero or something else to make the
 # function nor odd nor even. Also the distance is imporant
+if False:
+    def hat_coefficient(xi, x_prev, x_next, j):
+        'Compute \int_{-1}^{1} phi_j hat_i.'
+        # Phase
+        alpha = lambda k: math.pi/2 + k*math.pi/2
+        # j-th basis functions at x
+        phi = lambda x, j: math.cos(alpha(j)*x) if j % 2 == 0 else math.sin(alpha(j)*x)
+        # Compute the value of integral
+        ans = (phi(xi, j) - phi(x_prev, j))/(xi - x_prev)/alpha(j)/alpha(j)
+        ans += (phi(x_next, j) - phi(xi, j))/(xi - x_next)/alpha(j)/alpha(j)
+        return ans
 
-def hat_coefficient(xi, x_prev, x_next, j):
-    'Compute \int_{-1}^{1} phi_j hat_i.'
-    # Phase
-    alpha = lambda k: math.pi/2 + k*math.pi/2
-    # j-th basis functions at x
-    phi = lambda x, j: math.cos(alpha(j)*x) if j % 2 == 0 else math.sin(alpha(j)*x)
-    # Compute the value of integral
-    ans = (phi(xi, j) - phi(x_prev, j))/(xi - x_prev)/alpha(j)/alpha(j)
-    ans += (phi(x_next, j) - phi(xi, j))/(xi - x_next)/alpha(j)/alpha(j)
-    return ans
+    def even_even_coefficient(h, j):
+        alpha = lambda k: math.pi/2 + k*math.pi/2
+        # print j, 0.5*alpha(j)*h 
+        return 4/alpha(j)/alpha(j)/h*(math.sin(0.5*alpha(j)*h)**2)
 
-def even_even_coefficient(h, j):
-    alpha = lambda k: math.pi/2 + k*math.pi/2
-    # print j, 0.5*alpha(j)*h 
-    return 4/alpha(j)/alpha(j)/h*(math.sin(0.5*alpha(j)*h)**2)
+    # Use m eigenfunctions
+    m = 1024
+    basis = list(eigen_basis(m))
+    row = np.zeros(m)
 
-# Use m eigenfunctions
-m = 1024
-basis = list(eigen_basis(m))
-row = np.zeros(m)
+    # Vary the spacing and check sensitivity
+    markers = iter(['o', 'd', 'x', 's', 'v'])
+    colors = iter(['r', 'b', 'g', 'm', 'k'])
+    labels = iter([r'$\frac{1}{4}$',
+                   r'$\frac{1}{8}$',
+                   r'$\frac{1}{32}$'])
 
-# Vary the spacing and check sensitivity
-markers = iter(['o', 'd', 'x', 's', 'v'])
-colors = iter(['r', 'b', 'g', 'm', 'k'])
-labels = iter([r'$\frac{1}{4}$',
-               r'$\frac{1}{8}$',
-               r'$\frac{1}{32}$'])
+    plt.figure()
+    for h in [1/4., 1/8., 1/32.]:
+        xi = 0.1
+        x_prev = xi - h
+        x_next = xi + h
 
-plt.figure()
-for h in [1/4., 1/8., 1/32.]:
-    xi = 0.1
-    x_prev = xi - h
-    x_next = xi + h
-
-    hat_left = ((x-x_prev)/(xi-x_prev))
-    hat_right = ((x-x_next)/(xi-x_next))
+        hat_left = ((x-x_prev)/(xi-x_prev))
+        hat_right = ((x-x_next)/(xi-x_next))
 
 
-    error_max = -1
-    for i, b in enumerate(basis):
-        # left = quad(lambdify(x, b*hat_left), (x_prev, xi))
-        # right = quad(lambdify(x, b*hat_right), (xi, x_next))
-        # row[i] = left+right
+        error_max = -1
+        for i, b in enumerate(basis):
+            # left = quad(lambdify(x, b*hat_left), (x_prev, xi))
+            # right = quad(lambdify(x, b*hat_right), (xi, x_next))
+            # row[i] = left+right
 
-        # error = abs(row[i]-hat_coefficient(xi, x_prev, x_next, i))
-        # if error > error_max:
-        #    error_max = error
-        row[i] = hat_coefficient(xi, x_prev, x_next, i)
+            # error = abs(row[i]-hat_coefficient(xi, x_prev, x_next, i))
+            # if error > error_max:
+            #    error_max = error
+            row[i] = hat_coefficient(xi, x_prev, x_next, i)
 
-        # Test nulity of odd modes and look even
-        #if i % 2 == 1:
-        #    assert abs(row[i]) < 1E-14, '%g @ %i' % (row[i], i)
-        #else:
-        #    diff = abs(row[i]-even_even_coefficient(h, i))
-        #    assert diff < 1E-14, '%g' % diff
+            # Test nulity of odd modes and look even
+            #if i % 2 == 1:
+            #    assert abs(row[i]) < 1E-14, '%g @ %i' % (row[i], i)
+            #else:
+            #    diff = abs(row[i]-even_even_coefficient(h, i))
+            #    assert diff < 1E-14, '%g' % diff
 
-    # print 'Formula error', error_max
+        # print 'Formula error', error_max
 
-    # Let's plot the power spectrum
-    power = np.sqrt(row**2)
-    ns = range(len(power))
+        # Let's plot the power spectrum
+        power = np.sqrt(row**2)
+        ns = range(len(power))
 
-    nnz_ns = []
-    nnz_powers = []
+        nnz_ns = []
+        nnz_powers = []
 
-    for n_val, p_val in zip(ns, power):
-        if p_val > 1E-13:
-            nnz_ns.append(n_val)
-            nnz_powers.append(p_val)
+        for n_val, p_val in zip(ns, power):
+            if p_val > 1E-13:
+                nnz_ns.append(n_val)
+                nnz_powers.append(p_val)
 
-    #plt.loglog(ns[::2], power[::2], marker=next(markers), color=next(colors),
-    #           linestyle='--', label=next(labels))
-    c = next(colors)
-    plt.loglog(nnz_ns[::2], nnz_powers[::2], marker=next(markers), color=c,
-               linestyle='--', label=next(labels))
+        #plt.loglog(ns[::2], power[::2], marker=next(markers), color=next(colors),
+        #           linestyle='--', label=next(labels))
+        c = next(colors)
+        plt.loglog(nnz_ns[::2], nnz_powers[::2], marker=next(markers), color=c,
+                   linestyle='--', label=next(labels))
 
-    # where = [2./h, 2./h]
-    # plt.loglog(where, [1, 1e-8], color=c)
+        # where = [2./h, 2./h]
+        # plt.loglog(where, [1, 1e-8], color=c)
 
-    # print power
+        # print power
 
-plt.xlabel('$k$')
-plt.ylabel(r'$|(f, \varphi_k)|$')
-plt.legend(loc='best')
-plt.savefig('eigen_hat_spectrum_off.pdf')
-plt.show()
+    plt.xlabel('$k$')
+    plt.ylabel(r'$|(f, \varphi_k)|$')
+    plt.legend(loc='best')
+    plt.savefig('eigen_hat_spectrum_off.pdf')
+    plt.show()

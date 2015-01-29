@@ -84,6 +84,14 @@
 \newcommand{\Bmatt}{\ensuremath{\mathbb{B}^{\text{T}}}}
 \newcommand{\Mmat}{\ensuremath{\mathbb{M}}}
 \newcommand{\Nmat}{\ensuremath{\mathbb{N}}}
+
+\newcommand{\Ammatt}{\ensuremath{\tilde{\mathbb{A}}_m}}              %
+\newcommand{\Mmmatt}{\ensuremath{\tilde{\mathbb{M}}_m}}              %
+\newcommand{\Ammat}{\ensuremath{\mathbb{A}_m}}               %
+\newcommand{\Mmmat}{\ensuremath{\mathbb{M}_m}}               %
+\newcommand{\Pmat}{\ensuremath{\mathbb{P}}}                  %
+\newcommand{\Pmatt}{\ensuremath{\mathbb{P}^{\text{T}}}}       %
+
 %components
 \newcommand{\Apij}[2]{\ensuremath{\left(\mathbb{A}_{\mathcal{P}}\right)_{#1, #2}}}
 \newcommand{\Abij}[2]{\ensuremath{\left(\mathbb{A}_{\mathcal{B}}\right)_{#1, #2}}}
@@ -414,6 +422,7 @@
   asymptotic decay $k^{-2}$.
   \TODO{Maybe add the error plots?}
   \TODO{General estimates for homogeneous mesh.}
+  \TODO{There must be a convergence theory for this series.}
 
   \begin{figure}
   \begin{center}
@@ -427,10 +436,13 @@
     the wave number for hat function $(-h+0.1, 0.1, h+0.1)$. Note that $c_k=0$
     were excluded from the plot. Both plots confirm the $k^{-2}$ decay.}
   \end{figure}
-  % projection -> smooth
-  % even mode
-  % any mode
-  % the rates for 4, 8, 16, 32
+
+  Let us denote $V_n, V_m\subset V$ the finite dimensional subspaces of $V$
+  constructed respectively by $n$ hat functions $\phi_i$ and by first $m$
+  eigenfunctions $\varphi_j$. Further let $\Amat, \Mmat \in \R^{n \times n}$ denote
+  the stiffness and mass matrices assembled with on $V_n$. Finally we denote
+  by $\Ammatt, \Mmmatt \in \R^{m\times m}$
+
   \section{CG1 vs Legendre}
   % projection -> smooth
   % even mode
