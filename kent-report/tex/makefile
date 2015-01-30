@@ -1,4 +1,4 @@
-all: CG_matrices.pdf 
+all: CG_matrices.pdf view
 
 CG_matrices.pdf: CG_matrices.tex CG_matrices.aux
 	pdflatex CG_matrices.tex

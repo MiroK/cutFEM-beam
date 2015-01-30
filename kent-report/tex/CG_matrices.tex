@@ -84,6 +84,14 @@
 \newcommand{\Bmatt}{\ensuremath{\mathbb{B}^{\text{T}}}}
 \newcommand{\Mmat}{\ensuremath{\mathbb{M}}}
 \newcommand{\Nmat}{\ensuremath{\mathbb{N}}}
+
+\newcommand{\Ammatt}{\ensuremath{\tilde{\mathbb{A}}_m}}              %
+\newcommand{\Mmmatt}{\ensuremath{\tilde{\mathbb{M}}_m}}              %
+\newcommand{\Ammat}{\ensuremath{\mathbb{A}_m}}               %
+\newcommand{\Mmmat}{\ensuremath{\mathbb{M}_m}}               %
+\newcommand{\Pmat}{\ensuremath{\mathbb{P}_m}}                  %
+\newcommand{\Pmatt}{\ensuremath{\mathbb{P}_m^{\text{T}}}}       %
+
 %components
 \newcommand{\Apij}[2]{\ensuremath{\left(\mathbb{A}_{\mathcal{P}}\right)_{#1, #2}}}
 \newcommand{\Abij}[2]{\ensuremath{\left(\mathbb{A}_{\mathcal{B}}\right)_{#1, #2}}}
@@ -118,7 +126,8 @@
             citecolor=gray]{hyperref}
 
 \usepackage{chngcntr}
-\counterwithin{table}{subsection}
+%\counterwithin{table}{subsection}
+%
 
 \DeclareMathOperator{\spn}{span}
 
@@ -346,15 +355,16 @@
   the usual $L^2$ projection of $f$ onto $V_m$. To test the approximation
   properties of the projection, we have considered functions
   $f_0=e^{2x}(x^4-1)$ and $f_1=e^{2x}(x^4-1)\sin{4\pi x}$ and measured
-  convergence rate of $\norm{f_i - \pi_{f_i}}$. The results are shown in
-  Figure \ref{fig:eig_smooth_projection}. We see that for the function $f_0$
-  which does not oscillate inside the interval, the rate is constant (we
-  obtained $m^{-2.15}$ by the least squares fit). On the other hand the rate
-  for function $f_1$ behaves as $m^{-2}$ only for $m>10$. The key to this behavior
-  is in the right pane of the figure which shows the spectrum of function $f_0,
-  f_1$. The first function has a smooth spectrum where the the megnitude of 
-  coefficinets decays for all $k$ ($k^{-2.78}$ by the least squares fit) while
-  the second spectrum decays monotonically only for $k>10$.
+  convergence rate of $f_i - \pi_{f_i}$ in the $L^2, H^1_0$ norms. The results
+  are shown in Figure \ref{fig:eig_smooth_projection}. We see that for the
+  function $f_0$ which does not oscillate inside the interval, the rate is constant
+  (by the least square fit we obtained $m^{-2.15}$ in the $L^2$ nom and $m^{-1.25}$
+  in the energy norm by the least squares fit). On the other hand the rates
+  for function $f_1$ behave as $m^{-2}$ and $m^{-1}$ only for $m>10$. The key
+  to this behavior is in the right pane of the figure which shows the spectrum
+  of function $f_0, f_1$. The first function has a smooth spectrum where the the
+  megnitude of coefficinets decays for all $k$ ($k^{-2.78}$ by the least squares
+  fit) while the second spectrum decays monotonically only for $k>10$.
   \begin{figure}
   \begin{center}
     \includegraphics[width=0.45\textwidth]{img/eigen_smooth_rate.pdf}
@@ -362,7 +372,8 @@
   \end{center}
   \label{fig:eig_smooth_projection}
   \caption{Convergence rate of $\pi f$ for smooth functions. (left) The
-  convergence rate in the $L^2$ norm. (right) Magnitude of coefficients $c_k$.}
+  convergence rate in the $L^2$ norm(squares) and $H^1_0$ norm(circles). 
+  (right) Magnitude of coefficients $c_k$.}
   \end{figure}
 
   Since our main interest lies in transformation to finite element method we
@@ -399,13 +410,13 @@
   Finally by considering the term
   $\frac{\sin^2\left(\frac{h}{2}\alpha_k\right)}{h}$
   we obtain for $\frac{h}{2}\alpha_k > \frac{\pi}{2}$ or equivalently 
-  $k>\tfrac{2}{h}$ the bound on the coefficients
+  $k+1>\tfrac{2}{h}$ the bound on the coefficients
   \[
     c_k \leq \frac{1}{\alpha_k^2}.
   \]
   This implies that for each $h$ there exists a critical wavenumber $k_0=2/h$
-  such that for all wavenumbers $k>k_0$ the coefficients $c_k$ always be 
-  smaller the $k^{-2}$.
+  such that for all wavenumbers $k+1\geq k_0$ the coefficients $c_k$ will always
+  be  smaller than $k^{-2}$. For the future reference we note that $k_0=n+1$.
 
   The estimate of the critical wavenumber as well as the asymptotic behaviour
   agree well with the numerical experiments whose results are shown in Figure
@@ -414,6 +425,7 @@
   asymptotic decay $k^{-2}$.
   \TODO{Maybe add the error plots?}
   \TODO{General estimates for homogeneous mesh.}
+  \TODO{There must be a convergence theory for this series.}
 
   \begin{figure}
   \begin{center}
@@ -423,16 +435,266 @@
   \label{fig:eig_hat_spectrum}
   \caption{Spectrum of has function. (left) Dependence of $\inner{f}{\varphi_k}$
     on the wave number for the hat function $(-h, 0, h)$. Vertical lines denote
-    the computed critical wave number $k0$. (right) Dependence of coefficients
+    the computed critical wave number $k_0$. (right) Dependence of coefficients
     $c_k$ on the wave number for hat function $(-h+0.1, 0.1, h+0.1)$. Note that
     $c_k=0$ were excluded from the plot. Both plots confirm the $k^{-2}$ decay.}
   \end{figure}
+
+  Let us denote $V_n, V_m\subset V$ the finite dimensional subspaces of $V$
+  constructed respectively by $n$ hat functions $\phi_i$ and by first $m$
+  eigenfunctions $\varphi_j$. Further let $\Amat, \Mmat \in \R^{n \times n}$ denote
+  the stiffness and mass matrices assembled with on $V_n$. Finally we denote
+  by $\Ammatt, \Mmmatt \in \R^{m\times m}$ the stiffness and mass matrices
+  assembled on $V_m$. In the previous section we showed boundedness of the
+  mapping $\phi_i\ni V_n \mapsto \pi_m\phi_i \in V_m$.
+  We shall represent this mapping by a matrix $\Pmatt\in\R^{m x\times n}$ whose
+  colums have expansions coefficients $c_k, k=0,1, \dots m-1$ for all $n$
+  functions in $V_n$ and define two $n$ by $n$ matrices
+  \[
+    \Mmmat = \Pmat\Mmmatt\Pmatt
+    \quad{\text{ and }}\quad
+    \Ammat = \Pmat\Ammatt\Pmatt.
+  \]
+  We shall refer to these as the transformed mass matrix and transformed
+  stiffness matrix. Keeping $n$ fixed we are now interested in properties of
+  the sequences $\left\{\Mmmat\right\}$ and $\left\{\Ammat\right\}$. First we
+  observe the entries of the transformed mass matrix are
+  \[
+    \left(\Mmmat\right)_{ij} =
+    \displaystyle\sum\limits_{k=0}^{m-1}
+    \inner{\phi_i}{\varphi_k}\inner{\phi_j}{\varphi_k}.
+  \]
+  Assuming $m>n$ we expect $\left| \inner{\phi_i}{\varphi_k} \right|$ and
+  $\left| \inner{\phi_j}{\varphi_k} \right|$ to be bounded by $k^{-2}$ for 
+  $k>n$ so that the summed terms behave as $k^{-4}$ and finaly the entry
+  is bounded by $m^{-3}$. Thus every entry in the matrix converges and we expect
+  the series for $\left\{\Mmmat\right\}$ to converge. A similar argument can
+  be made for entries of the transformed stiffness matrix. The difference is
+  that the matrix $\Ammat$ indtroduces scaling of the eigenvalues which grow
+  as $k^2$. As a result the entries should converge as $m^{-1}$. Next we shall
+  make a more sound argument for existance of the limit.
+
+  % Showing what Am, Mm really are (the projections)
+  We consider entries of the transformed mass matrix again and write out
+  \[
+    \left(\Mmmat\right)_{ij} =
+    \displaystyle\sum\limits_{k=0}^{m-1}
+    \displaystyle\sum\limits_{l=0}^{m-1}
+    \inner{\phi_i}{\varphi_k}\inner{\varphi_k}{\varphi_l}\inner{\phi_j}{\varphi_k}=
+    \displaystyle\sum\limits_{k=0}^{m-1}
+    \displaystyle\sum\limits_{l=0}^{m-1}
+    \inner{\inner{\phi_i}{\varphi_k}\varphi_k}
+          {\inner{\phi_j}{\varphi_l}\varphi_l}.
+  \]
+  The entries of transformed mass matrix are thus the inner products of the
+  basis function of $V_n$ projected onto $V_m$.
+  \[
+    \left(\Mmmat\right)_{ij} = \inner{\pi_m\phi_i}
+                                     {\pi_m\phi_j}.
+  \]
+  Writing out
+  \[
+    \left(\Ammat\right)_{ij} =
+    \displaystyle\sum\limits_{k=0}^{m-1}
+    \displaystyle\sum\limits_{l=0}^{m-1}
+    \inner{\phi_i}{\varphi_k}
+    \inner{\varphi_k^{\prime}}{\varphi_l^{\prime}}
+    \inner{\phi_j}{\varphi_k}=
+    \displaystyle\sum\limits_{k=0}^{m-1}
+    \displaystyle\sum\limits_{l=0}^{m-1}
+    \inner{\inner{\phi_i}{\varphi_k}\varphi_k^{\prime}}
+    {\inner{\phi_j}{\varphi_l}\varphi_l^{\prime}}.
+  \]
+  we get that the entries of the transformed stiffness matrix are the $H^1_0$
+  inner products of the projected basis functions of $V_n$,
+  \[
+    \left(\Ammat\right)_{ij} = \inner{\left\{\pi_m\phi_i\right\}}
+    {\left\{\pi_m\phi_j\right\}}.
+  \]
+  Motivated by 
+  $\norm{\pi_m \phi_i - \phi_i}_i \xrightarrow[]{m\rightarrow\infty}0$ and
+  $i=0, 1$ we now ask if $\norm{\Mmat - \Mmmat}_{F}$ and 
+  $\norm{\Amat - \Ammat}_{F}$ go to zero as $m$ goes to infinity. Note that
+  for general matrix $\Bmat\in\R^{m\times m}$, the Frobenius norm is
+  \[
+    \norm{\Bmat}_{F} = \sqrt{
+    \displaystyle\sum\limits_{i=0}^{m-1}
+    \displaystyle\sum\limits_{j=0}^{m-1}
+    \left|\Bmat_{ij}\right|^2
+    }
+  \]
+
+  % measuting frobenius for M   [need to find both rate for m^-2*m^-2 and why
+  % loose m
+  The entries of the matrix $\Mmat-\Mmmat$ are $\left(\Mmat-\Mmmat\right)_{ij}=
+  \inner{\phi_i}{\phi_j}-\inner{\pi_m\phi_i}{\pi_m\phi_j}$. By properties of
+  $\pi_m$ we have $\pi_m\phi_i - \phi_i \perp V_m$ and since $\pi_m\phi_j\in V_m$
+  we get that $\inner{\phi_i}{\pi_m\phi_j}=\inner{\pi_m\phi_i}{\pi_m\phi_j}$.
+  Consequently $\inner{\phi_i}{\phi_j}-\inner{\pi_m\phi_i}{\pi_m\phi_j} =
+  \inner{\phi_i-\pi_m\phi_i}{\phi_j - \pi_m\phi_j}$ and thus
+  \[
+    \left(\Mmat-\Mmmat\right)_{ij} = \inner{\phi_i-\pi_m\phi_i}{\phi_j - \pi_m\phi_j}
+  \]
+  \TODO{This seems to be $m^{-2}*m{-2}$, where do we loose one order?}. We
+  can thus write $M=\displaystyle\lim_{m\to\infty}M_m$.
+  % measuting frobenius for M   [need to find both rate for m^-1*m^-1 and why
+  % loose m
+  In a similar way we can prove that the entries of the matrix $\Amat-\Ammat$
+  are
+  \[
+    \left(\Amat-\Ammat\right)_{ij} =
+    \inner
+    {\left(\phi_i-\pi_m\phi_i\right)^{\prime}}
+    {\left(\phi_j - \pi_m\phi_j\right)^{\prime}}.
+  \]
+  The required orthogonality of $\left(\pi_m\phi_i - \phi_i\right)^{\prime}$ to
+  $\left\{\varphi^{\prime}_j\right\}_{j=0}^{m-1}$ follows from  
+  $\inner{\varphi_i^{\prime}}{\varphi_j^{\prime}}=\lambda_j\delta_{ij}$.
+  \TODO{This seems to be $m^{-2}*m{-2}$, where do we loose one order?}. We
+  can then write $A=\displaystyle\lim_{m\to\infty}A_m$.
+
+  The above estimates were tested numerically with results summarized in Figure
+  \ref{fig:eig_mat} and Table \ref{tab:eig_mat}. Figure \ref{fig:eig_mat} shows
+  convergence of the matrix
+  approximations. It is apparent from the figure that similar to expansion
+  coefficients there exists for each $n$ a critical size of space $V_m$ which
+  guarantees convergence of the transformed matrices. For spaces larger than
+  the critical one, the rate of convergence agrees well with the analysis. 
+  \begin{figure}
+  \begin{center}
+    \includegraphics[width=0.45\textwidth]{img/eig_A.pdf}
+    \includegraphics[width=0.45\textwidth]{img/eig_M.pdf}
+  \end{center}
+  \label{fig:eig_mat}
+  \caption{Convergence rate of matrix approximation. (left) The transformed
+  stiffness matrix converges to finite element stiffness as $m{-1}$ once the
+  space $V_m$ is sufficiently large. The critical size appears to be $n$.
+  (right) The transformed mass matrix converges to finite element mass matrix
+  as $m^{-3}$.
+  }
+  \end{figure}
+  Table \ref{tab:eig_mat} shows the magnitude of the error in matrix
+  approximations for $m=8192$ fixed and varying $n$. The error seems to grow
+  as $n^2$. \TODO{Why?}
+  \begin{table}
+    \begin{center}
+    \begin{tabular}{|c||c|c|c|c|c|}
+      \hline
+$n$ &  4& 16& 64& 256& 1024\\
+      \hline\hline
+$\norm{\Amat-\Ammat}_F$ & 2.02E-03& 2.81E-02& 4.18E-01& 6.51E+00& 1.03E+02 \\
+      \hline
+$\norm{\Mmat-\Mmmat}_F$ & 4.08E-12& 5.65E-11& 8.41E-10& 1.30E-08& 2.02E-07 \\
+      \hline
+    \end{tabular}
+  \caption{The errors of matrix approximation for $m=8192$ and different $n$.}
+  \label{tab:eig_mat}
+  \end{center}
+  \end{table}
+
+  Finally we turn attention to properties of the transformation matrix $\Pmat$.
+  Recall that in general, this is an $n$ by $m$ matrix which represents a
+  transformation from the space of eigenfunction $V_m$ to the finite element 
+  space $V_n$. Matrix $\Pmatt$ then represents a transformation from $V_n$ 
+  to $V_m$. Note that by $\Mmmat=\mathbb{I}_m$ we know that the product 
+  $\Pmat\Pmatt$ should scale as the finite element mass matrix. \ASK{This
+  one has a condition number converging to 3. Why? And can we conclude already
+here that $\Pmat$ will inherit the scaling?} Ideally we would have
+$\Pmatt\Pmat=\mathbb{I}_n$. Observations about the matrix are in Figure
+\ref{fig:eig_P} which shows dependence of condition number $\Pmat$ on $m$
+  for different $n$ fixed. Note that until the space $V_m$ reaches the critical
+  size $m=n$, the condition number increases. At the critical size, there is a
+  turning point and the condition number converges to \TODO{(mysterious)} value
+  of $\sqrt{3}$.
+  
+  For the special case where spaces $V_m$ and $V_n$ are inflated together the
+  condition number of the square transformation matrix $\Pmat$ is shown in
+  Table \ref{tab:eig_P}. Note that the value correspond to value of maximal
+  condition number of the rectangular matrices in Figure $\ref{fig:eig_P}$. 
+  The table indicates that this value is bounded by a constant $\approx 2.5$.  
+  \TODO{Why?}
+  
+  \begin{figure}
+  \begin{center}
+    \includegraphics[width=0.5\textwidth]{img/eig_Pmn.pdf}
+  \end{center}
+  \label{fig:eig_P}
+  \caption{Condition number of the transformation matrix $\Pmat$ for different $n$.
+    Note that the matrix is rectangular in general.}
+  \end{figure}
+  \begin{table}
+    \begin{center}
+    \begin{tabular}{|c||c|c|c|c|c|c|c|c|}
+      \hline
+      $n$           &   64&  128&  256&  512& 1024& 2048& 4096& 8192\\
+      \hline\hline
+      $\kappa(\Pmat)$ & 2.39& 2.43& 2.45& 2.46& 2.46& 2.46& 2.47& 2.47\\
+      \hline
+      $\kappa(\Pmatt\Pmat)$ & 5.73& 5.90& 5.99& 6.04& 6.06& 6.08& 6.08&
+      6.09\\
+      \hline
+    \end{tabular}
+  \caption{Condition number for the square transformation matrix $\Pmat$ and
+  $\Pmatt\Pmat$.}
+  \label{tab:eig_P}
+  \end{center}
+  \end{table}
+  \ASK{From FEM to Eigen I could go by projection that is $\Pmat$ or the
+  interpolation. Is there a difference?}
+  % Maybe things can be discussed in the light of condition numbers of matrices
+  % A, M etc.
+
+ \section{Legendre connection}
+ Consider the finite dimensional space $V_m=\spn\left\{\psi_i\right\}_{i=0}^{m-1}$
+ where $\psi_i$ are the functions due to \cite{shen_leg} and function $f$
+ which has zeros on the boundary and is at least $C^0$. To approximate $f$ on
+ $V_m$ we define $\pi_m f\in V_m$,
+ as
+ \[
+   \pi_m f = \displaystyle\sum\limits_{k=0}^{m-1}c_k \psi_k,
+ \]
+ where the vector of expansion coefficients is given as a solution to linear
+ system $\Mmmat c=\bvec$, with $\Mmmat$ the mass matrix on $V_m$ and
+ $\bvec_i=\inner{f}{\psi_j}$. As an alternative to the $L^2$ projection we
+ could consider another mapping which would take advantage of the orthogonality
+ properties of function $\psi_j$.
+ We write symbolically $f=\sum_k c_k\psi_k$ and consider a derivative of the
+ expression. Using orthonormality of basis functions with respect to the
+ $H^1_0$ inner product we get $\inner{f^{\prime}}{\psi^{\prime}_j} =
+ \sum_k c_k\inner{\psi^{\prime}_k}{\psi^{\prime}_j}=c_k$. Consequently
+ we shall define $\Pi_m f\in V_m$ as
+ \[
+   \Pi_m f = \displaystyle\sum\limits_{k=0}^{m-1}c_k \psi_k,
+ \]
+ with $c_k=\inner{f^{\prime}}{\psi^{\prime}_k}$. Note that for the
+ eigenfunctions $\varphi_k$ the two projections yield the same object since
+ \[
+   \inner{f}{\varphi_k} =
+   -\frac{1}{\lambda_k}\inner{f}{\varphi^{\prime\prime}_k} =
+   \frac{1}{\lambda_k}\inner{f^{\prime}}{\varphi_k^{\prime}}.
+ \]
+  Figure \ref{fig:shen_smooth_projection} shows that with increasing $m$ both
+  projections $\pi_mf, \Pi_mf$ converge to smooth $f$ exponentially in both
+  the $L^2$ and the energy norm. However for functions $f(x)=(x^4-1)e^{2x}\sin{4\pi x}$
+  the exponential convergence requires sufficiently large space $V_m$.
+  \TODO{Theory for this and what to expect from hat?}
+  
   % projection -> smooth
-  % even mode
-  % any mode
-  % the rates for 4, 8, 16, 32
-  \section{CG1 vs Legendre}
-  % projection -> smooth
+  \begin{figure}
+  \begin{center}
+    \includegraphics[width=0.45\textwidth]{img/shen_L2proj.pdf}
+    \includegraphics[width=0.45\textwidth]{img/shen_H10proj.pdf}
+  \end{center}
+  \label{fig:shen_smooth_projection}
+  \caption{Convergence rate of $\pi f$,  $\Pi f$ for smooth functions.
+    (left) Convergence rate in the $L^2$ norm for the $L^2$ and $H^1_0$
+    projection. (right) Convergence rate in the $L^2$ norm for the $H^1_0$
+    and $H^1_0$ projection. For function $f=(x^4-1)e^{2x}$ both projections
+    yield an approximation which converges exponentially. For 
+    $f=(x^4-1)e^{2x}\sin{4\pi x}$ exponentially converges is obtained only for
+    sufficiently large space $V_m$.
+  }
+  \end{figure}
   % even mode
   % any mode
   % the rates for 4, 8, 16, 32
