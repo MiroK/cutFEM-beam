@@ -2,7 +2,7 @@ from __future__ import division
 from sympy.plotting import plot
 import matplotlib.pyplot as plt
 from sympy import legendre, Symbol, lambdify, sqrt, sin, exp, pi, simplify
-from sympy.mpmath import quad
+from sympy.mpmath import quad, gamma
 from math import log as ln
 import sympy as sp
 import numpy as np
@@ -38,7 +38,7 @@ def Mshen_matrix(m):
 M = Mshen_matrix(20)
 
 # Approx for smooth
-if True:
+if False:
     f = exp(2*x)*(x**4 - 1)#*sin(4*pi*x)
     plot(f, (x, -1, 1))
     df = f.diff(x, 1)
@@ -65,6 +65,7 @@ if True:
             for i, v in enumerate(basis):
                 integrand = lambdify(x, v*f)
                 row[i] = float(quad(integrand, [-1, 1]))
+
             # Get matrix
             M = Mshen_matrix(len(row))
             row = np.linalg.solve(M, row)
@@ -95,14 +96,6 @@ if True:
             'f': sp.latex(f)}
     import pickle
     pickle.dump(data, open('shen_smooth_1_H10.pickle', 'wb'))
-
-# Let's plot the power spectrum
-# plt.figure()
-# power = np.sqrt(row**2)
-# power = np.ma.masked_less(power, 1E-15)
-# plt.loglog(power, 'd-')
-# plt.xlabel('$n$')
-# plt.title('Power spectrum of $f=%s$' % sp.latex(f)) 
 
 # Okay we have exponential convergence
 # Now we are only interested in the expansion coefficients of the hat functions
@@ -200,73 +193,107 @@ if False:
             # print P.shape
             print np.max(np.abs(P-Pmat))
 
-    # Finally I am interested in power spectrum of a hat function
-    #
-    # Use m
-    m = 81
+# Finally I am interested in power spectrum of a hat function
+# (x_prev, xi, x_next) where xi will be zero or something else to make the
+# function nor odd nor even. Also the distance is imporant
+if True:
+    def hat_coefficient(xi, x_prev, x_next, j):
+        'Compute \int_{-1}^{1} phi_j hat_i.'
+        pass
+
+    def even_even_coefficient(h, k):
+        'Hat centered at zero with wifht 2h vs k. Shen functions.'
+        l = k/2
+        value = 2*(-1)**(l+1)/h/sqrt(pi)
+        value *= 1./sqrt(4*k + 6)
+        value *= (2*l + 1.5)/(l + 1)
+        value *= gamma(l+0.5)/gamma(l+1)
+        return float(value)
+
+    # Use m polynomials
+    m = 80
     basis = list(shenp_basis(m))
     dbasis = [v.diff(x, 1) for v in basis]
     row = np.zeros(m)
 
-    hat_left = 2
-    hat_right = -2
+    # Vary the spacing and check sensitivity
+    markers = iter(['o', 'd', 'x', 's', 'v'])
+    colors = iter(['r', 'b', 'g', 'm', 'k'])
+    labels = iter([r'$\frac{1}{2}$',
+                   r'$\frac{1}{4}$',
+                   r'$\frac{1}{8}$',
+                   r'$\frac{1}{16}$'])
 
-    s = Symbol('s')
-    h = 0.5
-    error_max = -1
-    # Note only even modes, we know odd are 0
-    for i, (b, db) in enumerate(zip(basis[:], dbasis[:])):
-        left, integral_error = quad(lambdify(x, db*hat_left), (-0.5, 0), error=True)
-        right, integra_error = quad(lambdify(x, db*hat_right), (0, 0.5), error=True)
-        row[i] = left+right
-        # Compare to formulat
-
-        b_unit = b.subs(x, 0.5*s)
-
-        # Some properties of the integral
-
-        #value = 2*b_unit.evalf(subs={s:0})/h\
-        #       -b_unit.evalf(subs={s:-1})/h\
-        #       -b_unit.evalf(subs={s:1})/h
-
-        # if i % 2 == 0:
-        #    print b_unit.evalf(subs={s:-1}) - b_unit.evalf(subs={s: 1})
-
-        # error = abs(row[i] - value)
-        # print row[i], value, '--', integral_error
-        
-        if integral_error > error_max:
-            error_max = integral_error
-
-        #print '>> i=%d, mid_val=%g' % (i, b_unit.evalf(subs={s:0})/h), value
-        #if i % 2 == 1:
-        #    assert abs(b_unit.evalf(subs={s:0})/h) < 1E-15
-
-    print 'Max formula error', error_max
-    # Let's plot the power spectrum
     plt.figure()
-    power = np.sqrt(row**2)
-    plt.loglog(power, marker='x')  # Only plot nonzeros (even) modes
-    plt.loglog(range(len(power))[::2], power[::2],
-               linestyle='--')  # Only plot nonzeros (even) modes
-    maxima = [4, 16, 28, 40, 52, 64, 76]
-    plt.loglog(maxima, power[maxima], 'r')
+    for h in [1./3]:#, 1/4., 1/8., 1/16.]:
+        xi = 0.0
+        x_prev = xi - h
+        x_next = xi + h
 
-    # Fit for maxima
+        # Coeffs are based on derivatives
+        dhat_left = ((x-x_prev)/(xi-x_prev)).diff(x, 1)
+        dhat_right = ((x-x_next)/(xi-x_next)).diff(x, 1)
+        print dhat_left, dhat_right, '[%g, %g]' % (x_prev, x_next)
 
-    b = np.log(maxima)
-    col = -np.log(power[maxima])
-    A = np.ones((len(b), 2))
-    A[:, 0] = col
-    ans = np.linalg.lstsq(A, b)[0]
-    p = ans[0]
-    print '\tLeast square rate %.2f' % p
+        error_max = -1
+        for i, db in enumerate(dbasis):
+            left, error = quad(lambdify(x, db*dhat_left), (x_prev, xi),
+                               error=True)
+            right, error = quad(lambdify(x, db*dhat_right), (xi, x_next), 
+                                error=True)
+            row[i] = left+right
 
-    print 'power', power
-    # sorted_indices = np.argsort(power)[-10:]
-    # power_max = power[sorted_indices]
-    # print 'power_max', power_max
-    # plt.loglog(sorted_indices, power_max, 'o-', markersize=12)
+            print 'xx', left, right
+            # error = abs(row[i]-hat_coefficient(xi, x_prev, x_next, i))
+            if error > error_max:
+               error_max = error
+            # row[i] = hat_coefficient(xi, x_prev, x_next, i)
 
-    plt.title('Power spectrum of hat')
+            # Test nulity of odd modes and look even
+            print '\tazz', i, row[i]
+            if i % 2 == 1:
+                assert abs(row[i]) < 1E-14, '%g @ %i' % (row[i], i)
+            else:
+                plot(db*dhat_left, (x, x_prev, xi))
+                plot(db*dhat_right, (x, xi, x_next))
+
+                try:
+                    diff = abs(row[i]-even_even_coefficient(h, i))
+                    print i, '-->', diff, row[i], even_even_coefficient(h, i),\
+                        2*basis[i].evalf(subs={x: 0})/h
+                    if abs(diff) < 1E-15:
+                        print 'OKAY'
+                except:
+                    pass
+            #    assert diff < 1E-14, '%g' % diff
+
+        print 'Formula error', error_max
+
+        # Let's plot the power spectrum
+        power = np.sqrt(row**2)
+        ns = range(len(power))
+
+        nnz_ns = []
+        nnz_powers = []
+
+        for n_val, p_val in zip(ns, power):
+            if p_val > 1E-13:
+                nnz_ns.append(n_val)
+                nnz_powers.append(p_val)
+
+        #plt.loglog(ns[::2], power[::2], marker=next(markers), color=next(colors),
+        #           linestyle='--', label=next(labels))
+        c = next(colors)
+        plt.loglog(nnz_ns[::2], nnz_powers[::2], marker=next(markers), color=c,
+                   linestyle='--', label=next(labels))
+
+        # where = [2./h, 2./h]
+        # plt.loglog(where, [1, 1e-8], color=c)
+
+        # print power
+
+    plt.xlabel('$k$')
+    plt.ylabel(r'$|(f, \varphi_k)|$')
+    plt.legend(loc='best')
+    # plt.savefig('eigen_hat_spectrum_off.pdf')
     plt.show()
