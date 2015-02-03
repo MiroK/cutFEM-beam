@@ -90,7 +90,8 @@ if __name__:
         plt.figure()
         for (col, label, marker) in zip(range(5), labels, markers):
             col_data = [data[m]['T'][col] for m in ms]
-            plt.plot(ms, col_data, label=label, color=color, marker=marker)
+            plt.plot(ms, col_data,
+                     label=label, color=color, marker=marker, linestyle='--')
 
         plt.xlabel('$m$')
         plt.ylabel('$\kappa$')

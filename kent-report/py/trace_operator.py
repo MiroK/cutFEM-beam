@@ -63,6 +63,9 @@ class TraceOperator(object):
         self.V_b = V_b
         self.n = len(self.V_b)
 
+        # Remember stuff
+        self.R = None
+
     def Mp_matrix(self):
         'Compute the mass matrix of V_p'
         # Matrices for directions
@@ -105,6 +108,10 @@ class TraceOperator(object):
 
     def R_matrix(self):
         'Restriction matrix from V_p to V_b'
+        # Use cached
+        if self.R is not None:
+            return self.R
+        # Compute
         beam = self.beam
         Rt = np.zeros((self.m, self.n), dtype='float')
         for k, us in enumerate(product(*self.V_p)):
@@ -118,7 +125,9 @@ class TraceOperator(object):
                 Rt[k, j] = beam.inner_product(u_b, v)
 
         assert Rt.shape == (self.m, self.n)
-        return Rt.T
+        # Remember
+        self.R = Rt.T
+        return self.R
 
     def T_matrix(self):
         'Matrix of the trace operator'

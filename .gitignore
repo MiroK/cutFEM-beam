@@ -11,6 +11,8 @@
 *.out
 *.geo
 *.msh
+*.zip
+*.gz
 
 .ropeproject/
 results/

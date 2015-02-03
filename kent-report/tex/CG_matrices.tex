@@ -117,7 +117,7 @@
 \newcommand*{\defeq}{\mathrel{\vcenter{\baselineskip0.5ex \lineskiplimit0pt
                      \hbox{\scriptsize.}\hbox{\scriptsize.}}}%
                      =}
-
+\newcommand\mapsfrom{\mathrel{\reflectbox{\ensuremath{\mapsto}}}}
 \usepackage{lipsum}
 \usepackage{authblk}
 \usepackage{fancyhdr}
@@ -344,7 +344,7 @@
 
   % Now we are interested in connection between FEM(local) and other global
   % matrices/methods
-  \section{Eigen connection}
+  \section{Eigen $\rightarrow$ FEM}
   Consider the finite dimensional space of eigenfunctions $V_m$ and function $f$
   which has zeros on the boundary and is at least $C^0$. We then define $\pi_m f$
   as
@@ -644,7 +644,7 @@ $\Pmatt\Pmat=\mathbb{I}_n$. Observations about the matrix are in Figure
   % Maybe things can be discussed in the light of condition numbers of matrices
   % A, M etc.
 
- \section{Legendre connection}
+ \section{Legendre $\rightarrow$ FEM}
  Consider the finite dimensional space $V_m=\spn\left\{\psi_i\right\}_{i=0}^{m-1}$
  where $\psi_i$ are the functions due to \cite{shen_leg} and function $f$
  which has zeros on the boundary and is at least $C^0$. To approximate $f$ on
@@ -695,9 +695,22 @@ $\Pmatt\Pmat=\mathbb{I}_n$. Observations about the matrix are in Figure
     sufficiently large space $V_m$.
   }
   \end{figure}
-  % even mode
-  % any mode
-  % the rates for 4, 8, 16, 32
+
+  % Move to hat functions. If \Pi is used formulat for hat function coefficients
+  % Consider equidistant and as before with xi=0. Odd->0. Even. Consder h=1 and
+  % do the math. Confirm with Plot. What happens when spacind. Show plot. 2n.
+  % But analyzi exactly. DON't FORGET REFERENCE FOR GAMMA
+  % 
+  % Heuristics for matrices M, A
+  % Then do it more soundly
+  % Then graphs
+  % The mapping P
+
+  %\section{Legendre $\leftrightarrow$ FEM}
+  % I read something about this being analytical
+  %
+  %
+  %
 
   \bibliographystyle{plain}
   \bibliography{CG_matrices}
