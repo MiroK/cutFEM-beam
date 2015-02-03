@@ -1,10 +1,10 @@
-all: plate_beam.pdf
+all: CG_matrices.pdf view
 
-plate_beam.pdf: plate_beam.tex plate_beam.bib
-	pdflatex plate_beam.tex
-	bibtex plate_beam.aux
-	pdflatex plate_beam.tex
-	pdflatex plate_beam.tex
+CG_matrices.pdf: CG_matrices.tex CG_matrices.aux
+	pdflatex CG_matrices.tex
+	bibtex CG_matrices.aux
+	pdflatex CG_matrices.tex
+	pdflatex CG_matrices.tex
 
 view:
-	open plate_beam.pdf
+	open CG_matrices.pdf

@@ -1,0 +1,704 @@
+\documentclass[a4paper,10pt]{article}
+\pdfoptionpdfminorversion=5
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{amsfonts}
+\usepackage{multicol}
+\usepackage{xcolor,colortbl}
+\usepackage{datetime}
+\usepackage{xfrac}
+
+\newcommand{\mc}[2]{\multicolumn{#1}{c}{#2}}
+\definecolor{Gray}{gray}{0.85}
+\newcolumntype{a}{>{\columncolor{Gray}}c}
+\newcolumntype{b}{>{\columncolor{white}}c}
+\newcolumntype{R}{>{\columncolor{lime}}c}
+\newcolumntype{B}{>{\columncolor{pink}}c}
+\usepackage{diagbox}
+
+\usepackage[numbers]{natbib}
+
+\usepackage[utf8]{inputenc}
+\usepackage{array,multirow,graphicx}
+\usepackage{graphics}
+\usepackage{color}
+\usepackage{ifpdf}
+\ifpdf
+\DeclareGraphicsRule{*}{mps}{*}{}
+\fi
+\usepackage[utf8]{inputenc}
+
+\hoffset = 0pt
+\voffset = 0pt
+\oddsidemargin = 0pt
+\headheight = 15pt
+\footskip = 30pt
+\topmargin = 0pt
+\marginparsep = 5pt
+\headsep =25pt
+\marginparwidth = 54pt
+\marginparpush = 7pt
+\textheight = 621pt %621/
+\textwidth = 500pt
+
+% Default fixed font does not support bold face
+\DeclareFixedFont{\ttb}{T1}{txtt}{bx}{n}{12} % for bold
+\DeclareFixedFont{\ttm}{T1}{txtt}{m}{n}{12}  % for normal
+
+\newcommand{\I}{\ensuremath{\mathbb{I}}}
+\newcommand{\R}{\ensuremath{\mathbb{R}}}
+
+\newcommand{\norm}[1]{\ensuremath{\left\|#1\right\|}}
+\newcommand{\seminorm}[1]{\ensuremath{\left|#1\right|}}
+\newcommand{\dual}[2]{\ensuremath{\langle#1, #2 \rangle}}
+
+\newcommand{\inner}[2]{\ensuremath{\left(#1, #2\right)}}
+\newcommand{\Inner}[2]{\ensuremath{\left(\left(#1, #2\right)\right)}}
+
+\newcommand{\deriv}[2]{\ensuremath{\frac{\mathrm{d}#1}{\mathrm{d}#2}}}
+\newcommand{\meas}[1]{\ensuremath{\,\mathrm{d}#1}}
+\newcommand{\Div}[1] {\ensuremath{\text{div}#1}}
+\newcommand{\Grad}[1]{\ensuremath{\text{grad}#1}}
+\newcommand{\Curl}[1]{\ensuremath{\text{curl}#1}}
+\newcommand{\jump}[1]{\ensuremath{[\![#1]\!]} }
+
+\newcommand{\citeneed}{\ensuremath{^\text{\textcolor{blue}{cite?}}}}
+
+\usepackage{mathtools}
+\newcommand{\eqdef}{\mathrel{\mathop=}:} 
+
+\newcommand{\mm}{\ensuremath{\mathbf{m}}}
+\newcommand{\Vp}{\ensuremath{V_{\mathcal{P}}}}
+\newcommand{\Vb}{\ensuremath{V_{\mathcal{B}}}}
+\newcommand{\Ep}{\ensuremath{E_{\mathcal{P}}}}
+\newcommand{\Eb}{\ensuremath{E_{\mathcal{B}}}}
+
+%matrices
+\newcommand{\Ap}{\ensuremath{\mathbb{A}_{\mathcal{P}}}}
+\newcommand{\Ab}{\ensuremath{\mathbb{A}_{\mathcal{B}}}}
+\newcommand{\Bp}{\ensuremath{\mathbb{B}_{\mathcal{P}}}}
+\newcommand{\Bb}{\ensuremath{\mathbb{B}_{\mathcal{B}}}}
+\newcommand{\Amat}{\ensuremath{\mathbb{A}}}
+\newcommand{\Bmat}{\ensuremath{\mathbb{B}}}
+\newcommand{\Bmatt}{\ensuremath{\mathbb{B}^{\text{T}}}}
+\newcommand{\Mmat}{\ensuremath{\mathbb{M}}}
+\newcommand{\Nmat}{\ensuremath{\mathbb{N}}}
+
+\newcommand{\Ammatt}{\ensuremath{\tilde{\mathbb{A}}_m}}              %
+\newcommand{\Mmmatt}{\ensuremath{\tilde{\mathbb{M}}_m}}              %
+\newcommand{\Ammat}{\ensuremath{\mathbb{A}_m}}               %
+\newcommand{\Mmmat}{\ensuremath{\mathbb{M}_m}}               %
+\newcommand{\Pmat}{\ensuremath{\mathbb{P}_m}}                  %
+\newcommand{\Pmatt}{\ensuremath{\mathbb{P}_m^{\text{T}}}}       %
+
+%components
+\newcommand{\Apij}[2]{\ensuremath{\left(\mathbb{A}_{\mathcal{P}}\right)_{#1, #2}}}
+\newcommand{\Abij}[2]{\ensuremath{\left(\mathbb{A}_{\mathcal{B}}\right)_{#1, #2}}}
+\newcommand{\Bpij}[2]{\ensuremath{\left(\mathbb{B}_{\mathcal{P}}\right)_{#1, #2}}}
+\newcommand{\Bbij}[2]{\ensuremath{\left(\mathbb{B}_{\mathcal{B}}\right)_{#1, #2}}}
+%vectors
+\newcommand{\Uvec}{\ensuremath{\mathbf{U}}}
+\newcommand{\bvec}{\ensuremath{\mathbf{b}}}
+\newcommand{\Pvec}{\ensuremath{\mathbf{P}}}
+
+\newcommand{\up}{\ensuremath{u_{\mathcal{P}}}}
+\newcommand{\ub}{\ensuremath{u_{\mathcal{B}}}}
+\newcommand{\vp}{\ensuremath{v_{\mathcal{P}}}}
+\newcommand{\vb}{\ensuremath{v_{\mathcal{B}}}}
+\newcommand{\TODO}[1]{\textcolor{red}{#1}}
+\newcommand{\ASK}[1]{\textcolor{blue}{#1}}
+
+\newcommand{\W}[1]{\ensuremath{w\!\left[#1\right]\!}}
+\newcommand{\E}[1]{\ensuremath{\epsilon \!\left[#1\right]\!}}
+\newcommand{\T}[1]{\ensuremath{\sigma \! \left[#1\right]\!}}
+
+\newcommand{\Tr}[1]{\ensuremath{\text{tr}#1}}
+\newcommand*{\defeq}{\mathrel{\vcenter{\baselineskip0.5ex \lineskiplimit0pt
+                     \hbox{\scriptsize.}\hbox{\scriptsize.}}}%
+                     =}
+
+\usepackage{lipsum}
+\usepackage{authblk}
+\usepackage{fancyhdr}
+\usepackage[colorlinks=true,
+            linkcolor=cyan,
+            citecolor=gray]{hyperref}
+
+\usepackage{chngcntr}
+%\counterwithin{table}{subsection}
+%
+
+\DeclareMathOperator{\spn}{span}
+
+% DEBUGGING
+\usepackage{lineno}
+\linenumbers
+%\usepackage{setspace}
+%\doublespacing
+%
+%\pagestyle{fancy}
+%
+\renewenvironment{abstract}{%
+\hfill\begin{minipage}{0.95\textwidth}
+\rule{\textwidth}{1pt}}
+{\par\noindent\rule{\textwidth}{1pt}\end{minipage}}
+%
+\makeatletter
+\renewcommand\@maketitle{%
+\hfill
+\begin{minipage}{0.95\textwidth}
+\vskip 2em
+\let\footnote\thanks 
+{\LARGE \@title \par }
+\vskip 1.5em
+{\large \@author \par}
+\end{minipage}
+\vskip 1em \par
+}
+\makeatother
+%
+\begin{document}
+%
+%title and author details
+\title{\begin{center}
+        Connecting FEM and spectral methods
+       \end{center}}
+\author[1]{MK}
+%\author[2]{Name2}
+%\affil[1]{Address of author} 
+%\affil[2]{Address of second author}
+%
+\maketitle
+%
+\begin{abstract}
+  For one-dimensional Poisson problem we study a connection between the
+  stiffness and mass matrices obtained from a discretization with the finite
+  element method using continuous linear Lagrange elements and two discretizations
+  with the Galerkin method where the eigenfunctions of the Laplacian and
+  combinations of Legendre polynomials are used respectively as the test
+  functions. We show that the matrices due to finite element method can be viewed
+  as the limit of transformations describing the change of basis. Further, we
+  study the limiting behaviour and it is shown that the eigenfunctions lead to
+  faster convergence.
+\end{abstract}
+
+\section{Introduction}
+  % explaing that the methods start from variational formulation, solve that
+  % problem by Galerkin method, subspace and lead to matrices. The differences
+  % are in how the subspace is constraucted naturally leads to different
+  % matrices
+  For given data $f$ we consider a problem of finding sufficiently regular
+  function $u$ that has zero boundary values and satisfies
+  \begin{equation}
+    \label{eq:strong}
+    u^{\prime\prime} = f
+  \end{equation}
+  inside the domain $\Omega=\left[-1, 1\right]$. Numerical methods studied here
+  are based on a variational formulation of (\ref{eq:strong}) which reads: Find
+  $u\in V=H^1_0(\Omega)$ such that
+  \begin{equation}
+    \label{eq:weak}
+    \inner{u^{\prime}}{v^{\prime}} = \inner{f}{v}\quad\forall v\in V.
+  \end{equation}
+  The methods then solve (\ref{eq:weak}) approximately by the Galerkin method,
+  that is, by considering the problem on a finite dimensional subspace
+  $V_h\subset V$. If $V_h=\spn\left\{\phi_i\right\}_{i=0}^{n-1}$ the Galerkin
+  method leads to a linear system
+  \[
+    \Amat\Uvec = \bvec
+  \]
+  for the unknown expansion coefficients of the solution
+  $u_h=\sum_{i=0}^{n-1}\Uvec_i \phi_i$. The matrix $\Amat\in\R^{n\times n}$ is
+  called the stiffness matrix and has the entries given by
+  \[
+    \Amat_{i, j} = \inner{\phi_j^{\prime}}{\phi_i^{\prime}}.
+  \]
+  Components of the vector $\bvec\in\R^n$ are $\bvec_i=\inner{f}{\phi_i}$. We
+  note that if $V_h\ni f=\sum_{i=0}^{n-1}\mathbf{F}_i \phi_i$, then
+  $\bvec=\Mmat\mathbf{F}$. Here we have introduced the mass matrix $\Mmat$ whose
+  components are given by
+  \[
+    \Mmat_{i, j} = \inner{\phi_j}{\phi_i}.
+  \]
+  It is clear that properties of mass and stiffness matrices depend on the
+  choice of basis functions of $V_h$. We shall briefly summarize how the finite
+  dimensional subspace is constructed in each of the methods.
+  % For each.  V_h, A, M, convergence properties of the solution! 
+  \subsection{Finite element method}
+  For given $n\in\mathbb{N}, n>1$, we shall partition a bi-unit interval into
+  $n+1$ elements $e_i=\left[x_i, x_{i+1}\right], i=0, 1, \dots, n$ where the
+  vertices $x_i$ are such that $-1\leq x_i\leq-1$ for $i=0, 1, \dots, n+1$. Using
+  vertices $x_i$ we define for $i=1,2\dots,n$ the hat-functions $\phi_i$,
+  \begin{equation}
+    \label{eq:hat}
+    \phi_i(x)=\begin{cases}
+      \frac{x-x_{i-1}}{x_i-x_{i-1}}&\quad x\in e_{i-1},\\
+      \frac{x-x_{i+1}}{x_i-x_{i+1}}&\quad x\in e_{i},\\
+      0&\quad\text{otherwise}.
+               \end{cases}
+  \end{equation}
+  For notational simplicity we shift the counting index $i\leftarrow i-1$ and
+  define $V_n=\spn\left\{\phi_i\right\}_{i=0}^{n-1}$. Clearly we have
+  $\text{dim}V_n=n$ and $V_n\subset V$. If the vertices $x_i$ are equidistant
+  with spacing $h=\tfrac{2}{n+1}$ the stiffness matrices can be immediately
+  written down. Indeed we have
+  \[
+    \Amat = \frac{1}{h}\begin{bmatrix}
+      2 & -1 & 0 & 0 & 0 &\dots & 0 \\
+      -1 & 2 & -1 & 0 & 0 &\dots & 0 \\
+      0  & -1 & 2 & -1 & 0&\dots & 0 \\
+      0  & 0 & \ddots & \ddots & \ddots &\dots & 0\\
+      0 & \dots & 0 & -1 & 2 & -1 & 0 \\
+      0 & \dots & 0 & 0 & -1 & 2 & -1 \\
+      0 & \dots & 0 & 0 & 0 & -1 & 2 \\
+          \end{bmatrix}
+  \]
+  and
+  \[
+    \Mmat = \frac{h}{6}\begin{bmatrix}
+      4 & 1 & 0 & 0 & 0 &\dots & 0 \\
+      1 & 4 & 1 & 0 & 0 &\dots & 0 \\
+      0  & 1 & 4 & 1 & 0&\dots & 0 \\
+      0  & 0 & \ddots & \ddots & \ddots &\dots & 0\\
+      0 & \dots & 0 & 1 & 4 & 1 & 0 \\
+      0 & \dots & 0 & 0 & 1 & 4 & 1 \\
+      0 & \dots & 0 & 0 & 0 & 1 & 4 \\
+          \end{bmatrix}
+  \]
+  Finally we note that the following error estimate holds for the method 
+  $\norm{u^{\prime}-u_h^{\prime}}\leq h\norm{u^{\prime}}_2$. The error therefore
+  decreases linearly if the mesh size is decreased (or equivalently $n$ is
+  increased).
+
+  \subsection{Galerkin method with eigenfunctions}
+  We let $\alpha_k=\frac{\pi}{2}+k\frac{\pi}{2}$ for $k=0, 1, \dots$ and
+  consider functions $\varphi_k$,
+  \[
+    \varphi_k(x) = \begin{cases}
+                \cos{\alpha_k x} &\quad k \text{ is even },\\
+                \sin{\alpha_k x} &\quad k \text{ is odd }.\\
+              \end{cases}
+  \]
+  Clearly $\varphi_k\in V$. Moreover with $\lambda_j=\alpha_j^2$, the functions
+  $\varphi_j$ are solutions to the eigenvalue problem: Find $\lambda\in\R, u\in V$
+  such that
+  \[
+    \inner{u^{\prime}}{v^{\prime}} = \lambda \inner{u}{v}\quad\forall v \in V.
+  \]
+  Finally we note that $\inner{\varphi_i}{\varphi_j}=\delta_{ij}$ and 
+  $\inner{\varphi_i^{\prime}}{\varphi_j^{\prime}}=\lambda_j\delta_{ij}$. The
+  functions are thus orthonormal in the $L^2$-inner product and orthogonal in
+  the $H^1$ inner product. The set $\left\{\varphi_k\right\}_{k=0}^{\infty}$
+  forms an orthogonal basis of $V$. In the Galerkin method we shall define the
+  finite dimensional space as $V_m=\spn\left\{\varphi_i\right\}_{i=0}^{m-1}$.
+  Owing to the orthogonality properties the stiffness and mass matrices
+  assembled on $V_m$ take a particularly simple form. We have
+  \[
+    \Amat_{ij} = \lambda_j\delta_{ij}
+    \quad\text{ and }\quad
+    \Mmat_{ij} = \delta_{ij}.
+  \]
+  Finally we note that the following error estimate holds for the method 
+  $\norm{u^{\prime}-u_m^{\prime}}\leq \frac{1}{\alpha_m}\norm{f}$ and thus
+  we expect the error in the energy norm to decrease linearly with increasing
+  $m$.
+
+  \subsection{Galerkin method with Legendre polynomials}
+  Let us denote $l_k$ the $k$-th Legendre polynomial. It is known
+  (e.g. \cite{shen_book}) that the boundary values of Legendre polynomials are
+  \[
+    l_k(1) = 1\quad\text{ and }\quad l_k(-1) = (-1)^k
+  \]
+  and consequently $l_k\notin V$. However special combinations of Legendre
+  polynomials can be taken to yield polynomials that have zero boundary values.
+  If $\varphi_k=\beta_k\left(l_{k+2} - l_k\right), k=0, 1,\dots$ with constants
+  $\beta_k$ given as $\beta_k = \frac{1}{\sqrt{4k + 6}}$ then
+  \cite{shen_leg} showed that the functions are zero on the boundary and
+  consequently $\varphi_k\in V$. The functions $\varphi_j$ have desirable
+  orthogonality properties, namely
+  $\inner{\varphi_i^{\prime}}{\varphi_j^{\prime}}=\delta_{ij}$ and
+  $\inner{\varphi_i}{\varphi_j}=0$ for $j\notin\left\{i-2, i, i+2\right\}$.
+  For the Galerkin method we set $V_m=\spn\left\{\varphi_i\right\}_{i=0}^{m-1}$
+  so that $\text{dim}V_m=m$. As with the eigenfunctions, the matrices assembled
+  on $V_m$ have a simple form. The stiffness matrix is in fact an identity
+  while the mass matrix is sparse tridiagonal matrix with nonzero entries
+  \[
+    \Mmat_{ii} = \beta_i^2\left(\frac{2}{2i+1}+\frac{2}{2i+5}\right)
+    \quad{\text{ and }}\quad
+    \Mmat_{i(i+2)} = -\beta_i\beta_{i+2}\frac{2}{2(i+2)+1}.
+  \]
+  Finally, owing to the error estimate (\cite{shen_leg})
+  \[
+    \norm{u-u_m} + (m+1)\norm{u-u_m}_1 \leq C(s)(m+1)^{-s}\norm{u}_s
+  \]
+  the method converges exponentially for $u\in H^s\left({\Omega}\right)$.
+
+  With the stiffness and mass matrices of all methods in place we shall now
+  try to answer a question whether there exists a connections between the
+  matrices of the finite element method and the matrices of the other two
+  methods. Broadly speaking we are asking for existence of the transformation
+  (and possibly its properties) of the global method (in a sense that the
+  support of neither eigenfunctions nor the polynomials due to Shen is localized)
+  and the local (finite element) method.
+
+  % Now we are interested in connection between FEM(local) and other global
+  % matrices/methods
+  \section{Eigen connection}
+  Consider the finite dimensional space of eigenfunctions $V_m$ and function $f$
+  which has zeros on the boundary and is at least $C^0$. We then define $\pi_m f$
+  as
+  \[
+    \pi_m f = \displaystyle\sum\limits_{k=0}^{m-1}c_k \varphi_k,
+  \]
+  where the coefficients $c_k$ are $c_k=\inner{f}{\phi_k}$. Function $\pi_m$ is
+  the usual $L^2$ projection of $f$ onto $V_m$. To test the approximation
+  properties of the projection, we have considered functions
+  $f_0=e^{2x}(x^4-1)$ and $f_1=e^{2x}(x^4-1)\sin{4\pi x}$ and measured
+  convergence rate of $f_i - \pi_{f_i}$ in the $L^2, H^1_0$ norms. The results
+  are shown in Figure \ref{fig:eig_smooth_projection}. We see that for the
+  function $f_0$ which does not oscillate inside the interval, the rate is constant
+  (by the least square fit we obtained $m^{-2.15}$ in the $L^2$ nom and $m^{-1.25}$
+  in the energy norm by the least squares fit). On the other hand the rates
+  for function $f_1$ behave as $m^{-2}$ and $m^{-1}$ only for $m>10$. The key
+  to this behavior is in the right pane of the figure which shows the spectrum
+  of function $f_0, f_1$. The first function has a smooth spectrum where the the
+  megnitude of coefficinets decays for all $k$ ($k^{-2.78}$ by the least squares
+  fit) while the second spectrum decays monotonically only for $k>10$.
+  \begin{figure}
+  \begin{center}
+    \includegraphics[width=0.45\textwidth]{img/eigen_smooth_rate.pdf}
+    \includegraphics[width=0.45\textwidth]{img/eigen_smooth_power.pdf}
+  \end{center}
+  \label{fig:eig_smooth_projection}
+  \caption{Convergence rate of $\pi f$ for smooth functions. (left) The
+  convergence rate in the $L^2$ norm(squares) and $H^1_0$ norm(circles). 
+  (right) Magnitude of coefficients $c_k$.}
+  \end{figure}
+
+  Since our main interest lies in transformation to finite element method we
+  now consider properties of the projection $\pi_m$ for the hat functions
+  $\phi_i$( cf. eq (\ref{eq:hat})). In general, for hat function $\phi_i$ we
+  have the expansion coefficients of projection $c_k$ given by
+  \[
+    c_k = \inner{\phi_i}{\varphi_k} =
+    \displaystyle\int_{x_{i-1}}^{x_{i}}\frac{x-x_{i-1}}{x_i-x_{i-1}}\varphi_k(x)\meas{x}+
+    \displaystyle\int_{x_{i}}^{x_{i+1}}\frac{x-x_{i+1}}{x_i-x_{i+1}}\varphi_k(x)\meas{x}.
+  \]
+  The above integral can be carried by the integration by parts with the result
+  \begin{equation}
+    \label{eq:eigen_hat_ck}
+    c_k =
+    \frac{1}{\alpha_k^2}
+    \left(
+    \frac{\varphi_k(x_i) - \varphi_k(x_{i-1})}{x_i - x_{i-1}} +
+    \frac{\varphi_k(x_{i+1}) - \varphi_k(x_{i})}{x_i - x_{i+1}}
+    \right)
+  \end{equation}
+  To analyze the asymptotic behaviour of $c_k$ we shall consider homogeneous
+  mesh with elements of size $h$ and consider special hat functions centered
+  at the origin. We shall refer to these as $(-h, 0, h)$. This choice greatly
+  simplifies the calculations but it is by no means unreasonable as for the mesh
+  with even number of elements such function is always present in $V_n$.
+
+  Since functions $(-h, 0, h)$ are even we have $c_k=0$ for $k$ odd (recall that
+  odd wavenumbers belong to sines). For $k$ even expression
+  (\ref{eq:eigen_hat_ck}) simplifies to
+  \[
+    c_k = \frac{4}{\alpha_k^2 h}\sin^2\left(\frac{h}{2}\alpha_k\right).
+  \]
+  Finally by considering the term
+  $\frac{\sin^2\left(\frac{h}{2}\alpha_k\right)}{h}$
+  we obtain for $\frac{h}{2}\alpha_k > \frac{\pi}{2}$ or equivalently 
+  $k+1>\tfrac{2}{h}$ the bound on the coefficients
+  \[
+    c_k \leq \frac{1}{\alpha_k^2}.
+  \]
+  This implies that for each $h$ there exists a critical wavenumber $k_0=2/h$
+  such that for all wavenumbers $k+1\geq k_0$ the coefficients $c_k$ will always
+  be  smaller than $k^{-2}$. For the future reference we note that $k_0=n+1$.
+
+  The estimate of the critical wavenumber as well as the asymptotic behaviour
+  agree well with the numerical experiments whose results are shown in Figure
+  \ref{fig:eig_hat_spectrum}. Note that the right pane of the figure showing
+  the spectrum of shifted hat functions $(-h+0.1, 0, h)$ also shows the
+  asymptotic decay $k^{-2}$.
+  \TODO{Maybe add the error plots?}
+  \TODO{General estimates for homogeneous mesh.}
+  \TODO{There must be a convergence theory for this series.}
+
+  \begin{figure}
+  \begin{center}
+    \includegraphics[width=0.45\textwidth]{img/eigen_hat_spectrum_centered.pdf}
+    \includegraphics[width=0.45\textwidth]{img/eigen_hat_spectrum_off.pdf}
+  \end{center}
+  \label{fig:eig_hat_spectrum}
+  \caption{Spectrum of has function. (left) Dependence of $\inner{f}{\varphi_k}$
+    on the wave number for the hat function $(-h, 0, h)$. Vertical lines denote
+    the computed critical wave number $k_0$. (right) Dependence of coefficients
+    $c_k$ on the wave number for hat function $(-h+0.1, 0.1, h+0.1)$. Note that
+    $c_k=0$ were excluded from the plot. Both plots confirm the $k^{-2}$ decay.}
+  \end{figure}
+
+  Let us denote $V_n, V_m\subset V$ the finite dimensional subspaces of $V$
+  constructed respectively by $n$ hat functions $\phi_i$ and by first $m$
+  eigenfunctions $\varphi_j$. Further let $\Amat, \Mmat \in \R^{n \times n}$ denote
+  the stiffness and mass matrices assembled with on $V_n$. Finally we denote
+  by $\Ammatt, \Mmmatt \in \R^{m\times m}$ the stiffness and mass matrices
+  assembled on $V_m$. In the previous section we showed boundedness of the
+  mapping $\phi_i\ni V_n \mapsto \pi_m\phi_i \in V_m$.
+  We shall represent this mapping by a matrix $\Pmatt\in\R^{m x\times n}$ whose
+  colums have expansions coefficients $c_k, k=0,1, \dots m-1$ for all $n$
+  functions in $V_n$ and define two $n$ by $n$ matrices
+  \[
+    \Mmmat = \Pmat\Mmmatt\Pmatt
+    \quad{\text{ and }}\quad
+    \Ammat = \Pmat\Ammatt\Pmatt.
+  \]
+  We shall refer to these as the transformed mass matrix and transformed
+  stiffness matrix. Keeping $n$ fixed we are now interested in properties of
+  the sequences $\left\{\Mmmat\right\}$ and $\left\{\Ammat\right\}$. First we
+  observe the entries of the transformed mass matrix are
+  \[
+    \left(\Mmmat\right)_{ij} =
+    \displaystyle\sum\limits_{k=0}^{m-1}
+    \inner{\phi_i}{\varphi_k}\inner{\phi_j}{\varphi_k}.
+  \]
+  Assuming $m>n$ we expect $\left| \inner{\phi_i}{\varphi_k} \right|$ and
+  $\left| \inner{\phi_j}{\varphi_k} \right|$ to be bounded by $k^{-2}$ for 
+  $k>n$ so that the summed terms behave as $k^{-4}$ and finaly the entry
+  is bounded by $m^{-3}$. Thus every entry in the matrix converges and we expect
+  the series for $\left\{\Mmmat\right\}$ to converge. A similar argument can
+  be made for entries of the transformed stiffness matrix. The difference is
+  that the matrix $\Ammat$ indtroduces scaling of the eigenvalues which grow
+  as $k^2$. As a result the entries should converge as $m^{-1}$. Next we shall
+  make a more sound argument for existance of the limit.
+
+  % Showing what Am, Mm really are (the projections)
+  We consider entries of the transformed mass matrix again and write out
+  \[
+    \left(\Mmmat\right)_{ij} =
+    \displaystyle\sum\limits_{k=0}^{m-1}
+    \displaystyle\sum\limits_{l=0}^{m-1}
+    \inner{\phi_i}{\varphi_k}\inner{\varphi_k}{\varphi_l}\inner{\phi_j}{\varphi_k}=
+    \displaystyle\sum\limits_{k=0}^{m-1}
+    \displaystyle\sum\limits_{l=0}^{m-1}
+    \inner{\inner{\phi_i}{\varphi_k}\varphi_k}
+          {\inner{\phi_j}{\varphi_l}\varphi_l}.
+  \]
+  The entries of transformed mass matrix are thus the inner products of the
+  basis function of $V_n$ projected onto $V_m$.
+  \[
+    \left(\Mmmat\right)_{ij} = \inner{\pi_m\phi_i}
+                                     {\pi_m\phi_j}.
+  \]
+  Writing out
+  \[
+    \left(\Ammat\right)_{ij} =
+    \displaystyle\sum\limits_{k=0}^{m-1}
+    \displaystyle\sum\limits_{l=0}^{m-1}
+    \inner{\phi_i}{\varphi_k}
+    \inner{\varphi_k^{\prime}}{\varphi_l^{\prime}}
+    \inner{\phi_j}{\varphi_k}=
+    \displaystyle\sum\limits_{k=0}^{m-1}
+    \displaystyle\sum\limits_{l=0}^{m-1}
+    \inner{\inner{\phi_i}{\varphi_k}\varphi_k^{\prime}}
+    {\inner{\phi_j}{\varphi_l}\varphi_l^{\prime}}.
+  \]
+  we get that the entries of the transformed stiffness matrix are the $H^1_0$
+  inner products of the projected basis functions of $V_n$,
+  \[
+    \left(\Ammat\right)_{ij} = \inner{\left\{\pi_m\phi_i\right\}}
+    {\left\{\pi_m\phi_j\right\}}.
+  \]
+  Motivated by 
+  $\norm{\pi_m \phi_i - \phi_i}_i \xrightarrow[]{m\rightarrow\infty}0$ and
+  $i=0, 1$ we now ask if $\norm{\Mmat - \Mmmat}_{F}$ and 
+  $\norm{\Amat - \Ammat}_{F}$ go to zero as $m$ goes to infinity. Note that
+  for general matrix $\Bmat\in\R^{m\times m}$, the Frobenius norm is
+  \[
+    \norm{\Bmat}_{F} = \sqrt{
+    \displaystyle\sum\limits_{i=0}^{m-1}
+    \displaystyle\sum\limits_{j=0}^{m-1}
+    \left|\Bmat_{ij}\right|^2
+    }
+  \]
+
+  % measuting frobenius for M   [need to find both rate for m^-2*m^-2 and why
+  % loose m
+  The entries of the matrix $\Mmat-\Mmmat$ are $\left(\Mmat-\Mmmat\right)_{ij}=
+  \inner{\phi_i}{\phi_j}-\inner{\pi_m\phi_i}{\pi_m\phi_j}$. By properties of
+  $\pi_m$ we have $\pi_m\phi_i - \phi_i \perp V_m$ and since $\pi_m\phi_j\in V_m$
+  we get that $\inner{\phi_i}{\pi_m\phi_j}=\inner{\pi_m\phi_i}{\pi_m\phi_j}$.
+  Consequently $\inner{\phi_i}{\phi_j}-\inner{\pi_m\phi_i}{\pi_m\phi_j} =
+  \inner{\phi_i-\pi_m\phi_i}{\phi_j - \pi_m\phi_j}$ and thus
+  \[
+    \left(\Mmat-\Mmmat\right)_{ij} = \inner{\phi_i-\pi_m\phi_i}{\phi_j - \pi_m\phi_j}
+  \]
+  \TODO{This seems to be $m^{-2}*m{-2}$, where do we loose one order?}. We
+  can thus write $M=\displaystyle\lim_{m\to\infty}M_m$.
+  % measuting frobenius for M   [need to find both rate for m^-1*m^-1 and why
+  % loose m
+  In a similar way we can prove that the entries of the matrix $\Amat-\Ammat$
+  are
+  \[
+    \left(\Amat-\Ammat\right)_{ij} =
+    \inner
+    {\left(\phi_i-\pi_m\phi_i\right)^{\prime}}
+    {\left(\phi_j - \pi_m\phi_j\right)^{\prime}}.
+  \]
+  The required orthogonality of $\left(\pi_m\phi_i - \phi_i\right)^{\prime}$ to
+  $\left\{\varphi^{\prime}_j\right\}_{j=0}^{m-1}$ follows from  
+  $\inner{\varphi_i^{\prime}}{\varphi_j^{\prime}}=\lambda_j\delta_{ij}$.
+  \TODO{This seems to be $m^{-2}*m{-2}$, where do we loose one order?}. We
+  can then write $A=\displaystyle\lim_{m\to\infty}A_m$.
+
+  The above estimates were tested numerically with results summarized in Figure
+  \ref{fig:eig_mat} and Table \ref{tab:eig_mat}. Figure \ref{fig:eig_mat} shows
+  convergence of the matrix
+  approximations. It is apparent from the figure that similar to expansion
+  coefficients there exists for each $n$ a critical size of space $V_m$ which
+  guarantees convergence of the transformed matrices. For spaces larger than
+  the critical one, the rate of convergence agrees well with the analysis. 
+  \begin{figure}
+  \begin{center}
+    \includegraphics[width=0.45\textwidth]{img/eig_A.pdf}
+    \includegraphics[width=0.45\textwidth]{img/eig_M.pdf}
+  \end{center}
+  \label{fig:eig_mat}
+  \caption{Convergence rate of matrix approximation. (left) The transformed
+  stiffness matrix converges to finite element stiffness as $m{-1}$ once the
+  space $V_m$ is sufficiently large. The critical size appears to be $n$.
+  (right) The transformed mass matrix converges to finite element mass matrix
+  as $m^{-3}$.
+  }
+  \end{figure}
+  Table \ref{tab:eig_mat} shows the magnitude of the error in matrix
+  approximations for $m=8192$ fixed and varying $n$. The error seems to grow
+  as $n^2$. \TODO{Why?}
+  \begin{table}
+    \begin{center}
+    \begin{tabular}{|c||c|c|c|c|c|}
+      \hline
+$n$ &  4& 16& 64& 256& 1024\\
+      \hline\hline
+$\norm{\Amat-\Ammat}_F$ & 2.02E-03& 2.81E-02& 4.18E-01& 6.51E+00& 1.03E+02 \\
+      \hline
+$\norm{\Mmat-\Mmmat}_F$ & 4.08E-12& 5.65E-11& 8.41E-10& 1.30E-08& 2.02E-07 \\
+      \hline
+    \end{tabular}
+  \caption{The errors of matrix approximation for $m=8192$ and different $n$.}
+  \label{tab:eig_mat}
+  \end{center}
+  \end{table}
+
+  Finally we turn attention to properties of the transformation matrix $\Pmat$.
+  Recall that in general, this is an $n$ by $m$ matrix which represents a
+  transformation from the space of eigenfunction $V_m$ to the finite element 
+  space $V_n$. Matrix $\Pmatt$ then represents a transformation from $V_n$ 
+  to $V_m$. Note that by $\Mmmat=\mathbb{I}_m$ we know that the product 
+  $\Pmat\Pmatt$ should scale as the finite element mass matrix. \ASK{This
+  one has a condition number converging to 3. Why? And can we conclude already
+here that $\Pmat$ will inherit the scaling?} Ideally we would have
+$\Pmatt\Pmat=\mathbb{I}_n$. Observations about the matrix are in Figure
+\ref{fig:eig_P} which shows dependence of condition number $\Pmat$ on $m$
+  for different $n$ fixed. Note that until the space $V_m$ reaches the critical
+  size $m=n$, the condition number increases. At the critical size, there is a
+  turning point and the condition number converges to \TODO{(mysterious)} value
+  of $\sqrt{3}$.
+  
+  For the special case where spaces $V_m$ and $V_n$ are inflated together the
+  condition number of the square transformation matrix $\Pmat$ is shown in
+  Table \ref{tab:eig_P}. Note that the value correspond to value of maximal
+  condition number of the rectangular matrices in Figure $\ref{fig:eig_P}$. 
+  The table indicates that this value is bounded by a constant $\approx 2.5$.  
+  \TODO{Why?}
+  
+  \begin{figure}
+  \begin{center}
+    \includegraphics[width=0.5\textwidth]{img/eig_Pmn.pdf}
+  \end{center}
+  \label{fig:eig_P}
+  \caption{Condition number of the transformation matrix $\Pmat$ for different $n$.
+    Note that the matrix is rectangular in general.}
+  \end{figure}
+  \begin{table}
+    \begin{center}
+    \begin{tabular}{|c||c|c|c|c|c|c|c|c|}
+      \hline
+      $n$           &   64&  128&  256&  512& 1024& 2048& 4096& 8192\\
+      \hline\hline
+      $\kappa(\Pmat)$ & 2.39& 2.43& 2.45& 2.46& 2.46& 2.46& 2.47& 2.47\\
+      \hline
+      $\kappa(\Pmatt\Pmat)$ & 5.73& 5.90& 5.99& 6.04& 6.06& 6.08& 6.08&
+      6.09\\
+      \hline
+    \end{tabular}
+  \caption{Condition number for the square transformation matrix $\Pmat$ and
+  $\Pmatt\Pmat$.}
+  \label{tab:eig_P}
+  \end{center}
+  \end{table}
+  \ASK{From FEM to Eigen I could go by projection that is $\Pmat$ or the
+  interpolation. Is there a difference?}
+  % Maybe things can be discussed in the light of condition numbers of matrices
+  % A, M etc.
+
+ \section{Legendre connection}
+ Consider the finite dimensional space $V_m=\spn\left\{\psi_i\right\}_{i=0}^{m-1}$
+ where $\psi_i$ are the functions due to \cite{shen_leg} and function $f$
+ which has zeros on the boundary and is at least $C^0$. To approximate $f$ on
+ $V_m$ we define $\pi_m f\in V_m$,
+ as
+ \[
+   \pi_m f = \displaystyle\sum\limits_{k=0}^{m-1}c_k \psi_k,
+ \]
+ where the vector of expansion coefficients is given as a solution to linear
+ system $\Mmmat c=\bvec$, with $\Mmmat$ the mass matrix on $V_m$ and
+ $\bvec_i=\inner{f}{\psi_j}$. As an alternative to the $L^2$ projection we
+ could consider another mapping which would take advantage of the orthogonality
+ properties of function $\psi_j$.
+ We write symbolically $f=\sum_k c_k\psi_k$ and consider a derivative of the
+ expression. Using orthonormality of basis functions with respect to the
+ $H^1_0$ inner product we get $\inner{f^{\prime}}{\psi^{\prime}_j} =
+ \sum_k c_k\inner{\psi^{\prime}_k}{\psi^{\prime}_j}=c_k$. Consequently
+ we shall define $\Pi_m f\in V_m$ as
+ \[
+   \Pi_m f = \displaystyle\sum\limits_{k=0}^{m-1}c_k \psi_k,
+ \]
+ with $c_k=\inner{f^{\prime}}{\psi^{\prime}_k}$. Note that for the
+ eigenfunctions $\varphi_k$ the two projections yield the same object since
+ \[
+   \inner{f}{\varphi_k} =
+   -\frac{1}{\lambda_k}\inner{f}{\varphi^{\prime\prime}_k} =
+   \frac{1}{\lambda_k}\inner{f^{\prime}}{\varphi_k^{\prime}}.
+ \]
+  Figure \ref{fig:shen_smooth_projection} shows that with increasing $m$ both
+  projections $\pi_mf, \Pi_mf$ converge to smooth $f$ exponentially in both
+  the $L^2$ and the energy norm. However for functions $f(x)=(x^4-1)e^{2x}\sin{4\pi x}$
+  the exponential convergence requires sufficiently large space $V_m$.
+  \TODO{Theory for this and what to expect from hat?}
+  
+  % projection -> smooth
+  \begin{figure}
+  \begin{center}
+    \includegraphics[width=0.45\textwidth]{img/shen_L2proj.pdf}
+    \includegraphics[width=0.45\textwidth]{img/shen_H10proj.pdf}
+  \end{center}
+  \label{fig:shen_smooth_projection}
+  \caption{Convergence rate of $\pi f$,  $\Pi f$ for smooth functions.
+    (left) Convergence rate in the $L^2$ norm for the $L^2$ and $H^1_0$
+    projection. (right) Convergence rate in the $L^2$ norm for the $H^1_0$
+    and $H^1_0$ projection. For function $f=(x^4-1)e^{2x}$ both projections
+    yield an approximation which converges exponentially. For 
+    $f=(x^4-1)e^{2x}\sin{4\pi x}$ exponentially converges is obtained only for
+    sufficiently large space $V_m$.
+  }
+  \end{figure}
+  % even mode
+  % any mode
+  % the rates for 4, 8, 16, 32
+
+  \bibliographystyle{plain}
+  \bibliography{CG_matrices}
+\end{document}

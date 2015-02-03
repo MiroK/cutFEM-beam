@@ -3,6 +3,8 @@ from sympy import legendre, Symbol, lambdify, sqrt
 from sympy.mpmath import quad
 import numpy as np
 
+x = Symbol('x')
+
 def shenp_basis(n):
     '''
     Yield first n basis function due to Shen - combinations of Legendre
