@@ -139,21 +139,29 @@ if __name__ == '__main__':
             for k in range(2, 15):
                 hat_shen_h(h=h, k=k)
 
+    from matplotlib import rc 
+    rc('text', usetex=True) 
+    rc('font',**{'family':'sans-serif','sans-serif':['Helvetica']})
     import matplotlib.pyplot as plt
     from pylab import getp
     import numpy as np
 
-    A = np.sqrt(5)
-    ks = np.arange(2, 200)
+    A = 2
+    ks = np.arange(2, 257)
     plt.figure()
-    for n in [1, 3, 5, 8, 16, 32, 64]:
-        h = 1./n
+    labels = iter([r'$\frac{1}{4}$',
+                   r'$\frac{1}{8}$',
+                   r'$\frac{1}{16}$'])
+    for h in [1/4., 1/8, 1/16.]:
         ck = np.array([hat_shen_h(h, k) for k in ks])
         ck = np.sqrt(ck**2)
-        line,  = plt.plot(ks[::2], ck[::2], label='%g' % h)
-        plt.plot([A*n, A*n], [0, 1.2], color=getp(line, 'color'), linestyle='--')
+        line,  = plt.loglog(ks[::2], ck[::2], label=next(labels), marker='x')
+        plt.loglog([2./h, 2./h], [1e-4, 1], color=getp(line, 'color'), linestyle='--')
 
-        print n, ks[np.argmax(ck)], A*n
-
+        # print n, ks[np.argmax(ck)], A*n
+    plt.loglog(ks[::2], ks[::2]**(-1.), label='rate 1')
     plt.legend(loc='best')
+    plt.xlabel('$k$')
+    plt.ylabel(r'$|(f^{\prime}, \psi^{\prime}_k)|$')
+    plt.savefig('shen_hat_h.pdf')
     plt.show()

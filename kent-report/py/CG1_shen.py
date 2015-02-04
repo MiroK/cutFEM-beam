@@ -73,39 +73,76 @@ def Mfem_matrix(n):
 
 # -----------------------------------------------------------------------------
 
-n = 4
-A = Afem_matrix(n)
-M = Mfem_matrix(n)
+# Monitor the condition number of P
+P_conds = {}
+A_norms = {}
+M_norms = {}
+for n in [4, 8, 16, 24, 32, 40, 48, 56, 64]:
+    A = Afem_matrix(n)
+    M = Mfem_matrix(n)
 
-print A
+    print '\n n=%d' % n 
+    temp = 'm=%d, |A-A_|=%.2E, A_rate=%.2f, |M-M_|=%.2E, M_rate=%.2f Pcond=%.2E'
+    temp1 = '\tm=%d, |A[0, 0]-A_[0, 0]|=%.2E, A_rate=%.2f, |M[0, 0]-M_[0, 0]|=%.2E, M_rate=%.2f'
 
-print M
+    A_row, M_row, P_row = [], [], []
 
-# The claim now is that A, M which are n x n matrices can be obtained as a limit
-# from Ashen, Mshen, the m x m stiffness and mass matrices in the shenbasis, and
-# the transformation matrix P which is n x m and takes the shenenfunctions to
-# CG1 functions.
-temp = 'm=%d, |A-A_|=%.2E, A_rate=%.2f, |M-M_|=%.2E, M_rate=%.2f'
+    for m in [16, 24, 32, 48, 64, 96, 128, 192, 256]:
+        Ashen = Ashen_matrix(m)
+        Mshen = Mshen_matrix(m)
 
-for m in [2, 4, 8, 16, 32, 64, 128, 256]:
-    # Compute shen matrices and transformation
-    Ashen = Ashen_matrix(m)
-    Mshen = Mshen_matrix(m)
-    P = P_matrix(n, m)
+        # Transformation
+        P = P_matrix(n, m)
+        P_cond = la.cond(P)
 
-    # Compute A_ as P*Ashen*.Pt ans same for M
-    A_ = P.dot(Ashen.dot(P.T))
-    M_ = P.dot(Mshen.dot(P.T))
+        # Compute A_ as P*Aeig*.Pt ans same for M
+        A_ = P.dot(Ashen.dot(P.T))
+        M_ = P.dot(Mshen.dot(P.T))
 
-    A_norm = la.norm(A-A_)
-    M_norm = la.norm(M-M_)
+        A_norm = la.norm(A-A_, 2)
+        M_norm = la.norm(M-M_, 2)
 
-    if m != 2:
-        rateA = ln(A_norm/A_norm_)/ln(m_/m)
-        rateM = ln(M_norm/M_norm_)/ln(m_/m)
+        # Have a look at entri convergence
+        Aentry = abs(A[0, 0]-A_[0, 0])
+        Mentry = abs(M[0, 0]-M_[0, 0])
 
-        print temp % (m, la.norm(A-A_), rateA, la.norm(M-M_), rateM)
+        if m != 16:
+            rateA = ln(A_norm/A_norm_)/ln(m_/m)
+            rateM = ln(M_norm/M_norm_)/ln(m_/m)
+            Arate = ln(Aentry/Aentry_)/ln(m_/m)
+            Mrate = ln(Mentry/Mentry_)/ln(m_/m)
 
-    A_norm_ = A_norm
-    M_norm_ = M_norm
-    m_ = m
+            print temp % (m, la.norm(A-A_), rateA, la.norm(M-M_), rateM, P_cond)
+            print temp1 % (m, Aentry, Arate, Mentry, Mrate)
+
+        A_norm_ = A_norm
+        M_norm_ = M_norm
+        m_ = m
+        Aentry_ = Aentry
+        Mentry_ = Mentry
+
+        # Collect for m
+        A_row.append(A_norm)
+        M_row.append(M_norm)
+        P_row.append(P_cond)
+
+    # Collect for n
+    P_conds[n] = P_row
+    M_norms[n] = M_row
+    A_norms[n] = A_row
+
+print 'P conditioning'
+print P_conds
+
+print
+print 'A norms'
+print A_norms
+
+print
+print 'M norms'
+print M_norms
+
+import pickle
+pickle.dump(P_conds, open('shen_pcond.pickle', 'wb'))
+pickle.dump(A_norms, open('shenA_norms.pickle', 'wb'))
+pickle.dump(M_norms, open('shenM_norms.pickle', 'wb'))

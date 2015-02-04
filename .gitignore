@@ -13,6 +13,7 @@
 *.msh
 *.zip
 *.gz
+*.data
 
 .ropeproject/
 results/
