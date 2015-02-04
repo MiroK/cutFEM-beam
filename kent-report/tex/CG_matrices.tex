@@ -294,25 +294,26 @@
   finite dimensional space as $V_m=\spn\left\{\varphi_i\right\}_{i=0}^{m-1}$.
   Owing to the orthogonality properties the stiffness and mass matrices
   assembled on $V_m$ take a particularly simple form. We have
-  \[
+  \begin{equation}
+    \label{eq:shen_mat}
     \Amat_{ij} = \lambda_j\delta_{ij}
     \quad\text{ and }\quad
     \Mmat_{ij} = \delta_{ij}.
-  \]
+  \end{equation}
   Finally we note that the following error estimate holds for the method 
   $\norm{u^{\prime}-u_m^{\prime}}\leq \frac{1}{\alpha_m}\norm{f}$ and thus
   we expect the error in the energy norm to decrease linearly with increasing
   $m$.
 
   \subsection{Galerkin method with Legendre polynomials}
-  Let us denote $l_k$ the $k$-th Legendre polynomial. It is known
+  Let us denote $L_k$ the $k$-th Legendre polynomial. It is known
   (e.g. \cite{shen_book}) that the boundary values of Legendre polynomials are
   \[
-    l_k(1) = 1\quad\text{ and }\quad l_k(-1) = (-1)^k
+    L_k(1) = 1\quad\text{ and }\quad L_k(-1) = (-1)^k
   \]
   and consequently $l_k\notin V$. However special combinations of Legendre
   polynomials can be taken to yield polynomials that have zero boundary values.
-  If $\varphi_k=\beta_k\left(l_{k+2} - l_k\right), k=0, 1,\dots$ with constants
+  If $\varphi_k=\beta_k\left(L_{k+2} - L_k\right), k=0, 1,\dots$ with constants
   $\beta_k$ given as $\beta_k = \frac{1}{\sqrt{4k + 6}}$ then
   \cite{shen_leg} showed that the functions are zero on the boundary and
   consequently $\varphi_k\in V$. The functions $\varphi_j$ have desirable
@@ -470,9 +471,9 @@
   is bounded by $m^{-3}$. Thus every entry in the matrix converges and we expect
   the series for $\left\{\Mmmat\right\}$ to converge. A similar argument can
   be made for entries of the transformed stiffness matrix. The difference is
-  that the matrix $\Ammat$ indtroduces scaling of the eigenvalues which grow
+  that the matrix $\Ammat$ introduces scaling of the eigenvalues which grow
   as $k^2$. As a result the entries should converge as $m^{-1}$. Next we shall
-  make a more sound argument for existance of the limit.
+  make a more sound argument for existence of the limit.
 
   % Showing what Am, Mm really are (the projections)
   We consider entries of the transformed mass matrix again and write out
@@ -535,7 +536,7 @@
   \[
     \left(\Mmat-\Mmmat\right)_{ij} = \inner{\phi_i-\pi_m\phi_i}{\phi_j - \pi_m\phi_j}
   \]
-  \TODO{This seems to be $m^{-2}*m{-2}$, where do we loose one order?}. We
+  \TODO{This seems to be $m^{-2}m^{-2}$, where do we loose one order?}. We
   can thus write $M=\displaystyle\lim_{m\to\infty}M_m$.
   % measuting frobenius for M   [need to find both rate for m^-1*m^-1 and why
   % loose m
@@ -550,7 +551,7 @@
   The required orthogonality of $\left(\pi_m\phi_i - \phi_i\right)^{\prime}$ to
   $\left\{\varphi^{\prime}_j\right\}_{j=0}^{m-1}$ follows from  
   $\inner{\varphi_i^{\prime}}{\varphi_j^{\prime}}=\lambda_j\delta_{ij}$.
-  \TODO{This seems to be $m^{-2}*m{-2}$, where do we loose one order?}. We
+  \TODO{This seems to be $m^{-1}m^{-1}$, where do we loose one order?}. We
   can then write $A=\displaystyle\lim_{m\to\infty}A_m$.
 
   The above estimates were tested numerically with results summarized in Figure
@@ -678,7 +679,6 @@ $\Pmatt\Pmat=\mathbb{I}_n$. Observations about the matrix are in Figure
   the $L^2$ and the energy norm. However for functions $f(x)=(x^4-1)e^{2x}\sin{4\pi x}$
   the exponential convergence requires sufficiently large space $V_m$.
   \TODO{Theory for this and what to expect from hat?}
-  
   % projection -> smooth
   \begin{figure}
   \begin{center}
@@ -695,22 +695,310 @@ $\Pmatt\Pmat=\mathbb{I}_n$. Observations about the matrix are in Figure
     sufficiently large space $V_m$.
   }
   \end{figure}
-
+  
   % Move to hat functions. If \Pi is used formulat for hat function coefficients
   % Consider equidistant and as before with xi=0. Odd->0. Even. Consder h=1 and
   % do the math. Confirm with Plot. What happens when spacind. Show plot. 2n.
   % But analyzi exactly. DON't FORGET REFERENCE FOR GAMMA
-  % 
+  We now consider the approximation properties of $\Pi_m \phi_i, \pi_m \phi_i$,
+  with $\phi_i$ the finite element hat function (\ref{eq:hat}). Having seen
+  that computing the $L^2$ projection involves solving a linear system, we
+  first focus on the the $\Pi_m$ projection where the expansion coefficients are
+  obtained easily. Indeed we have
+  \[
+  c_k=\inner{\phi_i^{\prime}}{\psi_k^{\prime}} =
+  \frac{1}{x_i - x_{i-1}}\left[\psi_k\right]_{x_{i-1}}^{x_i} +
+  \frac{1}{x_{i+1} - x_{i}}\left[\psi_k\right]_{x_{i}}^{x_{i+1}}.
+  \]
+  As in the case previous section we gain some insight into the properties of the
+  projection by studying the hat functions centered at the origin. Recall that
+  the basis function $\psi_k$ is even/odd if $k$ is even/odd. Therefore only
+  $c_{2l}, l=0, 1, 2, \dots$ coeffcients are nonzero. For function
+  $(-1, 0, 1)$ the even coefficients are then given as
+  \[
+    c_{2l} = 2\psi_{2l}(0),
+  \]
+  which follows from $\psi_k(\pm 1)=0$ for any $k$. Recalling the definition
+  for basis functions we have\\ $c_{2l}=\beta_{2l}\left(L_{2(l+1)}-
+  L_{l}\right)\left(0\right)$ which upon using the relation between values of
+  Legendre polynomials at zero to gamma function \TODO{$^\text{citation needed}$}
+  becomes
+  \[
+    c_{2l} = \frac{\left(-1\right)^{l+1}}{\sqrt{\pi}}
+             \frac{1}{\sqrt{8l + 6}}
+             \frac{\Gamma\left(l+\tfrac{1}{2}\right)}{\Gamma\left(i+1\right)}
+             \frac{2l+\tfrac{3}{2}}{l+1}.
+  \]
+  Using the assymptotic expansion for the ratio of gamma functions given
+  in \cite{tricomi} we get that the terms in the expression behave as
+  $k^{-1/2}\cdot k^{-1/1}\cdot1$ and thus we expect the magnitude of coefficients to
+  be bounded by $k^{-1}$. This prediction agrees well with the experiment
+  (cf. left pane in Figure \ref{fig:shen_hat_projection}).
+  
+  The even expansion coefficients of more general hat functions $(-h, 0, h)$
+  are given by
+  \[
+    c_{k} = \frac{2}{h}\left(\psi_k\left(0\right)- \psi_k\left(h\right)\right).
+  \]
+  For several values of $h$ the coeffcients' magnitue is shown in the right pane
+  of Figure \ref{fig:shen_hat_projection}. We observe that for wavenumbers
+  $k>\text{dim}V_n$ (note that the hat function $(-h, 0, h)$ is in the space
+  $V_{\frac{2}{h}-1}$) the coefficients are bounded by $k^{-1}$. The
+  approximation properties of the Shen's basis for the hat functions are thus
+  worse than those of the eigenfunctions. We also note that for the
+  eigenfunctions we had an estimate of the critical wavenumber $k_0=n+1$ which
+  was in good agreement with the experiment. Here, the critical number appears
+  to grow faster than linear.
+  \begin{figure}
+  \begin{center}
+    \includegraphics[width=0.45\textwidth]{img/shen_hat_1.pdf}
+    \includegraphics[width=0.45\textwidth]{img/shen_hat_h.pdf}
+  \end{center}
+  \label{fig:shen_hat_projection}
+  \caption{Expansion coefficients of $\Pi_m$ projection of the hat functions
+    $(-h, 0, h)$. (left) Special case $h=1$ confirms that the coefficients 
+    are bound by $k^{-1}$. (right) The $k^{-1}$ decay occurs only for
+    sufficiently large wavenumbers.}
+  \end{figure}
+
   % Heuristics for matrices M, A
+  We shall now use the projection $\Pi_m$ to construct approximations to finite
+  element matrices. To this end we denote $V_n\subset V$ the finite dimensional
+  subspace of $V$ constructed by $n$ hat functions $\phi_i$ and $V_m\subset V$
+  the finite dimensional subspace spanned by the first $m$ polynomials
+  $\psi_j$. Also we denote $\Amat, \Mmat \in \R^{n \times n}$
+  the stiffness and mass matrices assembled on $V_n$ and let
+  $\Ammatt, \Mmmatt \in \R^{m\times m}$ denote the stiffness and mass matrices
+  assembled on $V_m$. Finally, we define a transformation matrix
+  $\Pmatt\in\R^{n \times m}$ that has expansion coefficients of $\Pi_m\phi_i$
+  as its rows and transformed mass and stiffness matrices as
+  \[
+    \Mmmat = \Pmat\Mmmatt\Pmatt
+    \quad{\text{ and }}\quad
+    \Ammat = \Pmat\Ammatt\Pmatt.
+  \]
+  
+  As in the previous section we begin the discussion of approximation properties
+  of the transformed matrices by giving a heuristic argument for the expected
+  order of convergence for the matrix entries. Recalling that the stiffness matrix
+  over $V_m$ is simply an identity, we have for the entry of a transformed
+  stiffness matrix 
+  \[
+    \left(\Ammat\right)_{ij} =
+    \displaystyle\sum\limits_{k=0}^{m-1}
+    \inner{\phi^{\prime}_i}{\psi^{\prime}_k}
+    \inner{\phi^{\prime}_j}{\psi^{\prime}_k}.
+  \]
+  That is, the entries of the matrix are products of entries in the 
+  transformation matrix which as we have shown decay at least as $k^{-1}$ for
+  once the space $V_m$ is sufficiently large. Further we can expect the summation
+  loop to strip one order and arrive at the expected bound $m^{-1}$. In case of
+  the transformed mass matrix, we have the entries given as
+  \[
+    \left(\Mmmat\right)_{ij} =
+    \displaystyle\sum\limits_{k=0}^{m-1}
+    \left(\Pmat\right)_{ik}
+    \left(\Mmmatt\right)_{kl}
+    \left(\Pmat\right)_{jl}.
+  \]
+  Using (\ref{eq:shen_mat}) we have that the nonzero entries of the mass matrix
+  $\Mmmatt$ scale as $k^{-2}$ yielding $k^{-4}$ for the summed terms. Consequently
+  we expect the entries to converge at least as $m^{-3}$. The obtained bounds
+  are noteworthy since they imply that for matrix entries the approximation
+  properties of polynomials are the same as properties of the eigenfunctions
+  despite the eigenfunctions' superiority in approximations of the hat functions.
+  Our argument indicated that in both cases this is due to scaling that is
+  introduced by the matrices $\Mmmatt, \Ammatt$.
+
+  % Showing what Am, Mm really are (the projections)
+  Having discussed convergence of matrix entries we shall now study convergence
+  of the matrix approximations. To this end we consider
+  \[
+  \norm{\Amat-\Ammat}_F\quad\text{ and }\quad\norm{\Mmat-\Mmmat}_F.
+  \]
+  Following the ideas of previous section, it is easy to show that the entries
+  of the transformed stiffness matrix are  
+  \[
+    \left(\Ammat\right)_{ij} =
+    \inner{\left(\Pi_m\phi_i\right)^{\prime}}
+    {\left(\Pi_m\phi_j\right)^{\prime}}
+  \]
+  while the entries of the transformed mass matrix read
+  \[
+    \left(\Mmmat\right)_{ij} = \inner{\Pi_m\phi_i}
+                                     {\Pi_m\phi_j}.
+  \]
+  In the Frobenius norm we thus deal with terms
+  \[
+    \inner{\phi^{\prime}_i}{\phi^{\prime}_j} - 
+    \inner{\left(\Pi_m\phi_i\right)^{\prime}}
+          {\left(\Pi_m\phi_j\right)^{\prime}}
+    \quad\text{ and }\quad
+    \inner{\phi_i}{\phi_j} - \inner{\Pi_m\phi_i}{\Pi_m\phi_j}.
+  \]
+  The orthogonality of the $\Pi_m$ projection in the $H^1_0$ inner product
+  implies $\inner{\psi^{\prime}_k}{\phi^{\prime}_i}=
+  \inner{\psi^{\prime}_k}{\left(\Pi_m\phi_i\right)^{\prime}}
+  $ for all $\psi_k\in V_m$.
+%   Motivated by 
+%   $\norm{\pi_m \phi_i - \phi_i}_i \xrightarrow[]{m\rightarrow\infty}0$ and
+%   $i=0, 1$ we now ask if $\norm{\Mmat - \Mmmat}_{F}$ and 
+%   $\norm{\Amat - \Ammat}_{F}$ go to zero as $m$ goes to infinity. Note that
+%   for general matrix $\Bmat\in\R^{m\times m}$, the Frobenius norm is
+%   \[
+%     \norm{\Bmat}_{F} = \sqrt{
+%     \displaystyle\sum\limits_{i=0}^{m-1}
+%     \displaystyle\sum\limits_{j=0}^{m-1}
+%     \left|\Bmat_{ij}\right|^2
+%     }
+%   \]
+% 
+%   % measuting frobenius for M   [need to find both rate for m^-2*m^-2 and why
+%   % loose m
+%   The entries of the matrix $\Mmat-\Mmmat$ are $\left(\Mmat-\Mmmat\right)_{ij}=
+%   \inner{\phi_i}{\phi_j}-\inner{\pi_m\phi_i}{\pi_m\phi_j}$. By properties of
+%   $\pi_m$ we have $\pi_m\phi_i - \phi_i \perp V_m$ and since $\pi_m\phi_j\in V_m$
+%   we get that $\inner{\phi_i}{\pi_m\phi_j}=\inner{\pi_m\phi_i}{\pi_m\phi_j}$.
+%   Consequently $\inner{\phi_i}{\phi_j}-\inner{\pi_m\phi_i}{\pi_m\phi_j} =
+%   \inner{\phi_i-\pi_m\phi_i}{\phi_j - \pi_m\phi_j}$ and thus
+%   \[
+%     \left(\Mmat-\Mmmat\right)_{ij} = \inner{\phi_i-\pi_m\phi_i}{\phi_j - \pi_m\phi_j}
+%   \]
+%   \TODO{This seems to be $m^{-2}m^{-2}$, where do we loose one order?}. We
+%   can thus write $M=\displaystyle\lim_{m\to\infty}M_m$.
+%   % measuting frobenius for M   [need to find both rate for m^-1*m^-1 and why
+%   % loose m
+%   In a similar way we can prove that the entries of the matrix $\Amat-\Ammat$
+%   are
+%   \[
+%     \left(\Amat-\Ammat\right)_{ij} =
+%     \inner
+%     {\left(\phi_i-\pi_m\phi_i\right)^{\prime}}
+%     {\left(\phi_j - \pi_m\phi_j\right)^{\prime}}.
+%   \]
+%   The required orthogonality of $\left(\pi_m\phi_i - \phi_i\right)^{\prime}$ to
+%   $\left\{\varphi^{\prime}_j\right\}_{j=0}^{m-1}$ follows from  
+%   $\inner{\varphi_i^{\prime}}{\varphi_j^{\prime}}=\lambda_j\delta_{ij}$.
+%   \TODO{This seems to be $m^{-1}m^{-1}$, where do we loose one order?}. We
+%   can then write $A=\displaystyle\lim_{m\to\infty}A_m$.
+% 
+%   The above estimates were tested numerically with results summarized in Figure
+%   \ref{fig:eig_mat} and Table \ref{tab:eig_mat}. Figure \ref{fig:eig_mat} shows
+%   convergence of the matrix
+%   approximations. It is apparent from the figure that similar to expansion
+%   coefficients there exists for each $n$ a critical size of space $V_m$ which
+%   guarantees convergence of the transformed matrices. For spaces larger than
+%   the critical one, the rate of convergence agrees well with the analysis. 
+  \begin{figure}
+  \begin{center}
+    \includegraphics[width=0.45\textwidth]{img/shen_A.pdf}
+    \includegraphics[width=0.45\textwidth]{img/shen_M.pdf}
+  \end{center}
+  \label{fig:shen_mat}
+  \caption{Convergence rate of matrix approximation. (left) The transformed
+    stiffness matrix converges to finite element stiffness as $m^{-1}$ once the
+  space $V_m$ is sufficiently large. The critical size appears to be $n$.
+  (right) The transformed mass matrix converges to finite element mass matrix
+  as $m^{-3}$.
+  }
+  \end{figure}
+%   Table \ref{tab:eig_mat} shows the magnitude of the error in matrix
+%   approximations for $m=8192$ fixed and varying $n$. The error seems to grow
+%   as $n^2$. \TODO{Why?}
+  \begin{table}
+    \begin{center}
+    \begin{tabular}{|c||c|c|c|c|c|}
+      \hline
+$n$ & 4& 16& 32& 48& 64 \\
+      \hline\hline
+$\norm{\Amat-\Ammat}_F$ & 9.49E-02& 1.32E+00& 5.24E+00& 9.71E+00& 2.45E+01 \\
+      \hline
+$\norm{\Mmat-\Mmmat}_F$ & 4.32E-07& 6.02E-06& 3.03E-05& 3.12E-05& 1.48E-04 \\
+      \hline
+    \end{tabular}
+  \caption{The errors of matrix approximation for $m=256$ and different $n$.}
+  \label{tab:shen_mat}
+  \end{center}
+  \end{table}
+% 
+%   Finally we turn attention to properties of the transformation matrix $\Pmat$.
+%   Recall that in general, this is an $n$ by $m$ matrix which represents a
+%   transformation from the space of eigenfunction $V_m$ to the finite element 
+%   space $V_n$. Matrix $\Pmatt$ then represents a transformation from $V_n$ 
+%   to $V_m$. Note that by $\Mmmat=\mathbb{I}_m$ we know that the product 
+%   $\Pmat\Pmatt$ should scale as the finite element mass matrix. \ASK{This
+%   one has a condition number converging to 3. Why? And can we conclude already
+% here that $\Pmat$ will inherit the scaling?} Ideally we would have
+% $\Pmatt\Pmat=\mathbb{I}_n$. Observations about the matrix are in Figure
+% \ref{fig:eig_P} which shows dependence of condition number $\Pmat$ on $m$
+%   for different $n$ fixed. Note that until the space $V_m$ reaches the critical
+%   size $m=n$, the condition number increases. At the critical size, there is a
+%   turning point and the condition number converges to \TODO{(mysterious)} value
+%   of $\sqrt{3}$.
+%   
+%   For the special case where spaces $V_m$ and $V_n$ are inflated together the
+%   condition number of the square transformation matrix $\Pmat$ is shown in
+%   Table \ref{tab:eig_P}. Note that the value correspond to value of maximal
+%   condition number of the rectangular matrices in Figure $\ref{fig:eig_P}$. 
+%   The table indicates that this value is bounded by a constant $\approx 2.5$.  
+%   \TODO{Why?}
+%   
+  \begin{figure}
+  \begin{center}
+    \includegraphics[width=0.5\textwidth]{img/shen_Pmn.pdf}
+  \end{center}
+  \label{fig:shen_P}
+  \caption{Condition number of the transformation matrix $\Pmat$ for different $n$.
+    Note that the matrix is rectangular in general.}
+  \end{figure}
+
+  \begin{table}
+    \begin{center}
+    \begin{tabular}{|c||c|c|c|c|c|c|c|}
+      \hline
+      $n$           & 16 & 24 & 32 & 40 & 48 & 56 & 64\\
+      \hline\hline
+      $\kappa\left(\Pmat\right)$ & 10.59 & 15.43 & 20.27 & 25.04 & 29.81 & 34.54 & 39.30 \\
+      \hline
+    \end{tabular}
+  \caption{Condition number of rectangular transformation matrix $\Pmat$ for
+  $m=256$.}
+  \label{tab:shen_Pm}
+  \end{center}
+  \end{table}
+
+  \begin{table}
+    \begin{center}
+    \begin{tabular}{|c||c|c|c|c|c|}
+      \hline
+      $n$           &4& 16& 32& 64& 128 \\
+      \hline\hline
+      $\kappa(\Pmat)$ & 1.90E+00& 9.39E+02& 2.50E+07& 1.02E+17& 4.36E+16\\
+      \hline
+      $\kappa(\Pmatt\Pmat)$ & 3.63E+00& 8.82E+05& 6.48E+14& 1.35E+17& 4.55E+17\\
+      \hline
+    \end{tabular}
+  \caption{Condition number for the square transformation matrix $\Pmat$ and
+  $\Pmatt\Pmat$.}
+  \label{tab:shen_P}
+  \end{center}
+  \end{table}
+  % Maybe things can be discussed in the light of condition numbers of matrices
+  % A, M etc.
   % Then do it more soundly
   % Then graphs
   % The mapping P
+
+% ----------------
 
   %\section{Legendre $\leftrightarrow$ FEM}
   % I read something about this being analytical
   %
   %
   %
+
+  % Why is cond(M_fem)=3
+  % What is the pcolor of P matrices
 
   \bibliographystyle{plain}
   \bibliography{CG_matrices}
