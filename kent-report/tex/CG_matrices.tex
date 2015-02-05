@@ -177,10 +177,13 @@
   element method using continuous linear Lagrange elements and two discretizations
   with the Galerkin method where the eigenfunctions of the Laplacian and
   combinations of Legendre polynomials are used respectively as the test
-  functions. We show that the matrices due to finite element method can be viewed
-  as the limit of transformations describing the change of basis. Further, we
-  study the limiting behaviour and it is shown that the eigenfunctions lead to
-  faster convergence.
+  functions. We show that the matrices due to finite element method can be
+  viewed as the limit of transformations describing the change of basis. Further,
+  we study the limiting behaviour and show that the two basis lead to same rate
+  of convergence despite having different approximation properties.
+  Finally properties of the transformation between spaces spanned by the
+  global functions (eigenfunctions, polynomials) and the space spanned by 
+  local (finite element) functions are studied.
 \end{abstract}
 
 \section{Introduction}
@@ -608,13 +611,6 @@ $\Pmatt\Pmat=\mathbb{I}_n$. Observations about the matrix are in Figure
   turning point and the condition number converges to \TODO{(mysterious)} value
   of $\sqrt{3}$.
   
-  For the special case where spaces $V_m$ and $V_n$ are inflated together the
-  condition number of the square transformation matrix $\Pmat$ is shown in
-  Table \ref{tab:eig_P}. Note that the value correspond to value of maximal
-  condition number of the rectangular matrices in Figure $\ref{fig:eig_P}$. 
-  The table indicates that this value is bounded by a constant $\approx 2.5$.  
-  \TODO{Why?}
-  
   \begin{figure}
   \begin{center}
     \includegraphics[width=0.5\textwidth]{img/eig_Pmn.pdf}
@@ -623,6 +619,12 @@ $\Pmatt\Pmat=\mathbb{I}_n$. Observations about the matrix are in Figure
   \caption{Condition number of the transformation matrix $\Pmat$ for different $n$.
     Note that the matrix is rectangular in general.}
   \end{figure}
+  For the special case where spaces $V_m$ and $V_n$ are inflated together the
+  condition number of the square transformation matrix $\Pmat$ is shown in
+  Table \ref{tab:eig_P}. Note that the value correspond to value of maximal
+  condition number of the rectangular matrices in Figure $\ref{fig:eig_P}$. 
+  The table indicates that this value is bounded by a constant $\approx 2.5$.  
+  \TODO{Why?}
   \begin{table}
     \begin{center}
     \begin{tabular}{|c||c|c|c|c|c|c|c|c|}
@@ -770,7 +772,7 @@ $\Pmatt\Pmat=\mathbb{I}_n$. Observations about the matrix are in Figure
   the stiffness and mass matrices assembled on $V_n$ and let
   $\Ammatt, \Mmmatt \in \R^{m\times m}$ denote the stiffness and mass matrices
   assembled on $V_m$. Finally, we define a transformation matrix
-  $\Pmatt\in\R^{n \times m}$ that has expansion coefficients of $\Pi_m\phi_i$
+  $\Pmat\in\R^{n \times m}$ that has expansion coefficients of $\Pi_m\phi_i$
   as its rows and transformed mass and stiffness matrices as
   \[
     \Mmmat = \Pmat\Mmmatt\Pmatt
@@ -839,56 +841,50 @@ $\Pmatt\Pmat=\mathbb{I}_n$. Observations about the matrix are in Figure
   The orthogonality of the $\Pi_m$ projection in the $H^1_0$ inner product
   implies $\inner{\psi^{\prime}_k}{\phi^{\prime}_i}=
   \inner{\psi^{\prime}_k}{\left(\Pi_m\phi_i\right)^{\prime}}
-  $ for all $\psi_k\in V_m$.
-%   Motivated by 
-%   $\norm{\pi_m \phi_i - \phi_i}_i \xrightarrow[]{m\rightarrow\infty}0$ and
-%   $i=0, 1$ we now ask if $\norm{\Mmat - \Mmmat}_{F}$ and 
-%   $\norm{\Amat - \Ammat}_{F}$ go to zero as $m$ goes to infinity. Note that
-%   for general matrix $\Bmat\in\R^{m\times m}$, the Frobenius norm is
-%   \[
-%     \norm{\Bmat}_{F} = \sqrt{
-%     \displaystyle\sum\limits_{i=0}^{m-1}
-%     \displaystyle\sum\limits_{j=0}^{m-1}
-%     \left|\Bmat_{ij}\right|^2
-%     }
-%   \]
-% 
-%   % measuting frobenius for M   [need to find both rate for m^-2*m^-2 and why
-%   % loose m
-%   The entries of the matrix $\Mmat-\Mmmat$ are $\left(\Mmat-\Mmmat\right)_{ij}=
-%   \inner{\phi_i}{\phi_j}-\inner{\pi_m\phi_i}{\pi_m\phi_j}$. By properties of
-%   $\pi_m$ we have $\pi_m\phi_i - \phi_i \perp V_m$ and since $\pi_m\phi_j\in V_m$
-%   we get that $\inner{\phi_i}{\pi_m\phi_j}=\inner{\pi_m\phi_i}{\pi_m\phi_j}$.
-%   Consequently $\inner{\phi_i}{\phi_j}-\inner{\pi_m\phi_i}{\pi_m\phi_j} =
-%   \inner{\phi_i-\pi_m\phi_i}{\phi_j - \pi_m\phi_j}$ and thus
-%   \[
-%     \left(\Mmat-\Mmmat\right)_{ij} = \inner{\phi_i-\pi_m\phi_i}{\phi_j - \pi_m\phi_j}
-%   \]
-%   \TODO{This seems to be $m^{-2}m^{-2}$, where do we loose one order?}. We
-%   can thus write $M=\displaystyle\lim_{m\to\infty}M_m$.
-%   % measuting frobenius for M   [need to find both rate for m^-1*m^-1 and why
-%   % loose m
-%   In a similar way we can prove that the entries of the matrix $\Amat-\Ammat$
-%   are
-%   \[
-%     \left(\Amat-\Ammat\right)_{ij} =
-%     \inner
-%     {\left(\phi_i-\pi_m\phi_i\right)^{\prime}}
-%     {\left(\phi_j - \pi_m\phi_j\right)^{\prime}}.
-%   \]
-%   The required orthogonality of $\left(\pi_m\phi_i - \phi_i\right)^{\prime}$ to
-%   $\left\{\varphi^{\prime}_j\right\}_{j=0}^{m-1}$ follows from  
-%   $\inner{\varphi_i^{\prime}}{\varphi_j^{\prime}}=\lambda_j\delta_{ij}$.
-%   \TODO{This seems to be $m^{-1}m^{-1}$, where do we loose one order?}. We
-%   can then write $A=\displaystyle\lim_{m\to\infty}A_m$.
-% 
-%   The above estimates were tested numerically with results summarized in Figure
-%   \ref{fig:eig_mat} and Table \ref{tab:eig_mat}. Figure \ref{fig:eig_mat} shows
-%   convergence of the matrix
-%   approximations. It is apparent from the figure that similar to expansion
-%   coefficients there exists for each $n$ a critical size of space $V_m$ which
-%   guarantees convergence of the transformed matrices. For spaces larger than
-%   the critical one, the rate of convergence agrees well with the analysis. 
+  $ for all $\psi_k\in V_m$ and as a consequence we get
+  \[
+    \left(\Amat-\Ammat\right)_{ij} =
+    \inner
+    {\left(\phi_i - \Pi_m\phi_i\right)^{\prime}}
+    {\left(\phi_j - \Pi_m\phi_j\right)^{\prime}}.
+  \]
+  \TODO{This seems to be $m^{-1}m^{-1}$, where do we loose one order?}. We
+  can thus write $\Amat=\displaystyle\lim_{m\to\infty}\Ammat$. The argument
+  for the mass matrix approximation is based on the following observation.
+  Suppose $\phi_i=\sum_k\inner{\phi_i^{\prime}}{\psi^{\prime}_k}\psi_k$ and take
+  the inner product with $\Pi_m\phi_j$. Functions $\psi_k$ are not orthogonal but
+  for $l$ fixed the inner product of $\psi_l$ with $\psi_k$ is
+  nonzero only for $k\in\left\{l-2, l, l+2\right\}\cap\mathbb{N}$. It follows
+  that $\inner{\phi_i, \Pi_m\phi_j}=\inner{\phi_i}{\Pi_{m+2}\phi_j}$ and in
+  turn
+  \[
+  \left|
+  \inner{\phi_i-\Pi_m\phi_i}{\phi_j - \Pi_m\phi_j}
+  \right|
+  \leq
+  \left|
+  \inner{\phi_i}{\phi_j}-\inner{\Pi_m\phi_i}{\Pi_m\phi_j}
+  -\inner{\sum\limits_{k=m}^{m+1}\inner{\phi_j^{\prime}}{\psi^{\prime}_k}\psi_k}{\Pi_m\phi_i}
+  -\inner{\sum\limits_{k=m}^{m+1}\inner{\phi_i^{\prime}}{\psi^{\prime}_k}\psi_k}{\Pi_m\phi_j}
+  \right|.
+  \]
+  Thus we get 
+  \[
+    \left|\left(\Mmat-\Mmmat\right)_{ij}\right| \leq
+  \left|
+  \inner{\phi_i-\Pi_m\phi_i}{\phi_j - \Pi_m\phi_j}
+  \right|
+  \]
+  \TODO{Same problem as always how to make step from here to the final rate?}
+
+  To test the above estimates we performed convergence study. The results
+  are summarized in \ref{fig:shen_mat} and Table \ref{tab:shen_mat}. We note
+  that in our current implementation evaluating high order Legendre polynomials
+  leads to instabilities and therefore we only considered spaces $V_m$ with
+  dimensions up to 256. Figure \ref{fig:shen_mat} confirms the proposed rates
+  for spaces $V_m$ sufficiently large. We note that similar to the expansion
+  coefficients ``sufficienly large'' seems larger than $n$.
+  Figure \ref{fig:eig_mat} shows
   \begin{figure}
   \begin{center}
     \includegraphics[width=0.45\textwidth]{img/shen_A.pdf}
@@ -902,9 +898,9 @@ $\Pmatt\Pmat=\mathbb{I}_n$. Observations about the matrix are in Figure
   as $m^{-3}$.
   }
   \end{figure}
-%   Table \ref{tab:eig_mat} shows the magnitude of the error in matrix
-%   approximations for $m=8192$ fixed and varying $n$. The error seems to grow
-%   as $n^2$. \TODO{Why?}
+  Table \ref{tab:shen_mat} shows the magnitude of the error in matrix
+  approximations for $m=256$ fixed and varying $n$. The error seems to grow
+  as $n^2$. \TODO{Why?}
   \begin{table}
     \begin{center}
     \begin{tabular}{|c||c|c|c|c|c|}
@@ -920,29 +916,27 @@ $\norm{\Mmat-\Mmmat}_F$ & 4.32E-07& 6.02E-06& 3.03E-05& 3.12E-05& 1.48E-04 \\
   \label{tab:shen_mat}
   \end{center}
   \end{table}
-% 
-%   Finally we turn attention to properties of the transformation matrix $\Pmat$.
-%   Recall that in general, this is an $n$ by $m$ matrix which represents a
-%   transformation from the space of eigenfunction $V_m$ to the finite element 
-%   space $V_n$. Matrix $\Pmatt$ then represents a transformation from $V_n$ 
-%   to $V_m$. Note that by $\Mmmat=\mathbb{I}_m$ we know that the product 
-%   $\Pmat\Pmatt$ should scale as the finite element mass matrix. \ASK{This
-%   one has a condition number converging to 3. Why? And can we conclude already
-% here that $\Pmat$ will inherit the scaling?} Ideally we would have
-% $\Pmatt\Pmat=\mathbb{I}_n$. Observations about the matrix are in Figure
-% \ref{fig:eig_P} which shows dependence of condition number $\Pmat$ on $m$
-%   for different $n$ fixed. Note that until the space $V_m$ reaches the critical
-%   size $m=n$, the condition number increases. At the critical size, there is a
-%   turning point and the condition number converges to \TODO{(mysterious)} value
-%   of $\sqrt{3}$.
-%   
-%   For the special case where spaces $V_m$ and $V_n$ are inflated together the
-%   condition number of the square transformation matrix $\Pmat$ is shown in
-%   Table \ref{tab:eig_P}. Note that the value correspond to value of maximal
-%   condition number of the rectangular matrices in Figure $\ref{fig:eig_P}$. 
-%   The table indicates that this value is bounded by a constant $\approx 2.5$.  
-%   \TODO{Why?}
-%   
+
+  We finally consider properties of the transformation matrix $\Pmat$. We remind
+  the reader that the transformation matrix between the finite element space
+  $V_n$ and the space spanned by the eigenfunctions $V_m$ had a condition number
+  $\kappa$ bounded by a constant (cf. Figure \ref{fig:eig_P}, Table
+  \ref{tab:eig_P}). For the square matrix we had the bound $\kappa\approx 2.5$
+  and the matrix was thus easy to invert. Properties of the transformation
+  matrix $\Pmat$ are summarized in Figure \ref{fig:shen_P} and
+  Tables \ref{tab:shen_Pm}, \ref{tab:shen_P}. Figure \ref{fig:shen_P} shows
+  that for given $n$ the condition number of $\Pmat$ grows with $m$ until the
+  spaces $V_n$, $V_m$ have the same dimensions. Afterwards the condition number
+  decreases to a constant value. This behaviour is qualitatively same as the
+  behaviour of that of the transformation matrix between finite element space
+  and the space of eigenfunctions but there are two key differences (i) for
+  $m=n$ the condition number grows with exponentially with $n$, cf.
+  Table \ref{tab:shen_P} (ii) the
+  condition number for rectangular matrix with $m \gg n$ grows linearly with
+  $n$, cf Table \ref{tab:shen_Pm}. The latter fact can perhaps be understood in
+  the light of the fact that $\Pmat\Pmatt\rightarrow\Amat$ which has a condition
+  number growing as $n^2$.
+
   \begin{figure}
   \begin{center}
     \includegraphics[width=0.5\textwidth]{img/shen_Pmn.pdf}
@@ -966,7 +960,16 @@ $\norm{\Mmat-\Mmmat}_F$ & 4.32E-07& 6.02E-06& 3.03E-05& 3.12E-05& 1.48E-04 \\
   \label{tab:shen_Pm}
   \end{center}
   \end{table}
-
+  Our results show that the approximation properties of the matrices due to
+  eigenfunctions are the same as the approximation properties of matrices from
+  the Shen's polynomials. From this point of view, the basis of eigenfunctions
+  is equivalent to basis of modified Legendre polynomials. On the other hand
+  properties of the transformation between these basis and the finite element
+  space differ. In case of the eigenfunctions the transformation is bounded
+  regardless of the size of the spaces. For the polynomials, the transformation
+  is well behaved if the polynomial space has greater dimension than the finite
+  element space. In case the spaces are of the same size the transformation is
+  unbounded.
   \begin{table}
     \begin{center}
     \begin{tabular}{|c||c|c|c|c|c|}
@@ -983,22 +986,39 @@ $\norm{\Mmat-\Mmmat}_F$ & 4.32E-07& 6.02E-06& 3.03E-05& 3.12E-05& 1.48E-04 \\
   \label{tab:shen_P}
   \end{center}
   \end{table}
-  % Maybe things can be discussed in the light of condition numbers of matrices
-  % A, M etc.
-  % Then do it more soundly
-  % Then graphs
-  % The mapping P
+
+
+  %TODO There should be some comment on the $L^2$ projection
+ 
+  %TODO curved arrow, and labels for maps
+  \begin{figure}
+    \begin{center}
+      \includegraphics[width=0.5\textwidth]{graph.1}
+    \caption{Graph}
+    \label{fig:graph}
+    \end{center}
+  \end{figure}
 
 % ----------------
 
   %\section{Legendre $\leftrightarrow$ FEM}
   % I read something about this being analytical
-  %
+  % We will do shen->eigen and shen<-eigen
   %
   %
 
   % Why is cond(M_fem)=3
   % What is the pcolor of P matrices
+  
+
+  % When you are finish, you have a draft.
+  % Print out and read: correcting mistakes but mostly getting new questions.
+  % Then try to answer all the questions
+  % Rewrite send to kent
+  % Can we put the paper into some framework?
+  % If yes, great, do it, polish and ta da.
+  
+  % Shen does multiple eigenvalues at once?
 
   \bibliographystyle{plain}
   \bibliography{CG_matrices}
