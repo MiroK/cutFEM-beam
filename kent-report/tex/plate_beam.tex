@@ -338,7 +338,7 @@ of $V, Q$. Note the subscripts represent dimension of the discrete spaces,
 $m=\text{dim}{V}=m_0+m_1, \text{dim}{Q}=r$, which in this study are constructed
 by the finite element method(\cite{scott}) and the spectral Galerkin
 method(\cite{shen_book}). In both cases
-the approximation $(u, p)\in V_{\mm}\times Q_e$ 
+the approximation $(u, p)\in V_{\mm}\times Q_r$ 
 to solution of (\ref{eq:abstract_saddle}) satisfies
   \begin{equation}
     \label{eq:abstract_saddle_h}
@@ -554,14 +554,31 @@ to solution of (\ref{eq:abstract_saddle}) satisfies
     \end{bmatrix}.
   \]
   The above can be also stated as: Find $\lambda\in\R, \Pvec\in\R^r$ that solves
-  \[
+  \begin{equation}
+    \label{eq:S_eig}
     \Bmatt\Amat^{-1}\Bmat\Pvec=\lambda\left(1-\lambda\right)\Nmat\Pvec.
-  \]
+  \end{equation}
   We observe that the well-posedness of (\ref{system}) then hinges only on the
-  properties of the Schur complement $\Bmatt\Amat^{-1}\Bmat$. This is an
+  properties of the Schur complement $S=\Bmatt\Amat^{-1}\Bmat$. This is an
   advantage from the computational point of view since the matrix involved in 
   the eigenvalue problem in only $r\times r$. Further, for well-posedness we
-  must have $\lambda\notin\left\{0, 1\right\}$.
+  must have $\lambda\notin\left\{0, 1\right\}$. Finally, observe that due to
+  block structure of $\Amat, \Bmat$, the left hand side of (\ref{eq:S_eig})
+  can be written as
+  \[
+    \Bp\Ap^{-1}\Bp^{\text{T}}\Pvec + \Bb\Ab^{-1}\Bb^{\text{T}}\Pvec.
+  \]
+  Broadly speaking problem (\ref{eq:S_eig}) can be viewed as combination
+  of two problems:
+  \begin{equation}
+    \label{eq:Sp_eig}
+    \Bp\Ap^{-1}\Bp^{\text{T}}\Pvec = \Nmat_\mathcal{P}\Pvec,
+  \end{equation}
+  and
+  \begin{equation}
+    \label{eq:Sb_eig}
+    \Bb\Ab^{-1}\Bb^{\text{T}}\Pvec = \Nmat_\mathcal{B}\Pvec.
+  \end{equation}
 
   In order to compute the discrete Brezzi constants $\alpha_{\mm, r}$ and
   $\beta_{\mm, r}$ we consider the following eigenvalue problems: Find
@@ -640,18 +657,182 @@ Q=L^2\left(\left(-1, 1\right)\right)$ and the bilinear forms as
   \frac{L}{2}\int_{-1}^{1}\ub q\meas{s},\\
   \end{aligned}
 \]
-where $L$ denotes the length of the beam. \\
+where $L$ denotes the length of the beam. We note that by Poincare inequality,
+the bilinear form $a$ defines a norm on $\Vp$.\\
 \TODO{
 \% Need existence and uniqueness in this case for (\ref{eq:system})\\
 \% Need discrete conditions, whatever they say (maybe compatibility) needs to
 be reflected in numerical experiments\\
 }
-\subsection{Spectral Galerkin method}
-We consider Galerkin method for (\ref{eq:system}) with the basis functions
-given by (i) the eigenfunctions of two dimensional and one dimensional Laplace
-operators (ii) polynomials due to \cite{shen_leg}.
-\subsection{Finite element methods}
+We shall now consider problem (\ref{eq:system}, with the bilinear forms $a, b$
+defined above, discretized by the finite element method and Galerkin methods
+with either the eigenfunctions of Laplacian or polynomials due to \cite{shen_leg}
+employed as the trial/test functions. We are interested in the stability of each
+disretization. To this end we shall study eigenvalue problems (\ref{eq:S_eig},
+\ref{eq:Sp_eig}, \ref{eq:Sb_eig} and \ref{eq:babuska_sys}). To make sure that
+our findings do not depend on the particular position of the beam, we shall 
+consider multiple configurations. The configurations invstigated in this report
+are pictured in Figure \ref{fig:beam_positions}.
+\begin{figure}
+  \begin{center}
+    \includegraphics[width=0.75\textwidth]{img/beam_positions.pdf}
+  \caption{System configurations of the plate-system problem. The blue line
+  denotes the beam.}
+  \label{fig:beam_positions}
+  \end{center}
+\end{figure}
 
+Let $\left\{\phi_j\right\}_{j=0}^{m-1}$ be either the set of eigenfunctions or
+polynomials. For simplicity we construct the finite dimensional subspaces only
+from this set. Namely, we let $Q_m=\spn\left\{\phi_j(s)\right\}_{j=0}^{m-1}$,
+and $V_\mm=\spn\left\{\phi_i(x)\phi_j(y)\right\}_{i, j=0}^{m-1,m-1}\times Q_m$.
+We thus have $\text{dim}{Q_r}=m$ and $\text{dim}{V_\mm}=m^2+m$. For the space
+$V_\mm, Q_m$ and a given position of the beam, we now consider eigenvalue
+problems (\ref{eq:S_eig}, \ref{eq:Sp_eig}, \ref{eq:Sb_eig} and
+\ref{eq:babuska_sys}).
+
+\subsection{Galerkin method with eigenfunctions}
+The results for beam positions 0, 7, 12, 21 are summarized in Figures
+\ref{fig:pois_eigen_1}, \ref{fig:pois_eigen_2}, \ref{fig:pois_eigen_3} and
+\ref{fig:pois_eigen_4}. Figure \ref{fig:pois_eigen_1} shows that the smallest
+eigenvalues are bounded from below if the matrix $\Nmat$ is due to
+$H^{-1/2}$ or $H^{-1}$ norms. Observe that the $L^2$ norm, which 
+translates to identy matrix yields eigenvalues that decrease for all $m$.
+\begin{figure}
+  \begin{center}
+    \includegraphics[width=0.75\textwidth]{img/eigen_(i).pdf}
+    \caption{Eigen.Smallest eigenvalues of problem (\ref{eq:S_eig}) with $\Nmat$ as
+    a matrix of $L^2(H^0), H^{-1/2}$ and $H^{-1}$ norms.}
+  \label{fig:pois_eigen_1}
+  \end{center}
+\end{figure}
+Figures \ref{fig:pois_eigen_2}, \ref{fig:pois_eigen_3} show the smallest
+eigenvalues of problems (\ref{eq:Sp_eig}), and (\ref{eq:Sb_eig}) respectively.
+Note that $\Nmat_\mathcal{P}$ due to $H^{-1/2}$ or $H^{-1}$ norm is
+needed to obtain a lower bound on the eigenvalues of the plate problem. On the
+other hand only matrix $\Nmat_\mathcal{B}$ due to $H^{-1}$ gives bounded
+eigenvalues for the beam problem. This is understandable, since in this case
+$\Bp$ is and idenity matrix and so the result says \textit{$\Ab^{-1}$ scales as
+$\Ab^{-1}$}.
+\begin{figure}
+  \begin{center}
+    \includegraphics[width=0.75\textwidth]{img/eigen_(ii).pdf}
+    \caption{Eigen.Smallest eigenvalues of problem (\ref{eq:Sp_eig}) with
+      $\Nmat_\mathcal{P}$ as
+    a matrix of $L^2(H^0), H^{-\tfrac{1}{2}}$ and $H^{-1}$ norms.}
+  \label{fig:pois_eigen_2}
+  \end{center}
+\end{figure}
+\begin{figure}
+  \begin{center}
+    \includegraphics[width=0.75\textwidth]{img/eigen_(iii).pdf}
+    \caption{Eigen.Smallest eigenvalues of problem (\ref{eq:Sb_eig}) with
+      $\Nmat_\mathcal{B}$ as
+    a matrix of $L^2(H^0), H^{-\tfrac{1}{2}}$ and $H^{-1}$ norms.}
+  \label{fig:pois_eigen_3}
+  \end{center}
+\end{figure}
+Finally figure $\ref{fig:pois_eigen_4}$ shows the dependence of discrete 
+Babuska constant for the discretiazation method.
+In agreement with our previous findings the lower bound is obtained only if the
+matrix $\Nmat$ is due to $H^{-1}$ or $H^{-1/2}$ norms.
+\begin{figure}
+  \begin{center}
+    \includegraphics[width=0.75\textwidth]{img/eigen_(iv).pdf}
+    \caption{Eigen.Smallest eigenvalues of problem (\ref{eq:babuska}) with $\Nmat$ as
+    a matrix of $L^2(H^0), H^{-\tfrac{1}{2}}$ and $H^{-1}$ norms and
+  $\Mmat=\Amat$}
+  \label{fig:pois_eigen_4}
+  \end{center}
+\end{figure}
+
+\subsection{Galerkin method with Legendre polynomials}
+The results of eigenvalue problems with matrices due to Galerkin method 
+with basis from combinations of Legendre polynomials are shown in Figures 
+\ref{fig:pois_shen_1}, \ref{fig:pois_shen_2}, \ref{fig:pois_shen_3}, 
+\ref{fig:pois_shen_4}. We note that in this basis $\Amat_1$, the stiffness matrix 
+of one dimensional Laplacian, is an identity matrix. Therefore the curves
+in figures \ref{fig:pois_shen_1}, \ref{fig:pois_shen_2}, \ref{fig:pois_shen_3}
+corresponding to $H^{1}$ norm or no preconditionting(identy matrix) collide.
+The first three figures show that there exists no lower bound on the eigenvalues
+of the Schur complement $S$ or its components $S_\mathcal{P}, S_\mathcal{B}$.
+We see that the eigenvalues drop exponentially if $m$ is increased. If the mass
+matrix is used as the proconditioner, the exponential decay is not as rapid.
+\begin{figure}
+  \begin{center}
+    \includegraphics[width=0.75\textwidth]{img/shen_(i).pdf}
+  \caption{Shen. Smallest eigenvalues of problem (\ref{eq:S_eig}) with $\Nmat$ as
+  a matrix of $L^2(H^0)$ and $H^{-1}$ norms.}
+  \label{fig:pois_shen_1}
+  \end{center}
+\end{figure}
+\begin{figure}
+  \begin{center}
+    \includegraphics[width=0.75\textwidth]{img/shen_(ii).pdf}
+  \caption{Shen. Smallest eigenvalues of problem (\ref{eq:Sp_eig}) with
+    $\Nmat_\mathcal{P}$ as a matrix of $L^2(H^0)$ and $H^{-1}$ norms.}
+  \label{fig:pois_shen_2}
+  \end{center}
+\end{figure}
+\begin{figure}
+  \begin{center}
+    \includegraphics[width=0.75\textwidth]{img/shen_(iii).pdf}
+  \caption{Shen. Smallest eigenvalues of problem (\ref{eq:Sb_eig}) with
+    $\Nmat_\mathcal{B}$ as a matrix of $L^2(H^0)$ and $H^{-1}$ norms.}
+  \label{fig:pois_shen_3}
+  \end{center}
+\end{figure}
+Figure \ref{fig:pois_shen_4} shows the Babuska constant. We see that the
+difference in decay between $\Nmat=\mathbb{I}$ and $\Nmat$ due to $H^{-1}$
+norm is much less. This can perhaps be related to the fact that the scaling
+of the right-hand side is mainly controlled by the two dimensional stiffness
+matrix, which, unlike the in one dimensional case, scales as $\Mmat$, that is,
+its condition number grows exponentially.
+\begin{figure}
+  \begin{center}
+    \includegraphics[width=0.75\textwidth]{img/shen_(iv).pdf}
+    \caption{Shen.Smallest eigenvalues of problem (\ref{eq:babuska}) with $\Nmat$ as
+    a matrix of $L^2(H^0), H^{-1}$ norms and $\Mmat=\Amat$}
+  \label{fig:pois_shen_4}
+  \end{center}
+\end{figure}
+
+\subsection{Finite element method}
+\section{Biharmonic problem}
+\section{Doodles}
+\subsection{Spurious modes}
+The physical processes enters the saddle point problem and the eigenvalue
+problems through the bilinear form $a$ and the norms $m, n$ which induces norms.
+On the discrete level, this translates to matrices $\Amat, \Mmat, \Nmat$. The 
+matrix $\Bmat$ remains unchanged. This permits us to discuss the question of
+existence of the spurious modes regardless of the physical problem, which is
+critical for uniqueness. Note that we are only able to discuss the existence of
+such modes. For stability of discretization the important factor is the relative
+speed with which we approach the space of spurious modes when the discrete spaces
+are inflated. This rate requires norms and therefore cannot be discussed separately.
+
+Recall the condition for uniqueness of the solution to (\ref{system}) read
+$\Bmat\Pvec=0\rightarrow\Pvec=0$. The product on the right hand side can
+be equivalently written as
+\[
+  \Bmat\Pvec = \begin{bmatrix}
+                \Bp \\
+                \Bb
+               \end{bmatrix}
+               \begin{bmatrix}
+                 \Pvec
+               \end{bmatrix}
+               =\begin{bmatrix}
+                \Bp\Pvec \\
+                \Bb\Pvec
+               \end{bmatrix}.
+\]
+Therefore $\Bmat\Pvec=0$ only if $\Pvec\in\ker{\Bp}\cap\ker{\Bb}$. Consider
+  
+% Restriction operator and Trace operator
+% Scaling of matrices
+% 'Strucrure of spaces' by distacne Vb-Q by distances
+%                                   Vp|r by distances
 
 
   \bibliographystyle{plain}

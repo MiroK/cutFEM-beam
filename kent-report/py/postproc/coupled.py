@@ -245,6 +245,7 @@ def plot_beams(beams):
         # Remove ticks
         ax.set_xticklabels([])
         ax.set_yticklabels([])
+        ax.text(0.70, -0.75, str(i))
 
     fig.subplots_adjust(hspace=0, wspace=0)
 
@@ -262,6 +263,9 @@ if __name__ == '__main__':
             shen_laplace_Pblocks1
 
     # Postproc
+    # from matplotlib import rc 
+    # rc('text', usetex=True) 
+    # rc('font',**{'family':'sans-serif','sans-serif':['Helvetica']})
     import matplotlib.pyplot as plt
 
     # Some beam positions
@@ -305,17 +309,15 @@ if __name__ == '__main__':
     params_eigen.update(params)
     params_shen.update(params)
 
-    pickle_name = test_coupled_problem(params_shen)
     pickle_name = 'CoupledShenLaplace_all_equal_test1.pickle'
     data = pickle.load(open(pickle_name, 'rb'))
+
+    print data.keys()
 
     # All markers, colors
     all_markers = ['x', 'd', 's', 'o', 'v', '^', '+']
     all_colors = ['b', 'g', 'r', 'k', 'c', 'm', 'y']
 
-    # Plot
-    key = 'lmin_S'
-    assert key in data
     ns = data['input']['N_list']
     norms = data['input']['norms']
 
@@ -323,6 +325,8 @@ if __name__ == '__main__':
     beam = 0
     # We definitely want plots showing
     # We definitely want plots showing
+    beams_to_plot = [0, 12, 24]
+    # We definitely want plots showing  
     # (i) ns vs lmin(S), in the norms
     # (ii) ns vs lmin(Sp), in the norms
     # (iii) ns vs lmin(Sb), in the norms
@@ -330,54 +334,6 @@ if __name__ == '__main__':
     # (v) ns vs cond(A) and cond(Pa)
     plot = '(iv)'
 
-    if plot in ('(i)', '(ii)', '(iii)', '(iv)'):
-        row_format = ['%d'] + ['%.2E'] * len(norms)
-        header = ['$n$']+['$\mathbb{I}$']+['$H^{%g}$' % s for s in norms[1:]]
-        line_styles = '--'
-        markers = all_markers[:len(norms)]
-        colors = all_colors[:len(norms)]
-        labels=header[1:]
-
-        if plot == '(i)':
-            beam_data = [data[keyS(norm)][beam] for norm in norms]
-            ylabel='$S\lambda_{min}$'
-
-        if plot == '(ii)':
-            beam_data = [data[keySp(norm)][beam] for norm in norms]
-            ylabel='$S_p\lambda_{min}$'
-
-        if plot == '(iii)':
-            beam_data = [data[keySb(norm)][beam] for norm in norms]
-            ylabel='$S_b\lambda_{min}$'
-
-        if plot == '(iv)':
-            beam_data = [data[keyBab(norm)][beam] for norm in norms]
-            ylabel='$\gamma$'
-
-    elif plot == '(v)':
-        beam_data = [data['cond_A'][beam]]
-        row_format = ['%d', '%.2E']
-        header = ['$n$']+['$A$']
-        line_styles = '--'
-        markers=['x']
-        colors=['r']
-        labels=header[1:]
-        ylabel='$\kappa$'
-
-        iter_markers = iter(all_markers)
-        iter_colors = iter(all_colors)
-        for key in data:
-            if key.startswith('cond_PA'):
-                beam_data.append(data[key][beam])
-                row_format.append('%.2E')
-                header.append(key)
-                markers.append(iter_markers.next())
-                colors.append(iter_colors.next())
-                labels.append(key)
-
-    as_tex_table(ns, beam_data, row_format, header)
-    as_plot(ns, beam_data, line_styles, markers, labels, colors, ylabel)
-    plot = '(v)'
     # Setup the parent figure
     n_plots = len(beams_to_plot)
     if n_plots == 1:
@@ -397,7 +353,7 @@ if __name__ == '__main__':
         # Fill in the data for single plot
         if plot in ('(i)', '(ii)', '(iii)', '(iv)'):
             row_format = ['%d'] + ['%.2E'] * len(norms)
-            header = ['$n$']+['$\mathbb{I}$']+['$H^{%g}$' % s for s in norms[1:]]
+            header = ['$n$']+['I']+['$H^{%g}$' % s for s in norms[1:]]
             line_styles = '--'
             markers = all_markers[:len(norms)]
             colors = all_colors[:len(norms)]
@@ -405,15 +361,15 @@ if __name__ == '__main__':
 
             if plot == '(i)':
                 beam_data = [data[keyS(norm)][beam] for norm in norms]
-                ylabel='$S\lambda_{min}$'
+                ylabel='$\lambda_{min}(S)$'
 
             if plot == '(ii)':
                 beam_data = [data[keySp(norm)][beam] for norm in norms]
-                ylabel='$S_p\lambda_{min}$'
+                ylabel='$\lambda_{min}(S_\mathcal{P})$'
 
             if plot == '(iii)':
                 beam_data = [data[keySb(norm)][beam] for norm in norms]
-                ylabel='$S_b\lambda_{min}$'
+                ylabel='$\lambda_{min}(S_\mathcal{B})$'
 
             if plot == '(iv)':
                 beam_data = [data[keyBab(norm)][beam] for norm in norms]
@@ -440,10 +396,12 @@ if __name__ == '__main__':
                     colors.append(iter_colors.next())
                     labels.append(key)
 
+        print 'Beam', beams_to_plot[plot_index]
         as_tex_table(ns, beam_data, row_format, header)
         lines = as_plot(ns, beam_data, line_styles, markers, labels, colors,
                         ylabel, ax)
 
     # Finalize the plot
     fig.legend(lines, labels, loc='lower right')
+    plt.savefig('shen_%s.pdf' % plot)
     plt.show()
