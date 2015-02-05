@@ -19,7 +19,7 @@ def foo(basis, m, beam):
         basis = shen_basis
     else:
         basis = eigen_basis
-    
+
     # Make sure m makes sense for the 5-tuple
     assert m-2 > 2
 
@@ -56,39 +56,51 @@ def foo(basis, m, beam):
 
 if __name__:
     import pickle
+    from mpi4py import MPI
     import matplotlib.pyplot as plt
 
-    # Form 3 beam positions ...    
-
-    A = np.array([-1, -1])
-    B = np.array([1, 1])
+    A = np.array([0, -1])
+    B = np.array([0, 1])
     beam = LineBeam(A, B)
 
-    ms = range(5, 8)
+    ms = range(5, 16)
+
+    # Pickle 0 had diagonal beam
+    # Pickle 1 had vertical beam through 0
 
     # Compute
     if False:
-        eigen_data = dict((m, foo(basis='eigen', m=m, beam=beam)) for m in ms)
-        shen_data = dict((m, foo(basis='shen', m=m, beam=beam)) for m in ms)
+        # Parallelize data computation
+        comm = MPI.COMM_WORLD
+        rank = comm.Get_rank()
+        size = comm.Get_size()
 
-        pickle.dump(eigen_data, open('eigen_trace_scaling0.pickle', 'wb'))
-        pickle.dump(shen_data, open('shen_trace_scaling0.pickle', 'wb'))
+        assert size == 2
+
+        if rank == 0:
+            eigen_data = dict((m, foo(basis='eigen', m=m, beam=beam))
+                              for m in ms)
+            pickle.dump(eigen_data, open('eigen_trace_scaling1.pickle', 'wb'))
+        else:
+            shen_data = dict((m, foo(basis='shen', m=m, beam=beam))
+                             for m in ms)
+            pickle.dump(shen_data, open('shen_trace_scaling1.pickle', 'wb'))
     # Process
     else:
-        eigen_data = pickle.load(open('eigen_trace_scaling0.pickle', 'rb'))
-        shen_data = pickle.load(open('shen_trace_scaling0.pickle', 'rb'))
+        eigen_data = pickle.load(open('eigen_trace_scaling1.pickle', 'rb'))
+        shen_data = pickle.load(open('shen_trace_scaling1.pickle', 'rb'))
         data = {'shen': shen_data, 'eigen': eigen_data}
 
         # Postprocessing, _row is data for given beam position
         colors = {'shen': 'g', 'eigen': 'b'}
         markers = ['s', 'x', 'o', 'v', '^']
-        labels = ['$m-2$', '$m-1$', '$m$', '$m+1$', '$m+2$']
+        labels = ['$n=m-2$', '$n=m-1$', '$n=m$', '$n=m+1$', '$n=m+2$']
 
-        key='shen'
+        key='eigen'
         color = colors[key]
         data = data[key]
         plt.figure()
-        for (col, label, marker) in zip(range(5), labels, markers):
+        for (col, label, marker) in zip(range(5)[:3], labels[:3], markers[:3]):
             col_data = [data[m]['T'][col] for m in ms]
             plt.plot(ms, col_data, label=label, color=color, marker=marker)
 
