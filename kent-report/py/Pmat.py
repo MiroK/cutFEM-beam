@@ -63,22 +63,18 @@ what = 'shen'
 from numba import jit, double, int_
 fast_P_matrix_eigen = jit(double[:, :](int_, int_))(P_matrix_eigen)
 
-from mpl_toolkits.mplot3d import Axes3D
-import matplotlib.pyplot as plt
-
-fig = plt.figure()
-ax = fig.gca(projection='3d')
 
 m = 128
-P = P_matrix_shen(m, 2*m)
+P = P_matrix_eigen(m, 2*m)
 P = np.sqrt(P**2)
+P /= np.max(P)
 
-X, Y = np.meshgrid(np.arange(256), np.arange(128))
-print X.shape, Y.shape
-ax.plot_surface(X, Y, P)
-# plt.colorbar()
-# plt.axis('tight')
-# plt.xlabel('$n$')
-# plt.ylabel('$m$')
+import matplotlib.pyplot as plt
+fig = plt.figure()
+plt.pcolor(P)
+plt.colorbar()
+plt.axis('tight')
+plt.ylabel('$n$')
+plt.xlabel('$m$')
 plt.show()
 
