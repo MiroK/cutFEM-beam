@@ -64,7 +64,7 @@ if __name__:
     B = np.array([1, 1])
     beam = LineBeam(A, B)
 
-    ms = range(5, 8)
+    ms = range(5, 16)
 
     # Compute
     if False:
@@ -75,26 +75,47 @@ if __name__:
         pickle.dump(shen_data, open('shen_trace_scaling0.pickle', 'wb'))
     # Process
     else:
-        eigen_data = pickle.load(open('eigen_trace_scaling0.pickle', 'rb'))
-        shen_data = pickle.load(open('shen_trace_scaling0.pickle', 'rb'))
-        data = {'shen': shen_data, 'eigen': eigen_data}
+        oper = 'T'
+        plt.figure()
+
+        key = 'eigen'
+        orient = 1
 
         # Postprocessing, _row is data for given beam position
         colors = {'shen': 'g', 'eigen': 'b'}
-        markers = ['s', 'x', 'o', 'v', '^']
+        markers = iter(['s', 'x', 'o', 'v', '^'])
         labels = ['$m-2$', '$m-1$', '$m$', '$m+1$', '$m+2$']
 
-        key='shen'
-        color = colors[key]
-        data = data[key]
-        plt.figure()
-        for (col, label, marker) in zip(range(5), labels, markers):
-            col_data = [data[m]['T'][col] for m in ms]
-            plt.plot(ms, col_data,
-                     label=label, color=color, marker=marker, linestyle='--')
+        for key in ('eigen', 'shen'):
+            for orient in (0, 1):
+                eigen_data = pickle.load(open('eigen_trace_scaling%d.pickle' % orient,
+                                              'rb'))
+                shen_data = pickle.load(open('shen_trace_scaling%d.pickle' % orient,
+                                             'rb'))
+                data = {'shen': shen_data, 'eigen': eigen_data}
+
+                color = colors[key]
+                data = data[key]
+
+                labell = 'E' if key == 'eigen' else 'S'
+                labell += '|' if orient == 1 else '/'
+
+                for col in [3]:
+                    marker = next(markers)
+                    col_data = [data[m][oper][col] for m in ms]
+                    plt.plot(ms, col_data, label=labell, color=color,
+                             marker=marker, linestyle='--')
 
         plt.xlabel('$m$')
         plt.ylabel('$\kappa$')
         plt.legend(loc='best')
+        plt.ylim((1, 10))
+
+        orient = {0: 'diag', 1: 'vert'}[orient]
+
+        name = '_'.join([oper, key, str(orient)])
+
+        # plt.savefig('m_all_T.pdf')
+
         plt.show()
 

@@ -34,12 +34,14 @@ def Ashen2d(n):
 # -----------------------------------------------------------------------------
 
 if __name__ == '__main__':
+    from matplotlib import rc 
+    rc('text', usetex=True) 
+    rc('font',**{'family':'sans-serif','sans-serif':['Helvetica']})
     import matplotlib.pyplot as plt
-
 
     ns = np.arange(2, 20)
     
-    # Plot 1d 
+    # Plot 2d 
     if False:
         condMe = np.array([cond(Meig1d(n)) for n in ns])
         condAe = np.array([cond(Aeig1d(n)) for n in ns])
@@ -55,9 +57,10 @@ if __name__ == '__main__':
     plt.figure()
     plt.loglog(ns, condMe, label='$M_E$', color='b', marker='s', linestyle='--')
     plt.loglog(ns, condAe, label='$A_E$', color='g', marker='s', linestyle='--')
-    plt.loglog(ns, condMs, label='$A_S$', color='b', marker='o', linestyle='--')
+    plt.loglog(ns, condMs, label='$M_S$', color='b', marker='o', linestyle='--')
     plt.loglog(ns, condAs, label='$A_S$', color='g', marker='o', linestyle='--')
     plt.legend(loc='best')
     plt.xlabel('$n$')
     plt.ylabel('$\kappa$')
+    plt.savefig('matrix_scaling_2d.pdf')
     plt.show()
