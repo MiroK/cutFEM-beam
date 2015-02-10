@@ -63,7 +63,7 @@ def Meig_matrix(n):
 P_conds = {}
 A_norms = {}
 M_norms = {}
-for n in [2, 4, 8, 16, 24, 32, 40, 48, 56, 64]:
+for n in [2, 4, 8, 16, 24, 32, 40]:
     A = Aeig_matrix(n)
     M = Meig_matrix(n)
 
@@ -72,7 +72,7 @@ for n in [2, 4, 8, 16, 24, 32, 40, 48, 56, 64]:
 
     A_row, M_row, P_row = [], [], []
 
-    for m in [2, 4, 8, 16, 32, 64, 128, 256]:
+    for m in [2, 4, 8, 16, 24, 32, 40, 48, 64, 72, 80, 96, 128, 256]:
         Ashen = Ashen_matrix(m)
         Mshen = Mshen_matrix(m)
 
@@ -104,7 +104,7 @@ for n in [2, 4, 8, 16, 24, 32, 40, 48, 56, 64]:
         M_row.append(M_norm)
         P_row.append(P_cond)
 
-        if abs(A_norm) < 1E-14 and abs(M_norm) < 1E-14:
+        if abs(A_norm) < 1E-13 and abs(M_norm) < 1E-13:
             break
 
     # Collect for n

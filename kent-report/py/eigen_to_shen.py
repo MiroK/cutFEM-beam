@@ -63,7 +63,7 @@ def Meig_matrix(n):
 P_conds = {}
 A_norms = {}
 M_norms = {}
-for n in [2, 4, 8, 16, 24, 32, 40, 48]:
+for n in [2, 4, 8, 12, 16, 20]:
     A = Ashen_matrix(n)
     M = Mshen_matrix(n)
 
@@ -72,7 +72,7 @@ for n in [2, 4, 8, 16, 24, 32, 40, 48]:
 
     A_row, M_row, P_row = [], [], []
 
-    for m in [2, 4, 8, 16, 32, 64, 128]:
+    for m in [2, 4, 8, 16, 20, 32, 64, 128, 256]:
         Aeig = Aeig_matrix(m)
         Meig = Meig_matrix(m)
 
