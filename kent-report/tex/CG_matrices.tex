@@ -986,10 +986,7 @@ $\norm{\Mmat-\Mmmat}_F$ & 4.32E-07& 6.02E-06& 3.03E-05& 3.12E-05& 1.48E-04 \\
   \label{tab:shen_P}
   \end{center}
   \end{table}
-
-
   %TODO There should be some comment on the $L^2$ projection
- 
   %TODO curved arrow, and labels for maps
   \begin{figure}
     \begin{center}
@@ -998,11 +995,106 @@ $\norm{\Mmat-\Mmmat}_F$ & 4.32E-07& 6.02E-06& 3.03E-05& 3.12E-05& 1.48E-04 \\
     \label{fig:graph}
     \end{center}
   \end{figure}
+  
+  Let us review our progress so far. Looking at Figure (\ref{fig:graph}) we
+  see that we have built edges between the finite element space 
+  and the spaces of eigenfunctions and polynomials. The figure does not seem
+  complete and clearly what is missing is the connection between the
+  eigenfunctions and the polynomials. We shall establish such connections in the
+  next two sections.
 
-% ----------------
+  \section{Legendre $\rightarrow$ Eigen}
+  To any function from $V_n=\spn\left\{\varphi_i\right\}_{i=0}^{n-1}$ we shall
+  assign function $\Pi_m\varphi_i\in V_m=\spn\left\{\psi_i\right\}_{i=0}^{m-1}$.
+  As in the previous section we let
+  \[
+    \Pi_m\varphi_i=\displaystyle\sum\limits_{k=0}^{m-1}c_k\psi_k
+    \quad\text{ with }\quad
+    c_k = \inner{\varphi^{\prime}_i}{\psi^{\prime}_k}.
+  \]
+  Observe that $c_k=\lambda_i\inner{\varphi_i}{\psi_k}$. The coefficients
+  of $\Pi_m$ projection can thus be computed from coefficients of Fourier
+  series of Legendre polynomials for which \cite{arxiv} give the following
+  formula
+  \[
+    \inner
+    {L_k}{e^{\imath\lambda x}}=\i^k\sqrt{\frac{2\pi}{\lambda}}J_{k+1/2}(\lambda).
+  \]
+  Using assymptotics of the Bessel function \TODO{$^{\text{citation needed}}$}
+  $J_k(x)\propto\frac{1}{2\pi k}\left(\frac{e\lambda}{2k}\right)^{k}$ we see
+  that for the wave number $k>k0$ where $k_0=\frac{e\lambda-1}{2}$ the expansion
+  coefficients decrease exponentially. In turn $\phi_i - \Pi_m\phi_i$ decreases
+  exponentially for $m>i$ in the $L^2$ or $H^1_0$ norms. Also note that
+  the critical wavenumber $k_0$ grows linearly with the frequency. The
+  approximation properties of the projection should translate into following
+  properties of the matrix approximations:
+  \begin{enumerate}
+    \item $\norm{\Amat - \Ammat}$ decreases exponentially for $m>n$
+    \item $\norm{\Mmat - \Mmmat}$ decreases exponentially for $m>n$
+    \item $\kappa(\Pmat)=n$ 
+  \end{enumerate}
+  The first two points follow from ideas which should be sufficiently familiar
+  by now. The reasoning for the last point is as follows. We have
+  $\Ammatt=\mathbb{I}$, consequently $\Ammat=\Pmat\Pmatt$ but
+  $\Pmat\Pmatt\rightarrow\Amat$. Further $\kappa(\Amat)\propto n^2$ from where
+  \TODO{this is somewhere in Golub} $\kappa{\Pmat}\propto n$. Finally for two
+  by two matrix $\Amat$ we have $\kappa(\Amat)=\pi^2/\frac{\pi^2}{4}$ and thus
+  $\kappa(\Pmat)=n$.
 
-  %\section{Legendre $\leftrightarrow$ FEM}
+  These conjectures agree with the numerical experiments. Figure \ref{fig:se_mat}
+  confirms exponential decay of both matrix approximations. In Figure
+  \ref{fig:se_P} we observe that the condition number of the transformation
+  matrix converges to prediceted value of $2n$. This result is also highlighted
+  in Table \ref{tab:se_P}. Further we observe that just as in the transformation
+  to finite element space the square transoformation has a condition number
+  which grows exponentially.
+
+  \begin{figure}
+  \begin{center}
+    \includegraphics[width=0.45\textwidth]{img/seA.pdf}
+    \includegraphics[width=0.45\textwidth]{img/seM.pdf}
+  \end{center}
+  \label{fig:se_mat}
+  \caption{Convergence rate of matrix approximation. (left) The transformed
+    stiffness matrix. (right) The transformed mass matrix.
+    Both matrix approximation converge exponentially for $V_m>n$.
+  }
+  \end{figure}
+
+  \begin{table}
+    \begin{center}
+    \begin{tabular}{|c||c|c|c|c|c|c|c|}
+      \hline
+      $n$ & 2& 4& 8& 16& 24& 32& 40\\
+      \hline\hline
+      $\Pmat$ & 2.00(16)& 4.00(24)& 8.00(32)& 16.00(64)& 24.00(72)& 32.00(96)&40.00(96) \\
+      \hline
+      $\mathbb{P}_{n}$ & 1.94E+00& 3.30E+00& 6.23E+00& 2.40E+01& 4.42E+02&
+      9.13E+03& 2.01E+05 \\
+      \hline
+    \end{tabular}
+  \caption{Condition number for the transformation matrix $\Pmat$.
+    (row i) Condition number of $n\times m$. The $m$ value
+    is shown in the corner. The condition number grows as $n$.
+    (row ii) Condition number of square trasformation matrix grows
+    exponentially.}
+  \label{tab:se_P}
+  \end{center}
+  \end{table}
+
+  \begin{figure}
+  \begin{center}
+    \includegraphics[width=0.5\textwidth]{img/sePmn.pdf}
+  \end{center}
+  \label{fig:se_P}
+  \caption{Condition number of the transformation matrix $\Pmat$ for different $n$.
+    Note that the matrix is rectangular in general.}
+  \end{figure}
+
+  \section{Eigen $\rightarrow$ Legendre}
   % I read something about this being analytical
+  % interpolation in from/to both spaces
+
   % We will do shen->eigen and shen<-eigen
   %
   %
@@ -1014,6 +1106,7 @@ $\norm{\Mmat-\Mmmat}_F$ & 4.32E-07& 6.02E-06& 3.03E-05& 3.12E-05& 1.48E-04 \\
   % When you are finish, you have a draft.
   % Print out and read: correcting mistakes but mostly getting new questions.
   % Then try to answer all the questions
+  % Most likely revise notation
   % Rewrite send to kent
   % Can we put the paper into some framework?
   % If yes, great, do it, polish and ta da.
