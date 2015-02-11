@@ -802,14 +802,16 @@ its condition number grows exponentially.
 \section{Doodles}
 \subsection{Spurious modes}
 The physical processes enters the saddle point problem and the eigenvalue
-problems through the bilinear form $a$ and the norms $m, n$ which induces norms.
+problems through the bilinear form $a$ and the forms $m, n$ which induces norms.
 On the discrete level, this translates to matrices $\Amat, \Mmat, \Nmat$. The 
 matrix $\Bmat$ remains unchanged. This permits us to discuss the question of
 existence of the spurious modes regardless of the physical problem, which is
-critical for uniqueness. Note that we are only able to discuss the existence of
-such modes. For stability of discretization the important factor is the relative
-speed with which we approach the space of spurious modes when the discrete spaces
-are inflated. This rate requires norms and therefore cannot be discussed separately.
+critical for uniqueness.
+
+% Note that we are only able to discuss the existence of
+% such modes. For stability of discretization the important factor is the relative
+% speed with which we approach the space of spurious modes when the discrete spaces
+% are inflated. This rate requires norms and therefore cannot be discussed separately.
 
 Recall the condition for uniqueness of the solution to (\ref{system}) read
 $\Bmat\Pvec=0\rightarrow\Pvec=0$. The product on the right hand side can
@@ -827,14 +829,196 @@ be equivalently written as
                 \Bb\Pvec
                \end{bmatrix}.
 \]
-Therefore $\Bmat\Pvec=0$ only if $\Pvec\in\ker{\Bp}\cap\ker{\Bb}$. Consider
-  
-% Restriction operator and Trace operator
-% Scaling of matrices
+Therefore $\Bmat\Pvec=0$ only if $\Pvec\in\ker{\Bp}\cap\ker{\Bb}$. We shall
+first study kernel of $\Bb$. Recall that the matrix $\Bb\in \R^{n \times m}$
+constrains the beam unknown and in general has components given as
+\[
+  \left(\Bb\right)_{ij}\frac{L}{2}\int_{-1}^{1}\varphi_i\psi_j\meas{s},
+\]
+where $\left\{\varphi_i\right\}_{i=0}^{n-1}$ is the basis of approximation
+to $\Vb$ while $\left\{\psi_i\right\}_{i=0}^{m-1}$ is the basis for the
+approximation to $Q$. In the following we shall denote these approximate spaces
+as ${\Vb}_h$ and $Q_h$. In our implementation we have both spaces spanned by
+the same functions.
+
+Consider first the spaces spanned by the eigenfunctions. In case $m=n$ we have
+${\Vb}_h=Q_h$ and the matrix $\Bb$ is the an identity matrix. Clearly, $\Bb\Pvec=0$
+only if $\Pvec=0$ and there are vectors in the kernel. For $m<n$ the matrix $\Bb$
+has an $n$ by $n$ identity matrix in the first $n$ rows while the remaining
+$m-n$ rows are zero. The matrix clearly has a full column rank and again
+the kernel contains just a zero vector. Finally for $m > n$ the matrix has an
+$m$ by $m$ idenity block in the first $m$ columns while the remaining $n-m$ 
+columns are zeros. If follows that $\text{dim}\ker\Bb=n-m$. In summary we have
+shown that if $Q_h\subseteq {\Vb}_h$ then $\ker\Bb=\left\{0\right\}$.
+
+Next consider spaces ${\Vb}_h, Q_h$ spanned by the polynomials of
+\cite{shen_leg}. For ${\Vb}_h=Q_h$, the square matrix $\Bb$ is invertible
+and $\Bb\Pvec=0 \leftrightarrow P=0$. If $m<n$ we have $Q_h\subset{\Vb}_h$.
+Assume now that there exist $0\neq\Pvec$ such that $\Bb\Pvec = 0$, or
+equivalently, $\exists p\in Q_h; \inner{v}{p} = 0\forall v\in{\Vb}_h$. But then
+as a special case we have $\inner{p}{p} = 0$ which contradicts $p\neq 0$.
+Finally if $Q_h\supset{\Vb}_h$ we observe that question of existence of a
+non-trivial kernel is equivalent to existence of an element within $Q_h$ that is
+orthogonal to ${\Vb}_h$. Surely such an element can be constructed. Below we
+do this for $m=n+1$. For simplicity we have $m$ even. We observe that the
+system $\Bb\Pvec=0$ can be broken into two decoupled systems
+\[ {\Bb}_{\text{even}}\Pvec_{\text{even}}=0
+  \quad\text{ and }\quad
+  {\Bb}_{\text{odd}}\Pvec_{\text{odd}}=0.
+\]
+Here $\Pvec_{\text{even}}$ has only even entries of $\Pvec$ while
+${\Bb}_{\text{even}}$ consists of nonzero entries in even rows of $\Bb$. Vector
+$\Pvec_{\text{odd}}$ and matrix ${\Bb}_{\text{odd}}$ are defined analogically.
+The first system is a square with the size $m/2$ and symmetric, positive
+definite matrix yielding $\Pvec_{\text{even}}=0$. The ``odd'' system has
+$m/2-1$ equations for $m/2$ unknowns but can be transoformed into a square 
+system by moving the degree of freedom of $\psi_{m-1}$ to the right hand size,
+i.e. by choosing the component in $\spn\left\{\psi_{m-1}\right\}$. Solving the
+system yields $\Pvec_{\text{odd}}\neq 0$. We have thus found a nonzero vector
+in the kernel of $\Bb$. Moreover we have also shown that $\text{dim}\ker\Bb=1$.
+Similar to the eigenfunctions we conclude that $\text{dim}\ker\Bb=0$ for
+$Q_h\subseteq {\Vb}_h$.
+\TODO{FEM}
+\TODO{$\Bp$}
+\TODO{This seems to show that as far as spurious modes are concerned choosing
+${\Vb}_h, Q_h$ right can always save the day. Right? But this is not the entire
+story for the stability...}
+
+Some insight into the behaviour of the eigenvalues might be provided by looking
+at the scaling of matrices. We first look at the condition number of matrices
+which make up blocks $\Ap, \Ab$ in the Poisson problem. Then we consider blocks
+of the constraints.
+
+\subsection{Scaling of ``physics'' matrices}
+In 1D the mass matrix assembled on the space spanned by the eigenfunctions with
+dimension $n$ is simply $M_E=\mathbb{I}_n$, while the stiffness matrix is a
+diagonal matrix with entries $\left(A_E\right)_{ii}=\lambda_i$, where the
+$\lambda_i=\left(\frac{\pi}{2}+i\frac{\pi}{2}\right)^2$. In turn we have the
+following relations for the condition numbers of the matrices
+\[
+\kappa(M_E)=1\quad\text{ and }\quad\kappa(A_e) = n^2.
+\]
+Assembling on the space spanned by the polynomials due to Shen, the stiffness
+matrix is simply an identity, $A_S=\mathbb{I}_n$ while the mass matrix is
+sparse with at most three nonzero entries in each row
+\[
+  \left(M_S\right)_{ii} = \beta_i^2\left(\frac{2}{2i+1}+\frac{2}{2i+5}\right)
+  \quad{\text{ and }}\quad
+  \left(M_S\right)_{i(i+2)} = -\beta_i\beta_{i+2}\frac{2}{2(i+2)+1},
+\]
+where $\beta_k = \frac{1}{\sqrt{4k + 6}}$. Therefore $\kappa(A_S)=1$. Further
+it can be \TODO{shown} that the condition number of mass matrix grows
+exponentially.
+
+Due to tensor product structure of spaces in two dimensions we have
+\[
+  M_E = M_E \otimes M_E\quad\text{ and }\quad M_S = M_S \otimes M_S,
+\]
+where the right-hand side matrices are from 1D, while the left-hand side
+matrices are 2D. As such $\kappa(M_E)=1$ and $\kappa(M_S)$ is expected to grow
+twice the rate of one-dimensional matrix $M_S$. Finally, the two-dimension
+stiffness matrices are given as
+\[
+  A_E = A_E \otimes \mathbb{I} + \mathbb{I} \otimes A_E
+  \quad\text{ and }\quad 
+  A_S = \mathbb{I} \otimes M_S + M_S\otimes \mathbb{I}.
+\]
+This implies that the condition number of $A_E$ should grow quadratically with
+the degree of polynomials, while exponential dependence (due to $M_S$) is
+expected for $A_S$. Figure \ref{fig:matrix_scaling} confirms the estimates.
+\begin{figure}
+  \begin{center}
+    \includegraphics[width=0.45\textwidth]{img/matrix_scaling_1d.pdf}
+    \includegraphics[width=0.45\textwidth]{img/matrix_scaling_2d.pdf}
+    \caption{Scaling of mass and stiffness matrices of the eigenfunction basis
+    $M_E, A_E$ and of the Shen basis $M_S, A_S$. (left) One dimensional case
+  corresponding to beam physics. (right) Two dimensional case corresponding to
+  plate physics.}
+  \label{fig:matrix_scaling}
+  \end{center}
+\end{figure}
+
+\subsection{Trace matrices}
+In this section we shall set ${\Vb}_h=Q_h$ (this choice is motivated by the 
+fact that it guarantees that the matrix $\Bb$ has a trivial kernel) and 
+concentrate of the coupling between this space and the space ${\Vp}_h$ where
+the approximation of the plate unknown is sought.
+
+We let ${\Vb}_h=\spn\left\{\phi_i(s)\right\}_{i=0}^{n-1}$ and
+${\Vp}_h=\spn\left\{\phi_i(x) \phi_j(y)\right\}_{i, j=0, 0}^{m-1, m-1}$ where
+$\phi_i$ denotes a generic (eigenfunction, Shen polynomial) basis function.
+Further we shall define beam 
+$\left\{\vec{x}\in\mathcal{P}, \vec{x}=\chi(s), s\in\left[-1, 1\right]\right\}$
+for $\vec{\chi}(s)=\frac{\vec{A}}{2}(1-s) +\frac{\vec{B}}{2}(1+s)$ with some
+distinct points $\vec{A}, \vec{B}$ on the plate boundary. We are finally
+interested in properties of the mapping $T:{\Vp}_h\mapsto{\Vb}_h$ defined
+by
+\begin{equation}
+  \label{eq:trace_cont}
+\inner{u\circ\chi}{w} = \inner{v}{w}\quad\forall w\in{\Vb}_h.
+\end{equation}
+Let $\mathbf{U}\in\R^{m^2}$, $\mathbf{V}\in\R^{n}$ denote the vectors of expansion
+coefficients of $u\in{\Vp}_h, v\in{\Vb}_h$ while $\mathbb{R}\in\R^{m^2\times n}$
+should denote the matrix corresponding to the form on the left-hand side of
+(\ref{eq:trace_cont}). With this notation (\ref{eq:trace_cont}) can be
+written as
+\[
+  \mathbb{R}\mathbf{U} = \Mmat\mathbf{V}.
+\]
+We shall refer to $\mathbb{T}\defeq\Mmat^{-1}\mathbb{R}$ as the trace matrix.
+Note that the matrix $\Bp$ can be viewed as $\Bp=\Mmat\mathbb{R}$. We shall
+study first the properties of the trace matrix by conduction a numerical
+experiment: For two beam positions (i) $\vec{A}=(-1, -1), \vec{B}=(1,
+1)$ and (ii) $\vec{A}= (0, -1), \vec{B} = (0, 1)$, consider ${\Vp})_h$ spanned
+by $m^2$ spanned by varying $m$ while ${\Vb}_h$ is spanned by $m-2, m-1, \dots,
+m+2$ basis functions. We are interested in how the tupe $(m, n)$, the beam
+position and the basis function $\phi_i$ effect the condition number of the
+matrix.
+
+Our results are summarized in Figures {\ref{fig:trace_scaling_m}},
+{\ref{fig:trace_scaling}}. The first regure consider the case $m=n$, where
+the degree of polynomials for Shen/highest wavenumber for eigenfunctions in a
+single variable is the same in the plate space and the beam space. We see that
+in both basis the condition number of the trace matrix for the verticel beam
+(ii) is one. For the diagonal beam (i) the condition number of the matrix
+due to eigenbasis is constant while it increases linearly for the polynomials.
+\begin{figure}
+  \begin{center}
+    \includegraphics[width=0.75\textwidth]{img/m_all_T.pdf}
+    \caption{Scaling of square matrices of the trace operator.}
+  \label{fig:trace_scaling_m}
+  \end{center}
+\end{figure}
+Figure {\ref{fig:trace_scaling}} shows the condition number also for the
+non-symmetric cases $n=m-2, n=m+2$. In the first case the space 
+${\Vb}_h$ contains functions of smaller degree/frequency than ${\Vp}_h$. In the
+second case the statement is reversed. We observer that for $n=m+2$ and
+vertical beam, the trace matrix has a very large condition number. This is
+not the case for the diagonal beam, where the condition number is bounded
+for the eigenfunctions while it increases linearly for the polynomials.
+\TODO{Why? And, so what? :)}
+\begin{figure}
+  \begin{center}
+    \includegraphics[width=0.45\textwidth]{img/T_eigen_diag.pdf}
+    \includegraphics[width=0.45\textwidth]{img/T_shen_diag.pdf}\\
+    \includegraphics[width=0.45\textwidth]{img/T_eigen_vert.pdf}
+    \includegraphics[width=0.45\textwidth]{img/T_shen_vert.pdf}\\
+    \caption{Scaling of the matrices of the trace operator. (first row) 
+    Diagonal beam position. The condition number of matrices from the eigen basis
+    converges for all $n$ (left), while for matrices of the Shen basis it
+    increases for all $n$ (right). (second row) Vertical beam position. The
+    condition number explodes for case where the multiplier space contains
+    polynomials of higher degree than the space of the plate unknown.
+  }
+  \label{fig:trace_scaling}
+  \end{center}
+\end{figure}
+
+
 % 'Strucrure of spaces' by distacne Vb-Q by distances
 %                                   Vp|r by distances
 
-
+  \newpage
   \bibliographystyle{plain}
   \bibliography{plate_beam}
 \end{document}

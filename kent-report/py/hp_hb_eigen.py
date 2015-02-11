@@ -93,12 +93,13 @@ def hb_matrix(m, norm, beam):
 if __name__ == '__main__':
     import pickle
     norm = 'H10'
-    ms = np.arange(2, 4)
+    ms = np.arange(3, 4)
     s = sp.Symbol('s')
 
     As = [(-1, -1), (0, -1), (-0.75, -1)]
     Bs = [(1, 1), (0, 1), (0.25, 1)]
 
+    np.set_printoptions(precision=2)
     data = {'beam': [], 'plate': [], 'combined': [], 'm': ms}
     for beam_index, (A, B) in enumerate(zip(As, Bs)):
         beam = (0.5*A[0]*(1-s) + 0.5*B[0]*(1+s),
@@ -116,6 +117,9 @@ if __name__ == '__main__':
             plate_mat = hp_matrix(m, norm)
             # Only the restricted norm  H(B)
             restricted_mat = hb_matrix(m, norm, beam)
+
+            print restricted_mat
+
             # Combination H(P) \cap H(B)
             combined_mat = plate_mat + restricted_mat
 

@@ -1,4 +1,4 @@
-all: plate_beam.pdf
+all: plate_beam.pdf view
 
 plate_beam.pdf: plate_beam.tex plate_beam.bib
 	pdflatex plate_beam.tex
