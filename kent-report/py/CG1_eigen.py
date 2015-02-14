@@ -1,6 +1,7 @@
 from __future__ import division
 from dolfin import *
 import numpy as np
+from scipy.linalg import eigh
 import numpy.linalg as la
 import math 
 
@@ -76,6 +77,17 @@ n = A.shape[0]  # One less than the num of elements
 # from Aeig, Meig, the m x m stiffness and mass matrices in the eigenbasis, and
 # the transformation matrix P which is n x m and takes the eigenfunctions to CG1
 # functions.
+
+# One more experiment. Say you set up in FEM the generalized eigenvalue problem
+# Au = lamdbda Mu. or A U = M U LAMBDA so thet Ut M U = I and Ut M U = LAMBDA
+# It follows that A = (MU) LAMBDA (MU)t. We have that A corresponds to H10
+# norm. We defina A01 = (MU) LAMBDA**0.5 (MU)t. The claim is that this matrix
+# is A limit of P A_eig**0.5 Pt
+Lmbda, U = eigh(A, M)
+Lmbda = np.diag(Lmbda)
+V = (M.dot(U))
+A01 = V.dot(Lmbda.dot(V.T))
+
 temp = 'm=%d, |A-A_|=%.2E, A_rate=%.2f, |M-M_|=%.2E, M_rate=%.2f, lmbda=%.2E lmbda_rate=%.2f'
 for m in [16, 32, 64, 128, 256]:
     eigen_functions = eigen_basis(m)
@@ -105,23 +117,31 @@ for m in [16, 32, 64, 128, 256]:
         for j, f in enumerate(eigen_functions):
             P[i, j] = assemble(inner(cg, f)*dx)
 
-    # Compute A_ as P*Aeig*.Pt ans same for M
+    # Compute A_ as P*Aeig*.Pt ans same for M and A01_
     A_ = P.dot(Aeig.dot(P.T))
     M_ = P.dot(Meig.dot(P.T))
+    A01_ = P.dot((Aeig**0.5).dot(P.T))
 
     A_norm = la.norm(A-A_, 2)
     M_norm = la.norm(M-M_, 2)
+    A01_norm = la.norm(A01-A01_, 2)
+
     lmbda = np.sort(la.eigvals(M-M_))[-1]
     if m != 16:
         rateA = ln(A_norm/A_norm_)/ln(m_/m)
         rateM = ln(M_norm/M_norm_)/ln(m_/m)
+        rateA01 = ln(A01_norm/A01_norm_)/(m_/m)
+
         rate_lmbda = ln(lmbda/lmbda_)/ln(m_/m)
 
         print temp % (m, la.norm(A-A_), rateA, la.norm(M-M_), rateM,
                       lmbda, rate_lmbda)
 
+        print '>>> A01: error=%.2E rate=%.2f' % (A01_norm, rateA01)
+
     A_norm_ = A_norm
     M_norm_ = M_norm
+    A01_norm_ = A01_norm
     lmbda_ = lmbda
     m_ = m
 
